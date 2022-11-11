@@ -1,30 +1,42 @@
 package com.telakuR.easyorder.ui.theme
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.darkColors
-import androidx.compose.material.lightColors
-import androidx.compose.runtime.Composable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material.icons.outlined.Close
+import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Color.Companion.DarkGray
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.telakuR.easyorder.R
 
 private val DarkColorPalette = darkColors(
-    primary = Purple200,
-    primaryVariant = Purple700,
-    secondary = Teal200
+    primary = Color.White,
+    background = DarkGray,
+    onBackground = Color.White,
+    surface = Color.Black,
+    onSurface = DarkGray
 )
 
 private val LightColorPalette = lightColors(
-    primary = Purple500,
-    primaryVariant = Purple700,
-    secondary = Teal200
-
-    /* Other default colors to override
-    background = Color.White,
-    surface = Color.White,
-    onPrimary = Color.White,
-    onSecondary = Color.Black,
-    onBackground = Color.Black,
-    onSurface = Color.Black,
-    */
+    primary = Color.White,
+    secondary = Color.Black
 )
 
 @Composable
@@ -41,4 +53,124 @@ fun EasyOrderTheme(darkTheme: Boolean = isSystemInDarkTheme(), content: @Composa
         shapes = Shapes,
         content = content
     )
+}
+
+@Composable
+fun AppThemeLogo() {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.Top,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Image(
+            painter = painterResource(R.drawable.ic_easy_order_logo),
+            contentDescription = "EasyOrder logo",
+        )
+
+        Text(text = stringResource(R.string.app_name),
+            fontSize = 40.sp,
+            color = PrimaryColor,
+            fontWeight = FontWeight.Bold)
+
+        Text(text = stringResource(R.string.easy_order_description),
+            fontSize = 15.sp
+        )
+    }
+}
+
+@Composable
+fun CustomTextField(labelValue: String, imageVector: ImageVector) {
+    var textState by remember { mutableStateOf("") }
+    TextField(
+        leadingIcon = {
+            Icon(imageVector = imageVector, null, tint = PrimaryColor)
+        },
+        value = textState,
+        colors = TextFieldDefaults.textFieldColors(
+            backgroundColor = Color.White,
+            cursorColor = Color.Black,
+            focusedIndicatorColor = Color.Transparent,
+            unfocusedIndicatorColor = Color.Transparent
+        ),
+        onValueChange = {
+            textState = it
+        },
+        modifier = Modifier
+            .padding(10.dp)
+            .width(280.dp),
+        placeholder = { Text(labelValue) },
+        shape = RoundedCornerShape(8.dp),
+        singleLine = true,
+        trailingIcon = {
+            if (textState.isNotEmpty()) {
+                IconButton(onClick = { textState = "" }) {
+                    Icon(
+                        imageVector = Icons.Outlined.Close,
+                        contentDescription = null
+                    )
+                }
+            }
+        }
+    )
+}
+
+@Composable
+fun CustomPasswordTextField(labelValue: String, showPassword: Boolean) {
+    var textState by remember { mutableStateOf("") }
+    var passwordVisible by rememberSaveable { mutableStateOf(showPassword) }
+
+    TextField(
+        value = textState,
+        colors = TextFieldDefaults.textFieldColors(
+            backgroundColor = Color.White,
+            cursorColor = Color.Black,
+            focusedIndicatorColor = Color.Transparent,
+            unfocusedIndicatorColor = Color.Transparent
+        ),
+        onValueChange = {
+            textState = it
+        },
+        leadingIcon = {
+            Icon(imageVector = Icons.Default.Lock, null, tint = PrimaryColor)
+        },
+        visualTransformation = if (passwordVisible) {
+            VisualTransformation.None
+        } else {
+            PasswordVisualTransformation()
+        },
+        trailingIcon = {
+            val image = if (passwordVisible)
+                Icons.Filled.Visibility
+            else Icons.Filled.VisibilityOff
+
+            IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                Icon(imageVector = image, null)
+            }
+        },
+        modifier = Modifier
+            .padding(10.dp)
+            .width(280.dp),
+        placeholder = { Text(labelValue) },
+        shape = RoundedCornerShape(8.dp),
+        singleLine = true
+    )
+}
+
+@Composable
+fun MainButton(text: String) {
+    OutlinedButton(
+        onClick = { },
+        modifier = Modifier
+            .width(150.dp)
+            .height(70.dp)
+            .padding(5.dp),
+        shape = RoundedCornerShape(20.dp),
+        contentPadding = PaddingValues(0.dp),
+        colors = ButtonDefaults.outlinedButtonColors(
+            backgroundColor = PrimaryColor,
+            contentColor = Color.White
+        )
+    ) {
+        Text(text = text)
+    }
 }

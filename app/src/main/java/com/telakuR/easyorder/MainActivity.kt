@@ -1,16 +1,11 @@
 package com.telakuR.easyorder
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Surface
-import androidx.compose.material.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import com.telakuR.easyorder.authentication.ui.AuthenticationActivity
 import com.telakuR.easyorder.ui.theme.EasyOrderTheme
 
 class MainActivity : ComponentActivity() {
@@ -19,21 +14,16 @@ class MainActivity : ComponentActivity() {
         installSplashScreen()
         setContent {
             EasyOrderTheme {
-                Text(text = "Hi")
+                openLoginActivity()
             }
         }
     }
-}
 
-@Composable
-fun Greeting(name: String) {
-    Text(text = "Hello $name!")
-}
-
-@Preview(showBackground = true)
-@Composable
-fun DefaultPreview() {
-    EasyOrderTheme {
-        Greeting("Android")
+    private fun openLoginActivity() {
+        val loginIntent = Intent(this@MainActivity, AuthenticationActivity::class.java)
+        loginIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        loginIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
+        loginIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+        startActivity(loginIntent)
     }
 }

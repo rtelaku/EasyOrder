@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "1011378476002",
+    "project_id": "easyorder-fccbe",
+    "storage_bucket": "easyorder-fccbe.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1011378476002:android:f8eb6566505f9b4ba81fbb",
+        "android_client_info": {
+          "package_name": "com.telakuR.easyorder"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1011378476002-asd79gp8m93i1f1geggdodjds8k8013h.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDg9l9M76iu0oI7abtojnT8X7ywXkovXoQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1011378476002-asd79gp8m93i1f1geggdodjds8k8013h.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

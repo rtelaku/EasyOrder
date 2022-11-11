@@ -1,6 +1,7 @@
 plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
+    id 'com.google.gms.google-services'
 }
 
 android {
@@ -62,4 +63,14 @@ dependencies {
 
     //Splash screen
     implementation 'androidx.core:core-splashscreen:1.0.0-alpha02'
+
+    implementation 'androidx.compose.material3:material3:1.0.0-alpha01'
+    implementation "androidx.compose.material:material-icons-extended:$compose_version"
+
+    //Firebase
+    implementation platform('com.google.firebase:firebase-bom:31.0.2')
+    implementation 'com.google.firebase:firebase-analytics-ktx'
+
+    //Navigation
+    implementation "androidx.navigation:navigation-compose:2.4.0-alpha04"
 }
