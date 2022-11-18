@@ -19,9 +19,7 @@ import com.telakuR.easyorder.ui.theme.Toolbar
 fun ChooseRole(navController: NavController) {
     Column(
         verticalArrangement = Arrangement.Top,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = 20.dp),
+        modifier = Modifier.fillMaxWidth()
     ) {
         Toolbar(navController = navController)
         Text(

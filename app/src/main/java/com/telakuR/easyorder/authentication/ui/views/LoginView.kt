@@ -18,7 +18,7 @@ import com.telakuR.easyorder.ui.theme.*
 
 @Composable
 fun LoginScreen(navController: NavController) {
-    AppThemeLogo()
+    AppThemeLogo(navController)
     LoginFields(navController)
     LoginButton(navController)
 }

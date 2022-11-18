@@ -21,7 +21,7 @@ import com.telakuR.easyorder.ui.theme.MainButton
 
 @Composable
 fun SignUpScreen(navController: NavController, role: String?) {
-    AppThemeLogo()
+    AppThemeLogo(navController)
     SignUpFields()
     SignUpButton(navController, role)
 }
