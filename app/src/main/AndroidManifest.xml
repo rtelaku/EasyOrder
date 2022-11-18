@@ -4,6 +4,7 @@
     package="com.telakuR.easyorder">
 
     <application
+        android:name=".utils.EasyOrder"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -14,7 +15,7 @@
         android:theme="@style/Theme.EasyOrder.Starting"
         tools:targetApi="31">
         <activity
-            android:name=".authentication.ui.AuthenticationActivity"
+            android:name=".authentication.ui.activities.AuthenticationActivity"
             android:exported="false" />
         <activity
             android:name=".MainActivity"

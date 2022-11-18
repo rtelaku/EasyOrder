@@ -1,6 +1,7 @@
 package com.telakuR.easyorder.ui.theme
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -24,6 +25,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import com.telakuR.easyorder.R
 
 private val DarkColorPalette = darkColors(
@@ -59,7 +61,6 @@ fun EasyOrderTheme(darkTheme: Boolean = isSystemInDarkTheme(), content: @Composa
 fun AppThemeLogo() {
     Column(
         modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Image(
@@ -76,6 +77,23 @@ fun AppThemeLogo() {
             fontSize = 15.sp
         )
     }
+}
+
+@Composable
+fun Toolbar(navController: NavController) {
+    TopAppBar(
+        elevation = 0.dp,
+        title = {},
+        navigationIcon = {
+            IconButton(onClick = {  navController.popBackStack() }) {
+                Image(
+                    painter = painterResource(R.drawable.ic_easy_order_logo),
+                    contentDescription = "Back arrow"
+                )
+            }
+        },
+        backgroundColor = Color.Transparent,
+    )
 }
 
 @Composable
@@ -157,20 +175,46 @@ fun CustomPasswordTextField(labelValue: String, showPassword: Boolean) {
 }
 
 @Composable
-fun MainButton(text: String) {
-    OutlinedButton(
-        onClick = { },
+fun MainButton(text: String, onClick: () -> Unit) {
+    Column(
         modifier = Modifier
-            .width(150.dp)
-            .height(70.dp)
-            .padding(5.dp),
-        shape = RoundedCornerShape(20.dp),
-        contentPadding = PaddingValues(0.dp),
-        colors = ButtonDefaults.outlinedButtonColors(
-            backgroundColor = PrimaryColor,
-            contentColor = Color.White
-        )
-    ) {
-        Text(text = text)
+            .fillMaxWidth()
+            .padding(bottom = 50.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ){
+        OutlinedButton(
+            onClick = { onClick.invoke() },
+            modifier = Modifier
+                .widthIn(min = 150.dp)
+                .height(70.dp)
+                .padding(5.dp),
+            shape = RoundedCornerShape(20.dp),
+            contentPadding = PaddingValues(0.dp),
+            colors = ButtonDefaults.outlinedButtonColors(
+                backgroundColor = PrimaryColor,
+                contentColor = Color.White
+            )
+        ) {
+            Text(text = text)
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterialApi::class)
+@Composable
+fun CardView(text: String, onClick: () -> Unit) {
+    Card(
+        shape = RoundedCornerShape(8.dp),
+        backgroundColor = MaterialTheme.colors.surface,
+        onClick = { onClick.invoke() }) {
+        Column(
+            modifier = Modifier
+                .width(280.dp)
+                .height(130.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ){
+            Text(text = text, fontSize = 14.sp)
+        }
     }
 }

@@ -5,7 +5,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import com.telakuR.easyorder.authentication.ui.AuthenticationActivity
+import com.telakuR.easyorder.authentication.ui.activities.AuthenticationActivity
 import com.telakuR.easyorder.ui.theme.EasyOrderTheme
 
 class MainActivity : ComponentActivity() {
