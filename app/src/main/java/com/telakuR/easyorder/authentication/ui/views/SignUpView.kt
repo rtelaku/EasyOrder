@@ -14,14 +14,16 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.telakuR.easyorder.R
-import com.telakuR.easyorder.ui.theme.AppThemeLogo
-import com.telakuR.easyorder.ui.theme.CustomPasswordTextField
-import com.telakuR.easyorder.ui.theme.CustomTextField
-import com.telakuR.easyorder.ui.theme.MainButton
+import com.telakuR.easyorder.ui.theme.*
 
 @Composable
 fun SignUpScreen(navController: NavController, role: String?) {
-    AppThemeLogo(navController)
+    Column(
+        verticalArrangement = Arrangement.Top,
+        modifier = Modifier.fillMaxWidth()) {
+        Toolbar(navController = navController)
+    }
+    AppThemeLogo()
     SignUpFields()
     SignUpButton(navController, role)
 }

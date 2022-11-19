@@ -9,7 +9,9 @@ import androidx.compose.material.Surface
 import androidx.compose.ui.Modifier
 import com.telakuR.easyorder.authentication.navigation.AuthenticationNavigation
 import com.telakuR.easyorder.ui.theme.Background
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class AuthenticationActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

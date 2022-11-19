@@ -58,12 +58,11 @@ fun EasyOrderTheme(darkTheme: Boolean = isSystemInDarkTheme(), content: @Composa
 }
 
 @Composable
-fun AppThemeLogo(navController: NavController) {
+fun AppThemeLogo() {
     Column(
         modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Toolbar(navController)
         Image(
             painter = painterResource(R.drawable.ic_easy_order_logo),
             contentDescription = "EasyOrder logo",
@@ -86,7 +85,7 @@ fun Toolbar(navController: NavController) {
         elevation = 0.dp,
         title = {},
         navigationIcon = {
-            IconButton(onClick = {  navController.popBackStack() }) {
+            IconButton(onClick = { navController.popBackStack() }) {
                 Image(
                     painter = painterResource(R.drawable.ic_back_arrow),
                     contentDescription = "Back arrow"
