@@ -1,12 +1,12 @@
 package com.telakuR.easyorder.ui.theme
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
@@ -97,8 +97,7 @@ fun Toolbar(navController: NavController) {
 }
 
 @Composable
-fun CustomTextField(labelValue: String, imageVector: ImageVector) {
-    var textState by remember { mutableStateOf("") }
+fun CustomTextField(labelValue: String, textState: String, onNewValue: (String) -> Unit, imageVector: ImageVector) {
     TextField(
         leadingIcon = {
             Icon(imageVector = imageVector, null, tint = PrimaryColor)
@@ -111,30 +110,19 @@ fun CustomTextField(labelValue: String, imageVector: ImageVector) {
             unfocusedIndicatorColor = Color.Transparent
         ),
         onValueChange = {
-            textState = it
+            onNewValue(it)
         },
         modifier = Modifier
             .padding(10.dp)
             .width(280.dp),
         placeholder = { Text(labelValue) },
         shape = RoundedCornerShape(8.dp),
-        singleLine = true,
-        trailingIcon = {
-            if (textState.isNotEmpty()) {
-                IconButton(onClick = { textState = "" }) {
-                    Icon(
-                        imageVector = Icons.Outlined.Close,
-                        contentDescription = null
-                    )
-                }
-            }
-        }
+        singleLine = true
     )
 }
 
 @Composable
-fun CustomPasswordTextField(labelValue: String, showPassword: Boolean) {
-    var textState by remember { mutableStateOf("") }
+fun CustomPasswordTextField(labelValue: String, textState: String, showPassword: Boolean, onValueChanged: (String) -> Unit) {
     var passwordVisible by rememberSaveable { mutableStateOf(showPassword) }
 
     TextField(
@@ -146,7 +134,7 @@ fun CustomPasswordTextField(labelValue: String, showPassword: Boolean) {
             unfocusedIndicatorColor = Color.Transparent
         ),
         onValueChange = {
-            textState = it
+            onValueChanged(it)
         },
         leadingIcon = {
             Icon(imageVector = Icons.Default.Lock, null, tint = PrimaryColor)

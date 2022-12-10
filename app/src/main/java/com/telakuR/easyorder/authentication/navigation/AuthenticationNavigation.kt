@@ -4,10 +4,10 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.compose.navArgument
 import androidx.navigation.compose.rememberNavController
-import com.telakuR.easyorder.authentication.utils.Constants
+import androidx.navigation.navArgument
 import com.telakuR.easyorder.authentication.ui.views.*
+import com.telakuR.easyorder.authentication.utils.Constants
 import com.telakuR.easyorder.ui.theme.Route
 
 @Composable
