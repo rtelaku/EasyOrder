@@ -3,5 +3,6 @@
     <style name="Theme.EasyOrder.Starting" parent="Theme.SplashScreen">
         <item name="windowSplashScreenAnimatedIcon">@drawable/ic_easy_order_logo</item>
         <item name="postSplashScreenTheme">@style/Theme.EasyOrder</item>
+        <item name="android:windowBackground">@color/backgroundColor</item>
     </style>
 </resources>

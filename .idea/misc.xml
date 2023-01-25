@@ -15,6 +15,7 @@
         <entry key="../../../../../layout/compose-model-1667937215778.xml" value="1.0" />
         <entry key="../../../../../layout/compose-model-1667937696841.xml" value="1.5" />
         <entry key="../../../../../layout/compose-model-1668198667558.xml" value="0.27871621621621623" />
+        <entry key="../../../../../layout/compose-model-1671887524109.xml" value="0.27871621621621623" />
         <entry key="app/src/main/res/drawable/ic_easy_order_logo.xml" value="0.1" />
         <entry key="app/src/main/res/drawable/ic_easyorder.xml" value="0.222" />
         <entry key="app/src/main/res/drawable/ic_easyorder_logo.xml" value="0.222" />
@@ -22,6 +23,7 @@
         <entry key="app/src/main/res/drawable/ic_launcher_foreground.xml" value="0.1795" />
         <entry key="app/src/main/res/drawable/ic_success_illustration.xml" value="0.222" />
         <entry key="app/src/main/res/layout/activity_login.xml" value="0.22056159420289856" />
+        <entry key="app/src/main/res/xml/file_paths.xml" value="0.1" />
       </map>
     </option>
   </component>

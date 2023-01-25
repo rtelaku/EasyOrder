@@ -15,4 +15,14 @@
     <string name="next">Next</string>
     <string name="continue_as">Continue sign up as</string>
     <string name="account_created_successfully">Account created successfully</string>
+    <string name="password_sent_to_email">Password sent to email</string>
+    <string name="upload_photo">Upload Your Photo Profile</string>
+    <string name="display_data_for_security">This data will be displayed in your account profile for security</string>
+    <string name="from_gallery">From Gallery</string>
+    <string name="take_photo">Take Photo</string>
+    <string name="please_enable_permissions">Please enable permissions</string>
+    <string name="find_your_company">Find your company</string>
+    <string name="company">Company</string>
+    <string name="role">Role</string>
+    <string name="email_already_exists">Email already exists</string>
 </resources>

@@ -5,6 +5,7 @@ import dagger.hilt.android.HiltAndroidApp
 
 @HiltAndroidApp
 class EasyOrder : Application() {
+
     override fun onCreate() {
         super.onCreate()
         easyOrder = this

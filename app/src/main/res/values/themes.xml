@@ -2,5 +2,6 @@
 <resources>
     <style name="Theme.EasyOrder" parent="android:Theme.Material.Light.NoActionBar">
         <item name="android:statusBarColor">@color/primary_color</item>
+        <item name="android:windowBackground">@color/backgroundColor</item>
     </style>
 </resources>

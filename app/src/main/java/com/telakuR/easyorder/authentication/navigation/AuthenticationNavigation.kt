@@ -1,40 +1,32 @@
 package com.telakuR.easyorder.authentication.navigation
 
 import androidx.compose.runtime.Composable
-import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.navArgument
-import com.telakuR.easyorder.authentication.ui.views.*
-import com.telakuR.easyorder.authentication.utils.Constants
-import com.telakuR.easyorder.ui.theme.Route
+import com.telakuR.easyorder.authentication.models.AuthenticationRoute
+import com.telakuR.easyorder.authentication.ui.views.ForgotPasswordScreen
+import com.telakuR.easyorder.authentication.ui.views.LoginScreen
+import com.telakuR.easyorder.authentication.ui.views.SignUpScreen
 
 @Composable
 fun AuthenticationNavigation() {
     val navController = rememberNavController()
-    NavHost(navController = navController, startDestination = Route.Login.route) {
-        composable(route = Route.Login.route) {
+
+    NavHost(
+        navController = navController,
+        startDestination = AuthenticationRoute.Login.route,
+    ) {
+        composable(route = AuthenticationRoute.Login.route) {
             LoginScreen(navController = navController)
         }
 
-        composable(
-            Route.SignUp.route+"/{${Constants.CHOSEN_ROLE}}",
-            arguments = listOf(navArgument(Constants.CHOSEN_ROLE) { type = NavType.StringType })
-        ) { backStackEntry ->
-            SignUpScreen(navController, backStackEntry.arguments?.getString(Constants.CHOSEN_ROLE))
+        composable(route = AuthenticationRoute.SignUp.route) {
+            SignUpScreen(navController)
         }
 
-        composable(route = Route.ForgotPassword.route) {
+        composable(route = AuthenticationRoute.ForgotPassword.route) {
             ForgotPasswordScreen(navController)
-        }
-
-        composable(route = Route.ResetPassword.route) {
-            ResetPasswordScreen(navController)
-        }
-
-        composable(route = Route.ChooseRole.route) {
-            ChooseRole(navController)
         }
     }
 }
