@@ -10,18 +10,22 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.FocusState
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Color.Companion.Black
 import androidx.compose.ui.graphics.Color.Companion.DarkGray
-import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
@@ -37,6 +41,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
 import com.telakuR.easyorder.R
 import com.telakuR.easyorder.components.autocomplete.AutoCompleteBox
 import com.telakuR.easyorder.components.autocomplete.utils.AutoCompleteSearchBarTag
@@ -234,7 +239,9 @@ fun PictureCardView(painter: Painter, onClick: () -> Unit) {
 @ExperimentalAnimationApi
 @Composable
 fun SearchBar(items: List<String>) {
-    Column(modifier = Modifier.fillMaxWidth().padding(vertical = 15.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+    Column(modifier = Modifier
+        .fillMaxWidth()
+        .padding(vertical = 15.dp), horizontalAlignment = Alignment.CenterHorizontally) {
         val autoCompleteEntities = items.toList().asAutoCompleteEntities(
             filter = { item, query ->
                 item.lowercase(Locale.getDefault())
@@ -316,7 +323,8 @@ fun TextSearchBar(
         label = { Text(text = label) },
         colors = TextFieldDefaults.textFieldColors(
             backgroundColor = LightOrangeColor,
-            textColor = OrangeTextColor
+            unfocusedLabelColor = OrangeTextColor,
+            focusedLabelColor = OrangeTextColor
         ),
         shape = RoundedCornerShape(CornerSize(15.dp)),
         singleLine = true,
@@ -341,13 +349,56 @@ fun ValueAutoCompleteItem(item: String) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        Text(text = item, style = MaterialTheme.typography.subtitle2)
+            .padding(16.dp)) {
+        Text(text = item, fontSize = 12.sp, color = Black)
     }
 }
 
+@Composable
+fun WhiteItemCard(modifier: Modifier, content: @Composable () -> Unit) {
+    Card(
+        modifier = modifier,
+        elevation = 1.dp,
+        backgroundColor = Color.White,
+        shape = RoundedCornerShape(corner = CornerSize(20.dp))
+    ) {
+        content.invoke()
+    }
+}
+
+@Composable
+fun AsyncRoundedImage(image: String, size: Int, cornerSize: Int) {
+    AsyncImage(
+        model = image,
+        contentDescription = null,
+        contentScale = ContentScale.Crop,
+        modifier = Modifier
+            .size(size.dp)
+            .clip(RoundedCornerShape(corner = CornerSize(cornerSize.dp)))
+    )
+}
+
+@Composable
+fun ItemButton(text: String, enabled: Boolean = true, backgroundColor: Color, onClick: () -> Unit) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally
+    ){
+        Button(
+            onClick = { onClick.invoke() },
+            modifier = Modifier
+                .padding(5.dp),
+            shape = RoundedCornerShape(20.dp),
+            enabled = enabled,
+            contentPadding = PaddingValues(10.dp),
+            colors = ButtonDefaults.outlinedButtonColors(
+                backgroundColor = backgroundColor,
+                contentColor = Color.White
+            )
+        ) {
+            Text(text = text)
+        }
+    }
+}
 
 
 

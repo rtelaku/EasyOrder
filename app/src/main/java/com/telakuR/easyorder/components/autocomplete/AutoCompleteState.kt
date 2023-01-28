@@ -7,10 +7,10 @@ import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.telakuR.easyorder.ui.theme.OrangeTextColor
 
 private typealias ItemSelected<T> = (T) -> Unit
 
@@ -42,7 +42,7 @@ class AutoCompleteState<T : AutoCompleteEntity>(private val startItems: List<T>)
     override var boxWidthPercentage by mutableStateOf(.9f)
     override var shouldWrapContentHeight by mutableStateOf(false)
     override var boxMaxHeight: Dp by mutableStateOf(TextFieldDefaults.MinHeight * 3)
-    override var boxBorderStroke by mutableStateOf(BorderStroke(2.dp, Color.Black))
+    override var boxBorderStroke by mutableStateOf(BorderStroke(2.dp, OrangeTextColor))
     override var boxShape: Shape by mutableStateOf(RoundedCornerShape(8.dp))
 
     override fun filter(query: String) {

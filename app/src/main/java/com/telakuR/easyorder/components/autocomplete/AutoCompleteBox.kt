@@ -2,6 +2,7 @@ package com.telakuR.easyorder.components.autocomplete
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -12,8 +13,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
+import com.telakuR.easyorder.ui.theme.LightOrangeColor
 
 const val AutoCompleteBoxTag = "AutoCompleteBox"
 
@@ -60,4 +63,5 @@ private fun Modifier.autoComplete(
             border = autoCompleteItemScope.boxBorderStroke,
             shape = autoCompleteItemScope.boxShape
         )
+        .background(LightOrangeColor)
 }

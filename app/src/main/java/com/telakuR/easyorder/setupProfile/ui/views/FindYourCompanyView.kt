@@ -1,53 +1,36 @@
 package com.telakuR.easyorder.setupProfile.ui.views
 
-import android.annotation.SuppressLint
-import android.util.Log
+import android.widget.Toast
 import androidx.compose.animation.ExperimentalAnimationApi
-import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Clear
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material.Scaffold
+import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.FocusState
-import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.platform.LocalView
-import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.telakuR.easyorder.R
-import com.telakuR.easyorder.components.autocomplete.AutoCompleteBox
-import com.telakuR.easyorder.components.autocomplete.utils.AutoCompleteSearchBarTag
-import com.telakuR.easyorder.components.autocomplete.utils.asAutoCompleteEntities
 import com.telakuR.easyorder.setupProfile.models.SetUpProfileRoute
 import com.telakuR.easyorder.setupProfile.viewModels.SetUpProfileViewModel
-import com.telakuR.easyorder.ui.theme.Background
-import com.telakuR.easyorder.ui.theme.MainButton
-import com.telakuR.easyorder.ui.theme.SearchBar
-import com.telakuR.easyorder.ui.theme.Toolbar
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import java.util.*
+import com.telakuR.easyorder.ui.theme.*
+import com.telakuR.easyorder.utils.ToastUtils.showToast
 
 @ExperimentalAnimationApi
 @Composable
 fun FindYourCompanyScreen(navController: NavController, viewModel: SetUpProfileViewModel = hiltViewModel()) {
     viewModel.getCompanies()
+    val companies = viewModel.companies.collectAsState().value
+    var selected by remember { mutableStateOf(false) }
+    var selectedCompany by remember {
+        mutableStateOf("")
+    }
 
     Scaffold(
         topBar = {
@@ -57,33 +40,74 @@ fun FindYourCompanyScreen(navController: NavController, viewModel: SetUpProfileV
                 Text(
                     text = stringResource(R.string.find_your_company),
                     modifier = Modifier
-                        .padding(start = 10.dp)
-                        .width(150.dp),
+                        .padding(start = 10.dp),
                     fontSize = 25.sp
                 )
 
-                val companies = viewModel.companies.collectAsState().value.map { it.name }
-
-                SearchBar(items = companies)
+                val companiesByName = viewModel.companies.collectAsState().value.map { it.name }
+                SearchBar(items = companiesByName)
 
             }
         },
         bottomBar = {
+            val context = LocalContext.current
+
             Column(modifier = Modifier.fillMaxWidth()) {
                 MainButton(text = stringResource(id = R.string.next)) {
-                    navController.navigate(SetUpProfileRoute.FindYourCompany.route)
+                    if(selected) {
+                        navController.navigate(SetUpProfileRoute.FindYourCompany.route)
+                    } else {
+                        showToast(context = context, message = "Please select a company", length = Toast.LENGTH_SHORT)
+                    }
                 }
             }
         },
         content = {
             Column(
-                verticalArrangement = Arrangement.Center,
+                verticalArrangement = Arrangement.Top,
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(it)
+                    .padding(15.dp)
             ) {
+                LazyColumn {
+                    items(items = companies, itemContent = { company ->
+                        val color = if (selectedCompany == company.email) Background else PrimaryColor
+                        val textId = if (selectedCompany == company.email) R.string.requested else R.string.request_to_join
 
+                        WhiteItemCard(modifier = Modifier.fillMaxWidth()) {
+                            Row(modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(10.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween) {
+
+                                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Start) {
+                                    Column {
+                                        AsyncRoundedImage(image = company.profilePic, size = 65, cornerSize = 10)
+                                    }
+
+                                    Column(
+                                        modifier = Modifier
+                                            .padding(start = 10.dp)
+                                    ) {
+                                        Text(text = company.name)
+                                    }
+                                }
+
+                                Row( horizontalArrangement = Arrangement.End) {
+                                    ItemButton(text = stringResource(id = textId), backgroundColor = color) {
+                                        selected = !selected
+                                        selectedCompany = if (selectedCompany == company.email) "" else company.email
+                                    }
+                                }
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(10.dp))
+                    })
+                }
             }
         },
         backgroundColor = Background
