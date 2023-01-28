@@ -89,15 +89,16 @@ fun SelectPictureScreen(navController: NavController, viewModel: SetUpProfileVie
         bottomBar = {
             Column(modifier = Modifier.fillMaxWidth()) {
                 //ADD THIS DATA ON ROOM DB
-               var uri:Uri? = null
+               var dbUri:Uri? = null
                 viewModel.getImageFromDatabase()
                 GetImageFromDatabase(
                     createProfileImageContent = { imageUrl ->
-                       uri = imageUri
+                        dbUri = imageUri
                     }
                 )
+
                 MainButton(text = stringResource(id = R.string.next)) {
-                   if(uri != null) {
+                   if(imageUri != null || dbUri != null) {
                        navController.navigate(SetUpProfileRoute.PicturePreview.route)
                    } else {
                        showToast(context = context, message = "Please select a picture for your profile", length = Toast.LENGTH_SHORT)
@@ -152,7 +153,6 @@ fun HandleImageUri(imageUri: Uri, viewModel: SetUpProfileViewModel) {
 
     AddImageToStorage(
         addImageToDatabase = { downloadUrl ->
-            showToast(message = "Picture added successfully", length = Toast.LENGTH_SHORT)
             viewModel.addImageToDatabase(downloadUrl)
         }
     )

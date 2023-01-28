@@ -9,11 +9,13 @@ import androidx.lifecycle.viewModelScope
 import com.telakuR.easyorder.Response
 import com.telakuR.easyorder.Response.Loading
 import com.telakuR.easyorder.Response.Success
+import com.telakuR.easyorder.models.User
 import com.telakuR.easyorder.modules.IoDispatcher
 import com.telakuR.easyorder.repositories.impl.AccountServiceImpl
 import com.telakuR.easyorder.setupProfile.models.impl.ProfileImageRepositoryImpl
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -31,6 +33,9 @@ class SetUpProfileViewModel @Inject constructor(
         private set
 
     var getImageFromDatabaseResponse by mutableStateOf<Response<String>>(Success(null))
+        private set
+
+    var companies = MutableStateFlow<List<User>>(emptyList())
         private set
 
     fun addImageToStorage(imageUri: Uri) = viewModelScope.launch(ioDispatcher) {
@@ -51,6 +56,14 @@ class SetUpProfileViewModel @Inject constructor(
         getImageFromDatabaseResponse = Loading
         repositoryImpl.getImageFromFirestore().collect {
             getImageFromDatabaseResponse = it
+        }
+    }
+
+    fun getCompanies() {
+        viewModelScope.launch {
+            repositoryImpl.getCompanies().collect {
+                companies.value = it
+            }
         }
     }
 }

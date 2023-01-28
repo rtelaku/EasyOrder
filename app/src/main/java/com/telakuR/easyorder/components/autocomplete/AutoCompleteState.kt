@@ -46,9 +46,10 @@ class AutoCompleteState<T : AutoCompleteEntity>(private val startItems: List<T>)
     override var boxShape: Shape by mutableStateOf(RoundedCornerShape(8.dp))
 
     override fun filter(query: String) {
-        filteredItems = startItems.filter { entity ->
-            entity.filter(query)
-        }
+        if (isSearching)
+            filteredItems = startItems.filter { entity ->
+                entity.filter(query)
+            }
     }
 
     override fun onItemSelected(block: ItemSelected<T>) {

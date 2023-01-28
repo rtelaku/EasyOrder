@@ -25,7 +25,6 @@ fun <T : AutoCompleteEntity> AutoCompleteBox(
     content: @Composable AutoCompleteScope<T>.() -> Unit
 ) {
     val autoCompleteState = remember { AutoCompleteState(startItems = items) }
-
     Column(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally

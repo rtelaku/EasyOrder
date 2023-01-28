@@ -27,8 +27,11 @@ class HomeActivity: ComponentActivity() {
             }
         }
 
+        startActivity(Intent(this@HomeActivity, SetUpProfileActivity::class.java))
+
+
         setContent {
-            HomeNavigation()
+//            HomeNavigation()
         }
     }
 

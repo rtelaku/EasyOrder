@@ -1,22 +1,16 @@
 package com.telakuR.easyorder.ui.theme
 
-import android.app.Activity
-import android.content.Context
-import android.content.ContextWrapper
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Clear
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.VisibilityOff
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
@@ -27,6 +21,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Color.Companion.DarkGray
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
@@ -35,7 +30,10 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.*
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -233,6 +231,68 @@ fun PictureCardView(painter: Painter, onClick: () -> Unit) {
     }
 }
 
+@ExperimentalAnimationApi
+@Composable
+fun SearchBar(items: List<String>) {
+    Column(modifier = Modifier.fillMaxWidth().padding(vertical = 15.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+        val autoCompleteEntities = items.toList().asAutoCompleteEntities(
+            filter = { item, query ->
+                item.lowercase(Locale.getDefault())
+                    .startsWith(query.lowercase(Locale.getDefault()))
+            }
+        )
+
+        if (items.isNotEmpty()) {
+            AutoCompleteBox(
+                items = autoCompleteEntities,
+                itemContent = { item ->
+                    ValueAutoCompleteItem(item.value)
+                }
+            ) {
+                var value by remember { mutableStateOf("") }
+                val view = LocalView.current
+
+                onItemSelected { item ->
+                    value = item.value
+                    filter(value)
+                    view.clearFocus()
+                }
+
+                val focusRequester = remember { FocusRequester() }
+
+                TextSearchBar(
+                    modifier = Modifier
+                        .testTag(AutoCompleteSearchBarTag)
+                        .focusRequester(focusRequester)
+                        .focusable(),
+                    value = value,
+                    label = stringResource(id = R.string.where_do_you_work),
+                    onDoneActionClick = {
+                        view.clearFocus()
+                    },
+                    onClearClick = {
+                        value = ""
+                        filter(value)
+                        view.clearFocus()
+                    },
+                    onFocusChanged = { focusState ->
+                        if (!focusState.isFocused) {
+                            focusRequester.requestFocus()
+                        } else {
+                            focusRequester.freeFocus()
+                        }
+                        isSearching = focusState.isFocused
+                    },
+                    onValueChanged = { query ->
+                        value = query
+                        filter(value)
+                    }
+                )
+            }
+        }
+    }
+}
+
 @Composable
 fun TextSearchBar(
     modifier: Modifier = Modifier,
@@ -243,17 +303,26 @@ fun TextSearchBar(
     onFocusChanged: (FocusState) -> Unit = {},
     onValueChanged: (String) -> Unit
 ) {
-    OutlinedTextField(
+    TextField(
         modifier = modifier
             .fillMaxWidth(.9f)
-            .onFocusChanged { onFocusChanged(it) },
+            .onFocusChanged {
+                onFocusChanged(it)
+            },
         value = value,
         onValueChange = { query ->
             onValueChanged(query)
         },
         label = { Text(text = label) },
-        textStyle = MaterialTheme.typography.subtitle1,
+        colors = TextFieldDefaults.textFieldColors(
+            backgroundColor = LightOrangeColor,
+            textColor = OrangeTextColor
+        ),
+        shape = RoundedCornerShape(CornerSize(15.dp)),
         singleLine = true,
+        leadingIcon = {
+            Image(painter = painterResource(id = R.drawable.ic_icon_search), contentDescription = "Search icon")
+        },
         trailingIcon = {
             IconButton(onClick = { onClearClick() }) {
                 Icon(imageVector = Icons.Filled.Clear, contentDescription = "Clear")
@@ -265,59 +334,6 @@ fun TextSearchBar(
             keyboardType = KeyboardType.Text
         )
     )
-}
-
-@ExperimentalAnimationApi
-@Composable
-fun SearchBar(items: List<String>) {
-    val autoCompleteEntities = items.asAutoCompleteEntities(
-        filter = { item, query ->
-            item.lowercase(Locale.getDefault())
-                .startsWith(query.lowercase(Locale.getDefault()))
-        }
-    )
-
-    AutoCompleteBox(
-        items = autoCompleteEntities,
-        itemContent = { item ->
-            ValueAutoCompleteItem(item.value)
-        }
-    ) {
-        val requester = FocusRequester()
-
-        var value by remember { mutableStateOf("") }
-        val view = LocalView.current
-
-        onItemSelected { item ->
-            value = item.value
-            filter(value)
-            view.clearFocus()
-        }
-
-        TextSearchBar(
-            modifier = Modifier
-                .testTag(AutoCompleteSearchBarTag)
-                .focusRequester(focusRequester = requester),
-            value = value,
-            label = "Search",
-            onDoneActionClick = {
-                view.clearFocus()
-            },
-            onClearClick = {
-                value = ""
-                filter(value)
-                view.clearFocus()
-            },
-            onFocusChanged = { focusState ->
-                requester.requestFocus()
-                isSearching = focusState == FocusState::isFocused
-            },
-            onValueChanged = { query ->
-                value = query
-                filter(value)
-            }
-        )
-    }
 }
 
 @Composable
@@ -332,14 +348,6 @@ fun ValueAutoCompleteItem(item: String) {
     }
 }
 
-internal fun Context.findActivity(): Activity {
-    var context = this
-    while (context is ContextWrapper) {
-        if (context is Activity) return context
-        context = context.baseContext
-    }
-    throw IllegalStateException("Permissions should be called in the context of an Activity")
-}
 
 
 

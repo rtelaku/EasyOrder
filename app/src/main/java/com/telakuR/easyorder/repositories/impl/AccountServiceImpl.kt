@@ -13,7 +13,9 @@ import com.telakuR.easyorder.services.AccountService
 import com.telakuR.easyorder.utils.ToastUtils.showToast
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.tasks.await
+import org.mindrot.jbcrypt.BCrypt
 import javax.inject.Inject
+
 
 class AccountServiceImpl @Inject constructor(private val auth: FirebaseAuth, private val firestore: FirebaseFirestore): AccountService {
 
@@ -55,27 +57,28 @@ class AccountServiceImpl @Inject constructor(private val auth: FirebaseAuth, pri
         } else {
             auth.createUserWithEmailAndPassword(email, password).addOnCompleteListener {
                 if (it.isSuccessful) {
-                    val users = firestore.collection(DBCollectionEnum.USERS.title)
-                    val user = User(
-                        name = name,
-                        email = email,
-                        password = password,
-                        role = role,
-                        profilePic = ""
-                    )
 
-                    auth.currentUser?.uid?.let { id ->
-                        users.document(id).set(user)
-                        Log.d("rigiii", "createAccount: $user")
+                    val users = firestore.collection(DBCollectionEnum.USERS.title)
+                    auth.currentUser?.let { currentUser ->
+
+                        val user = User(
+                            name = name,
+                            email = email,
+                            role = role,
+                            profilePic = ""
+                        )
+                        users.document(currentUser.uid).set(user)
+
                         if (role == RolesEnum.COMPANY.role) {
                             val employees = firestore.collection(DBCollectionEnum.EMPLOYEES.title)
-                            employees.document(id).set(
+                            employees.document(currentUser.uid).set(
                                 mapOf(
                                     "companyName" to name,
                                     "employees" to emptyList<Map<String, Any>>()
                                 )
                             )
                         }
+
                         showToast(
                             messageId = R.string.account_created_successfully,
                             length = Toast.LENGTH_SHORT

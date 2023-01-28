@@ -25,4 +25,5 @@
     <string name="company">Company</string>
     <string name="role">Role</string>
     <string name="email_already_exists">Email already exists</string>
+    <string name="where_do_you_work">Where do you work?</string>
 </resources>
