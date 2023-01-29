@@ -2,14 +2,13 @@ package com.telakuR.easyorder.setupProfile.models.impl
 
 import android.net.Uri
 import android.util.Log
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.ktx.toObjects
 import com.google.firebase.storage.StorageReference
 import com.telakuR.easyorder.Response
 import com.telakuR.easyorder.enums.DBCollectionEnum
 import com.telakuR.easyorder.enums.RolesEnum
 import com.telakuR.easyorder.repositories.impl.AccountServiceImpl
-import com.telakuR.easyorder.setupProfile.models.CompanyModel
 import com.telakuR.easyorder.setupProfile.repositories.ProfileImageRepository
 import com.telakuR.easyorder.utils.Constants
 import kotlinx.coroutines.flow.Flow
@@ -19,6 +18,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 import com.google.gson.Gson
 import com.telakuR.easyorder.models.User
+import com.telakuR.easyorder.utils.ToastUtils.showToast
 
 @Singleton
 class ProfileImageRepositoryImpl @Inject constructor(
@@ -26,6 +26,9 @@ class ProfileImageRepositoryImpl @Inject constructor(
     private val fireStore: FirebaseFirestore,
     private val accountServiceImpl: AccountServiceImpl
 ) : ProfileImageRepository {
+
+    private val TAG = ProfileImageRepositoryImpl::class.simpleName
+
     override suspend fun addImageToFirebaseStorage(imageUri: Uri) = flow {
         try {
             emit(Response.Loading)
@@ -68,6 +71,39 @@ class ProfileImageRepositoryImpl @Inject constructor(
             }
             emit(list)
         } catch (e: Exception) {
+            Log.e(TAG, "getCompanies: ", e)
+        }
+    }
+
+    override suspend fun requestToJoin(email: String) {
+        try {
+            fireStore.collection(DBCollectionEnum.EMPLOYEES.title)
+                .whereEqualTo("email", email)
+                .get()
+                .addOnSuccessListener { snapshot ->
+                    if (!snapshot.isEmpty) {
+                        val docRef = snapshot.documents[0].reference
+                        docRef.update("employees", FieldValue.arrayUnion(accountServiceImpl.currentUserId))
+                    }
+                }
+        } catch (e: Exception) {
+            Log.e(TAG, "requestToJoin: ", e)
+        }
+    }
+
+    override suspend fun removeRequest(email: String) {
+        try {
+            fireStore.collection(DBCollectionEnum.EMPLOYEES.title)
+                .whereEqualTo("email", email)
+                .get()
+                .addOnSuccessListener { snapshot ->
+                    if (!snapshot.isEmpty) {
+                        val docRef = snapshot.documents[0].reference
+                        docRef.update("employees", FieldValue.arrayRemove(accountServiceImpl.currentUserId))
+                    }
+                }
+        } catch (e: Exception) {
+            Log.e(TAG, "removeRequest: ", e)
         }
     }
 }

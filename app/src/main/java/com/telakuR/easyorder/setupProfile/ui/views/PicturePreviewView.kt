@@ -1,10 +1,12 @@
 package com.telakuR.easyorder.setupProfile.ui.views
 
+import android.content.Intent
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -18,9 +20,11 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.telakuR.easyorder.R
+import com.telakuR.easyorder.enums.RolesEnum
 import com.telakuR.easyorder.setupProfile.models.SetUpProfileRoute
 import com.telakuR.easyorder.setupProfile.ui.components.GetImageFromDatabase
 import com.telakuR.easyorder.setupProfile.viewModels.SetUpProfileViewModel
+import com.telakuR.easyorder.ui.activities.HomeActivity
 import com.telakuR.easyorder.ui.theme.Background
 import com.telakuR.easyorder.ui.theme.MainButton
 import com.telakuR.easyorder.ui.theme.Toolbar
@@ -49,9 +53,20 @@ fun PicturePreviewScreen(
             }
         },
         bottomBar = {
+            val role = viewModel.currentUserRole.collectAsState().value
+            val context = LocalContext.current
             Column(modifier = Modifier.fillMaxWidth()) {
                 MainButton(text = stringResource(id = R.string.next)) {
-                    navController.navigate(SetUpProfileRoute.FindYourCompany.route)
+                    if(role == RolesEnum.USER.role) {
+                        navController.navigate(SetUpProfileRoute.FindYourCompany.route)
+                    } else if(role == RolesEnum.COMPANY.role) {
+                        context.run {
+                            val intent = Intent(this, HomeActivity::class.java)
+                            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                            intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK
+                            startActivity(intent)
+                        }
+                    }
                 }
             }
         },

@@ -125,7 +125,7 @@ fun SignUpScreen(
     val shouldDisplayToast = message.isNotEmpty()
     if(shouldDisplayToast) ToastUtils.showToast(context = LocalContext.current, message = message, length = Toast.LENGTH_SHORT)
 
-    val shouldShowLoginView = viewModel.shouldShowLoginView.value
+    val shouldShowLoginView = viewModel.shouldShowLoginView.collectAsState().value
     if(shouldShowLoginView) navController.navigate(AuthenticationRoute.Login.route)
 
 }

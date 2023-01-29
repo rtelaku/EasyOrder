@@ -1,5 +1,6 @@
 package com.telakuR.easyorder.viewModels
 
+import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.telakuR.easyorder.modules.IoDispatcher
 import com.telakuR.easyorder.repositories.impl.UserDataRepositoryImpl
@@ -27,7 +28,8 @@ class HomeVM @Inject constructor(
 
     private fun setScreenToLaunch() = viewModelScope.launch(ioDispatcher) {
         val profilePic = userDataRepositoryImpl.getUserProfilePicture()
-        if (profilePic.toString().isEmpty() || profilePic == null) {
+        Log.d("rigii", "profilePic: $profilePic")
+        if (profilePic.isNullOrEmpty()) {
             _shouldLaunchSetupScreen.value = true
         }
     }

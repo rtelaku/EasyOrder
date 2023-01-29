@@ -24,29 +24,20 @@ import androidx.compose.ui.focus.FocusState
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Color.Companion.Black
 import androidx.compose.ui.graphics.Color.Companion.DarkGray
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalView
-import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.input.*
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.telakuR.easyorder.R
-import com.telakuR.easyorder.components.autocomplete.AutoCompleteBox
-import com.telakuR.easyorder.components.autocomplete.utils.AutoCompleteSearchBarTag
-import com.telakuR.easyorder.components.autocomplete.utils.asAutoCompleteEntities
-import java.util.*
 
 private val DarkColorPalette = darkColors(
     primary = Color.White,
@@ -238,64 +229,35 @@ fun PictureCardView(painter: Painter, onClick: () -> Unit) {
 
 @ExperimentalAnimationApi
 @Composable
-fun SearchBar(items: List<String>) {
-    Column(modifier = Modifier
-        .fillMaxWidth()
-        .padding(vertical = 15.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-        val autoCompleteEntities = items.toList().asAutoCompleteEntities(
-            filter = { item, query ->
-                item.lowercase(Locale.getDefault())
-                    .startsWith(query.lowercase(Locale.getDefault()))
-            }
-        )
-
+fun SearchBar(items: List<String>, textState: MutableState<TextFieldValue>) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 15.dp), horizontalAlignment = Alignment.CenterHorizontally
+    ) {
         if (items.isNotEmpty()) {
-            AutoCompleteBox(
-                items = autoCompleteEntities,
-                itemContent = { item ->
-                    ValueAutoCompleteItem(item.value)
-                }
-            ) {
-                var value by remember { mutableStateOf("") }
-                val view = LocalView.current
+            val view = LocalView.current
+            val focusRequester = remember { FocusRequester() }
 
-                onItemSelected { item ->
-                    value = item.value
-                    filter(value)
+            TextSearchBar(
+                modifier = Modifier
+                    .focusRequester(focusRequester)
+                    .focusable(),
+                onDoneActionClick = {
                     view.clearFocus()
-                }
-
-                val focusRequester = remember { FocusRequester() }
-
-                TextSearchBar(
-                    modifier = Modifier
-                        .testTag(AutoCompleteSearchBarTag)
-                        .focusRequester(focusRequester)
-                        .focusable(),
-                    value = value,
-                    label = stringResource(id = R.string.where_do_you_work),
-                    onDoneActionClick = {
-                        view.clearFocus()
-                    },
-                    onClearClick = {
-                        value = ""
-                        filter(value)
-                        view.clearFocus()
-                    },
-                    onFocusChanged = { focusState ->
-                        if (!focusState.isFocused) {
-                            focusRequester.requestFocus()
-                        } else {
-                            focusRequester.freeFocus()
-                        }
-                        isSearching = focusState.isFocused
-                    },
-                    onValueChanged = { query ->
-                        value = query
-                        filter(value)
+                },
+                state = textState,
+                onClearClick = {
+                    view.clearFocus()
+                },
+                onFocusChanged = { focusState ->
+                    if (!focusState.isFocused) {
+                        focusRequester.requestFocus()
+                    } else {
+                        focusRequester.freeFocus()
                     }
-                )
-            }
+                }
+            )
         }
     }
 }
@@ -303,12 +265,10 @@ fun SearchBar(items: List<String>) {
 @Composable
 fun TextSearchBar(
     modifier: Modifier = Modifier,
-    value: String,
-    label: String,
+    state: MutableState<TextFieldValue>,
     onDoneActionClick: () -> Unit = {},
     onClearClick: () -> Unit = {},
     onFocusChanged: (FocusState) -> Unit = {},
-    onValueChanged: (String) -> Unit
 ) {
     TextField(
         modifier = modifier
@@ -316,11 +276,11 @@ fun TextSearchBar(
             .onFocusChanged {
                 onFocusChanged(it)
             },
-        value = value,
-        onValueChange = { query ->
-            onValueChanged(query)
+        value = state.value,
+        onValueChange = { value ->
+            state.value = value
         },
-        label = { Text(text = label) },
+        label = { Text(text = stringResource(id = R.string.where_do_you_work)) },
         colors = TextFieldDefaults.textFieldColors(
             backgroundColor = LightOrangeColor,
             unfocusedLabelColor = OrangeTextColor,
@@ -329,10 +289,16 @@ fun TextSearchBar(
         shape = RoundedCornerShape(CornerSize(15.dp)),
         singleLine = true,
         leadingIcon = {
-            Image(painter = painterResource(id = R.drawable.ic_icon_search), contentDescription = "Search icon")
+            Image(
+                painter = painterResource(id = R.drawable.ic_icon_search),
+                contentDescription = "Search icon"
+            )
         },
         trailingIcon = {
-            IconButton(onClick = { onClearClick() }) {
+            IconButton(onClick = {
+                onClearClick()
+                state.value = TextFieldValue("")
+            }) {
                 Icon(imageVector = Icons.Filled.Clear, contentDescription = "Clear")
             }
         },
@@ -342,16 +308,6 @@ fun TextSearchBar(
             keyboardType = KeyboardType.Text
         )
     )
-}
-
-@Composable
-fun ValueAutoCompleteItem(item: String) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp)) {
-        Text(text = item, fontSize = 12.sp, color = Black)
-    }
 }
 
 @Composable

@@ -27,6 +27,9 @@ class LoginVM @Inject constructor(
     private val _shouldShowHomeView = MutableStateFlow(false)
     var shouldShowHomeView: StateFlow<Boolean> = _shouldShowHomeView
 
+    private val _shouldShowToast = MutableStateFlow(false)
+    var shouldShowToast: StateFlow<Boolean> = _shouldShowToast
+
     fun onEmailChange(newValue: String) {
         uiState.value = uiState.value.copy(email = newValue)
     }
@@ -40,6 +43,8 @@ class LoginVM @Inject constructor(
             val currentUser = accountService.authenticate(email, password)
             if(currentUser != null) {
                 _shouldShowHomeView.value = true
+            } else {
+                _shouldShowToast.value = true
             }
         }
     }

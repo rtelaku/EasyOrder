@@ -1,6 +1,7 @@
 package com.telakuR.easyorder.authentication.ui.views
 
 import android.content.Intent
+import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
@@ -22,6 +23,7 @@ import com.telakuR.easyorder.authentication.models.AuthenticationRoute
 import com.telakuR.easyorder.authentication.viewmodel.LoginVM
 import com.telakuR.easyorder.ui.activities.HomeActivity
 import com.telakuR.easyorder.ui.theme.*
+import com.telakuR.easyorder.utils.ToastUtils.showToast
 
 @Composable
 fun LoginScreen(navController: NavController, viewModel: LoginVM = hiltViewModel()) {
@@ -92,6 +94,10 @@ fun LoginScreen(navController: NavController, viewModel: LoginVM = hiltViewModel
                     startActivity(intent)
                 }
             }
+
+            val shouldShowToast = viewModel.shouldShowToast.collectAsState().value
+            if(shouldShowToast) showToast(context = context, messageId = R.string.wrong_email_or_password, length = Toast.LENGTH_SHORT)
+
         },
         backgroundColor = Background
     )

@@ -1,6 +1,8 @@
 package com.telakuR.easyorder.setupProfile.viewModels
 
 import android.net.Uri
+import android.util.Log
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -11,7 +13,7 @@ import com.telakuR.easyorder.Response.Loading
 import com.telakuR.easyorder.Response.Success
 import com.telakuR.easyorder.models.User
 import com.telakuR.easyorder.modules.IoDispatcher
-import com.telakuR.easyorder.repositories.impl.AccountServiceImpl
+import com.telakuR.easyorder.repositories.impl.UserDataRepositoryImpl
 import com.telakuR.easyorder.setupProfile.models.impl.ProfileImageRepositoryImpl
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
@@ -21,8 +23,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SetUpProfileViewModel @Inject constructor(
-    val accountServiceImpl: AccountServiceImpl,
     private val repositoryImpl: ProfileImageRepositoryImpl,
+    private val userDataRepositoryImpl: UserDataRepositoryImpl,
     @IoDispatcher val ioDispatcher: CoroutineDispatcher
 ) : ViewModel() {
 
@@ -37,6 +39,15 @@ class SetUpProfileViewModel @Inject constructor(
 
     var companies = MutableStateFlow<List<User>>(emptyList())
         private set
+
+    var currentUserRole = MutableStateFlow("")
+        private set
+
+    init {
+        viewModelScope.launch(ioDispatcher) {
+            currentUserRole.value = userDataRepositoryImpl.getUserRole()
+        }
+    }
 
     fun addImageToStorage(imageUri: Uri) = viewModelScope.launch(ioDispatcher) {
         addImageToStorageResponse = Loading
@@ -63,6 +74,19 @@ class SetUpProfileViewModel @Inject constructor(
         viewModelScope.launch {
             repositoryImpl.getCompanies().collect {
                 companies.value = it
+            }
+        }
+    }
+
+    fun handleRequestState(email: String, state: Boolean) {
+        viewModelScope.launch(ioDispatcher) {
+            if(state) {
+                Log.d("rigiii", "true: ")
+                repositoryImpl.requestToJoin(email)
+            } else {
+                Log.d("rigiii", "false: ")
+
+                repositoryImpl.removeRequest(email)
             }
         }
     }

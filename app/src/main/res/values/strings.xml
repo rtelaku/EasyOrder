@@ -13,7 +13,7 @@
     <string name="bussines">Bussines</string>
     <string name="user">User</string>
     <string name="next">Next</string>
-    <string name="continue_as">Continue sign up as</string>
+    <string name="continue_text">Continue</string>
     <string name="account_created_successfully">Account created successfully</string>
     <string name="password_sent_to_email">Password sent to email</string>
     <string name="upload_photo">Upload Your Photo Profile</string>
@@ -28,4 +28,6 @@
     <string name="where_do_you_work">Where do you work?</string>
     <string name="request_to_join">Request to join</string>
     <string name="requested">Requested</string>
+    <string name="please_select_a_company">Please select a company</string>
+    <string name="wrong_email_or_password">Wrong email or password</string>
 </resources>
