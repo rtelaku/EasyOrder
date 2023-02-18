@@ -1,11 +1,11 @@
-package com.telakuR.easyorder.ui.activities
+package com.telakuR.easyorder.home.ui
 
+import HomeView
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
-import androidx.compose.runtime.Composable
 import androidx.lifecycle.lifecycleScope
 import com.telakuR.easyorder.setupProfile.ui.activities.SetUpProfileActivity
 import com.telakuR.easyorder.viewModels.HomeVM
@@ -28,12 +28,7 @@ class HomeActivity: ComponentActivity() {
         }
 
         setContent {
-            HomeNavigation()
+            HomeView()
         }
-    }
-
-    @Composable
-    private fun HomeNavigation() {
-
     }
 }

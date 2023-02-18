@@ -6,14 +6,13 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.FirebaseFirestore
 import com.telakuR.easyorder.R
+import com.telakuR.easyorder.authentication.models.AuthUiState
 import com.telakuR.easyorder.enums.DBCollectionEnum
 import com.telakuR.easyorder.enums.RolesEnum
 import com.telakuR.easyorder.models.User
 import com.telakuR.easyorder.services.AccountService
 import com.telakuR.easyorder.utils.ToastUtils.showToast
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.tasks.await
-import org.mindrot.jbcrypt.BCrypt
 import javax.inject.Inject
 
 
@@ -45,7 +44,6 @@ class AccountServiceImpl @Inject constructor(private val auth: FirebaseAuth, pri
         }.await()
     }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
     override suspend fun createAccount(name: String, email: String, password: String, role: String): Boolean {
         val emailExists = doesEmailExist(email)
         if(emailExists) {
@@ -112,5 +110,31 @@ class AccountServiceImpl @Inject constructor(private val auth: FirebaseAuth, pri
 
     override suspend fun signOut() {
         auth.signOut()
+    }
+
+    override suspend fun editProfile(profile: AuthUiState) {
+
+        val userRef = firestore.collection(DBCollectionEnum.USERS.title).document(currentUserId)
+
+        if(doesEmailExist(email = profile.email)) {
+            auth.currentUser?.updateEmail(profile.email)
+            val updates = mapOf("email" to profile.email)
+            userRef.update(updates)
+        } else {
+            showToast(message = "Email already exists. Try another!", length = Toast.LENGTH_SHORT)
+        }
+
+        if(profile.password.isNotEmpty()) {
+            auth.currentUser?.updatePassword(profile.password)
+        } else {
+            showToast(message = "Password must not be empty to be changed", length = Toast.LENGTH_SHORT)
+        }
+
+        if(profile.name.isNotEmpty()) {
+            val updates = mapOf("name" to profile.name)
+            userRef.update(updates)
+        } else {
+            showToast(message = "Name must not be empty to be changed", length = Toast.LENGTH_SHORT)
+        }
     }
 }

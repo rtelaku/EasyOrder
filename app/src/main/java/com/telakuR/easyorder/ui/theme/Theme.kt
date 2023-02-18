@@ -38,6 +38,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.telakuR.easyorder.R
+import com.telakuR.easyorder.models.User
 
 private val DarkColorPalette = darkColors(
     primary = Color.White,
@@ -158,6 +159,32 @@ fun CustomPasswordTextField(labelValue: String, textState: String, showPassword:
 }
 
 @Composable
+fun CustomPasswordTextFieldd(labelValue: String, textState: String, imageVector: ImageVector, onValueChanged: (String) -> Unit) {
+    TextField(
+        value = textState,
+        colors = TextFieldDefaults.textFieldColors(
+            backgroundColor = Color.White,
+            cursorColor = Color.Black,
+            focusedIndicatorColor = Color.Transparent,
+            unfocusedIndicatorColor = Color.Transparent
+        ),
+        onValueChange = {
+            onValueChanged(it)
+        },
+        leadingIcon = {
+            Icon(imageVector = imageVector, null, tint = PrimaryColor)
+        },
+        visualTransformation = PasswordVisualTransformation(),
+        modifier = Modifier
+            .padding(10.dp)
+            .width(280.dp),
+        placeholder = { Text(labelValue) },
+        shape = RoundedCornerShape(8.dp),
+        singleLine = true
+    )
+}
+
+@Composable
 fun MainButton(text: String, enabled: Boolean = true, onClick: () -> Unit) {
     Column(
         modifier = Modifier
@@ -229,7 +256,7 @@ fun PictureCardView(painter: Painter, onClick: () -> Unit) {
 
 @ExperimentalAnimationApi
 @Composable
-fun SearchBar(items: List<String>, textState: MutableState<TextFieldValue>) {
+fun SearchBar(searchText: String, items: List<String>, textState: MutableState<TextFieldValue>) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -240,6 +267,7 @@ fun SearchBar(items: List<String>, textState: MutableState<TextFieldValue>) {
             val focusRequester = remember { FocusRequester() }
 
             TextSearchBar(
+                searchText = searchText,
                 modifier = Modifier
                     .focusRequester(focusRequester)
                     .focusable(),
@@ -264,6 +292,7 @@ fun SearchBar(items: List<String>, textState: MutableState<TextFieldValue>) {
 
 @Composable
 fun TextSearchBar(
+    searchText: String,
     modifier: Modifier = Modifier,
     state: MutableState<TextFieldValue>,
     onDoneActionClick: () -> Unit = {},
@@ -272,7 +301,8 @@ fun TextSearchBar(
 ) {
     TextField(
         modifier = modifier
-            .fillMaxWidth(.9f)
+            .fillMaxWidth()
+            .padding(horizontal = 10.dp)
             .onFocusChanged {
                 onFocusChanged(it)
             },
@@ -280,7 +310,7 @@ fun TextSearchBar(
         onValueChange = { value ->
             state.value = value
         },
-        label = { Text(text = stringResource(id = R.string.where_do_you_work)) },
+        label = { Text(text = searchText) },
         colors = TextFieldDefaults.textFieldColors(
             backgroundColor = LightOrangeColor,
             unfocusedLabelColor = OrangeTextColor,
@@ -335,7 +365,7 @@ fun AsyncRoundedImage(image: String, size: Int, cornerSize: Int) {
 }
 
 @Composable
-fun ItemButton(text: String, enabled: Boolean = true, backgroundColor: Color, onClick: () -> Unit) {
+fun ItemButton(text: String, enabled: Boolean = true, backgroundColor: Color, corners: Int = 20, onClick: () -> Unit) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally
     ){
@@ -343,7 +373,7 @@ fun ItemButton(text: String, enabled: Boolean = true, backgroundColor: Color, on
             onClick = { onClick.invoke() },
             modifier = Modifier
                 .padding(5.dp),
-            shape = RoundedCornerShape(20.dp),
+            shape = RoundedCornerShape(corners.dp),
             enabled = enabled,
             contentPadding = PaddingValues(10.dp),
             colors = ButtonDefaults.outlinedButtonColors(

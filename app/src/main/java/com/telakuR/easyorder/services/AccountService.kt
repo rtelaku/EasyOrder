@@ -1,6 +1,7 @@
 package com.telakuR.easyorder.services
 
 import com.google.firebase.auth.FirebaseUser
+import com.telakuR.easyorder.authentication.models.AuthUiState
 
 interface AccountService {
     val currentUserId: String
@@ -18,4 +19,6 @@ interface AccountService {
     suspend fun deleteAccount()
 
     suspend fun signOut()
+
+    suspend fun editProfile(profile: AuthUiState)
 }

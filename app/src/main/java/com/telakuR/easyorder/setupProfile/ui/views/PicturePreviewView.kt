@@ -24,7 +24,7 @@ import com.telakuR.easyorder.enums.RolesEnum
 import com.telakuR.easyorder.setupProfile.models.SetUpProfileRoute
 import com.telakuR.easyorder.setupProfile.ui.components.GetImageFromDatabase
 import com.telakuR.easyorder.setupProfile.viewModels.SetUpProfileViewModel
-import com.telakuR.easyorder.ui.activities.HomeActivity
+import com.telakuR.easyorder.home.ui.HomeActivity
 import com.telakuR.easyorder.ui.theme.Background
 import com.telakuR.easyorder.ui.theme.MainButton
 import com.telakuR.easyorder.ui.theme.Toolbar
@@ -81,7 +81,7 @@ fun PicturePreviewScreen(
                 viewModel.getImageFromDatabase()
                 GetImageFromDatabase(
                     createProfileImageContent = { imageUrl ->
-                        ProfileImageContent(imageUrl)
+                        ProfileImageContent(imageUrl = imageUrl, width = 245, height = 238)
                     }
                 )
             }
@@ -92,7 +92,9 @@ fun PicturePreviewScreen(
 
 @Composable
 fun ProfileImageContent(
-    imageUrl: String
+    imageUrl: String,
+    width: Int,
+    height: Int
 ) {
     AsyncImage(
         model = ImageRequest.Builder(LocalContext.current)
@@ -103,7 +105,7 @@ fun ProfileImageContent(
         contentScale = ContentScale.Crop,
         modifier = Modifier
             .clip(RoundedCornerShape(16.dp))
-            .width(245.dp)
-            .height(238.dp)
+            .width(width.dp)
+            .height(height.dp)
     )
 }

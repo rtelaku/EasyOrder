@@ -20,7 +20,7 @@ import androidx.navigation.NavController
 import com.telakuR.easyorder.R
 import com.telakuR.easyorder.models.User
 import com.telakuR.easyorder.setupProfile.viewModels.SetUpProfileViewModel
-import com.telakuR.easyorder.ui.activities.HomeActivity
+import com.telakuR.easyorder.home.ui.HomeActivity
 import com.telakuR.easyorder.ui.theme.*
 import com.telakuR.easyorder.utils.ToastUtils.showToast
 import java.util.*
@@ -48,7 +48,7 @@ fun FindYourCompanyScreen(
                 )
 
                 val companiesByName = viewModel.companies.collectAsState().value.map { it.name }
-                SearchBar(items = companiesByName, textState = textState)
+                SearchBar(searchText = stringResource(id = R.string.where_do_you_work), items = companiesByName, textState = textState)
             }
         },
         bottomBar = {

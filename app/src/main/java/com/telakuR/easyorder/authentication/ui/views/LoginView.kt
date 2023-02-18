@@ -21,7 +21,7 @@ import androidx.navigation.NavController
 import com.telakuR.easyorder.R
 import com.telakuR.easyorder.authentication.models.AuthenticationRoute
 import com.telakuR.easyorder.authentication.viewmodel.LoginVM
-import com.telakuR.easyorder.ui.activities.HomeActivity
+import com.telakuR.easyorder.home.ui.HomeActivity
 import com.telakuR.easyorder.ui.theme.*
 import com.telakuR.easyorder.utils.ToastUtils.showToast
 

@@ -16,9 +16,14 @@
         <entry key="../../../../../layout/compose-model-1667937696841.xml" value="1.5" />
         <entry key="../../../../../layout/compose-model-1668198667558.xml" value="0.27871621621621623" />
         <entry key="../../../../../layout/compose-model-1671887524109.xml" value="0.27871621621621623" />
+        <entry key="app/src/main/res/drawable/ic_back_arrow.xml" value="0.1" />
+        <entry key="app/src/main/res/drawable/ic_camera_icon.xml" value="0.1" />
         <entry key="app/src/main/res/drawable/ic_easy_order_logo.xml" value="0.1" />
         <entry key="app/src/main/res/drawable/ic_easyorder.xml" value="0.222" />
         <entry key="app/src/main/res/drawable/ic_easyorder_logo.xml" value="0.222" />
+        <entry key="app/src/main/res/drawable/ic_gallery_icon.xml" value="0.1" />
+        <entry key="app/src/main/res/drawable/ic_home_navigation_bar.xml" value="0.1" />
+        <entry key="app/src/main/res/drawable/ic_icon_notifiaction.xml" value="0.1" />
         <entry key="app/src/main/res/drawable/ic_launcher_background.xml" value="0.222" />
         <entry key="app/src/main/res/drawable/ic_launcher_foreground.xml" value="0.1795" />
         <entry key="app/src/main/res/drawable/ic_success_illustration.xml" value="0.222" />

@@ -1,8 +1,6 @@
 package com.telakuR.easyorder.setupProfile.viewModels
 
 import android.net.Uri
-import android.util.Log
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -81,11 +79,8 @@ class SetUpProfileViewModel @Inject constructor(
     fun handleRequestState(email: String, state: Boolean) {
         viewModelScope.launch(ioDispatcher) {
             if(state) {
-                Log.d("rigiii", "true: ")
                 repositoryImpl.requestToJoin(email)
             } else {
-                Log.d("rigiii", "false: ")
-
                 repositoryImpl.removeRequest(email)
             }
         }

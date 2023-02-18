@@ -8,6 +8,7 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.lifecycleScope
 import com.telakuR.easyorder.authentication.models.AuthenticationRoute
 import com.telakuR.easyorder.authentication.ui.activities.AuthenticationActivity
+import com.telakuR.easyorder.home.ui.HomeActivity
 import com.telakuR.easyorder.models.UserRoute
 import com.telakuR.easyorder.viewModels.MainVM
 import dagger.hilt.android.AndroidEntryPoint
