@@ -12,12 +12,4 @@ object ToastUtils {
         val message = context.getString(messageId)
         Toast.makeText(context, message, length).show()
     }
-
-    fun showToast(
-        context: Context = EasyOrder.getInstance().applicationContext,
-        message: String,
-        length: Int
-    ) {
-        Toast.makeText(context, message, length).show()
-    }
 }

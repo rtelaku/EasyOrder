@@ -1,38 +1,39 @@
 package com.telakuR.easyorder.home.route
 
 import com.telakuR.easyorder.R
+import com.telakuR.easyorder.utils.EasyOrder
 
 sealed class HomeRoute(
-val route: String,
-val title: String = "",
-val icon: Int = 0,
-val icon_focused: Int = 0
+    val route: String,
+    var title: String = "",
+    val icon: Int = 0,
+    val icon_focused: Int = 0
 ) {
 
     object Home : HomeRoute(
         route = "home",
-        title = "Home",
+        title = EasyOrder.getInstance().getString(R.string.home),
         icon = R.drawable.ic_home_navigation_bar,
         icon_focused = R.drawable.ic_home_navigation_bar
     )
 
-    object Report : HomeRoute(
-        route = "report",
-        title = "Report",
+    object Requests : HomeRoute(
+        route = "requests",
+        title = EasyOrder.getInstance().getString(R.string.requests),
         icon = R.drawable.ic_group_request,
         icon_focused = R.drawable.ic_group_request
     )
 
     object Order : HomeRoute(
         route = "order",
-        title = "order",
+        title = EasyOrder.getInstance().getString(R.string.my_order),
         icon = R.drawable.ic_icon_order,
         icon_focused = R.drawable.ic_icon_order
     )
 
     object Profile : HomeRoute(
         route = "profile",
-        title = "Profile",
+        title = EasyOrder.getInstance().getString(R.string.profile),
         icon = R.drawable.ic_icon_profile,
         icon_focused = R.drawable.ic_icon_profile
     )

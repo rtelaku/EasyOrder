@@ -3,18 +3,18 @@ package com.telakuR.easyorder.authentication.ui.views
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.DropdownMenuItem
 import androidx.compose.material.Scaffold
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material3.*
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -43,7 +43,7 @@ fun SignUpScreen(
             }
         },
         bottomBar = {
-            MainButton(stringResource(id = R.string.create_account)) {
+            MainButton(textId = R.string.create_account) {
                 viewModel.onSignUpClick(role)
             }
         },
@@ -116,53 +116,14 @@ fun SignUpScreen(
                     }
                 }
             }
+
+            val messageId = viewModel.toastMessageId.collectAsState().value
+            if(messageId != null) ToastUtils.showToast(context = LocalContext.current, messageId = messageId, length = Toast.LENGTH_SHORT)
+
+            val shouldShowLoginView = viewModel.shouldShowLoginView.collectAsState().value
+            if(shouldShowLoginView) navController.popBackStack(AuthenticationRoute.Login.route, false)
+
         },
         backgroundColor = Background
-    )
-
-    val message = viewModel.toastMessage.collectAsState().value
-    val shouldDisplayToast = message.isNotEmpty()
-    if(shouldDisplayToast) ToastUtils.showToast(context = LocalContext.current, message = message, length = Toast.LENGTH_SHORT)
-
-    val shouldShowLoginView = viewModel.shouldShowLoginView.collectAsState().value
-    if(shouldShowLoginView) navController.navigate(AuthenticationRoute.Login.route)
-
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun ExpandedTextField(
-    textState: String,
-    imageVector: ImageVector,
-    modifier: Modifier,
-    expanded: Boolean,
-    onValueChanged: (String) -> Unit
-) {
-    var text = textState
-    TextField(
-        leadingIcon = {
-            Icon(imageVector = imageVector, null, tint = PrimaryColor)
-        },
-        value = text,
-        colors = TextFieldDefaults.textFieldColors(
-            textColor = Color.Black,
-            cursorColor = Color.Black,
-            containerColor = Color.White,
-            focusedIndicatorColor = Color.Transparent,
-            unfocusedIndicatorColor = Color.Transparent
-        ),
-        enabled = false,
-        onValueChange = {
-            text = it
-            onValueChanged(it)
-        },
-        trailingIcon = {
-            ExposedDropdownMenuDefaults.TrailingIcon(
-                expanded = expanded
-            )
-        },
-        modifier = modifier,
-        shape = RoundedCornerShape(8.dp),
-        singleLine = true
     )
 }

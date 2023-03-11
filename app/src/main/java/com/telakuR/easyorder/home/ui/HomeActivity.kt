@@ -7,8 +7,8 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.lifecycle.lifecycleScope
+import com.telakuR.easyorder.home.viewModel.HomeVM
 import com.telakuR.easyorder.setupProfile.ui.activities.SetUpProfileActivity
-import com.telakuR.easyorder.viewModels.HomeVM
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
@@ -21,9 +21,13 @@ class HomeActivity: ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         lifecycleScope.launch {
-            viewModel.shouldLaunchSetupScreen.collect { shouldLaunch ->
-                if (shouldLaunch)
-                    startActivity(Intent(this@HomeActivity, SetUpProfileActivity::class.java))
+            viewModel.showSetupProfile.collect { show ->
+                if (show) {
+                    val intent = Intent(this@HomeActivity, SetUpProfileActivity::class.java)
+                    intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                    startActivity(intent)
+                    finish()
+                }
             }
         }
 

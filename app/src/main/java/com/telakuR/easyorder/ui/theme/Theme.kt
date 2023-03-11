@@ -14,6 +14,8 @@ import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
@@ -24,34 +26,22 @@ import androidx.compose.ui.focus.FocusState
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Color.Companion.DarkGray
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.*
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.telakuR.easyorder.R
-import com.telakuR.easyorder.models.User
-
-private val DarkColorPalette = darkColors(
-    primary = Color.White,
-    background = DarkGray,
-    onBackground = Color.White,
-    surface = Color.Black,
-    onSurface = DarkGray
-)
-
-private val LightColorPalette = lightColors(
-    primary = Color.White,
-    secondary = Color.Black
-)
 
 @Composable
 fun AppThemeLogo() {
@@ -76,16 +66,18 @@ fun AppThemeLogo() {
 }
 
 @Composable
-fun Toolbar(navController: NavController) {
+fun Toolbar(navController: NavController, shownFromUser: Boolean = false) {
     TopAppBar(
         elevation = 0.dp,
         title = {},
         navigationIcon = {
-            IconButton(onClick = { navController.popBackStack() }) {
-                Image(
-                    painter = painterResource(R.drawable.ic_back_arrow),
-                    contentDescription = "Back arrow"
-                )
+            if(!shownFromUser) {
+                IconButton(onClick = { navController.popBackStack() }) {
+                    Image(
+                        painter = painterResource(R.drawable.ic_back_arrow),
+                        contentDescription = "Back arrow"
+                    )
+                }
             }
         },
         backgroundColor = Color.Transparent,
@@ -159,7 +151,7 @@ fun CustomPasswordTextField(labelValue: String, textState: String, showPassword:
 }
 
 @Composable
-fun CustomPasswordTextFieldd(labelValue: String, textState: String, imageVector: ImageVector, onValueChanged: (String) -> Unit) {
+fun ProfilePasswordTextField(labelValue: String, textState: String, imageVector: ImageVector, onValueChanged: (String) -> Unit) {
     TextField(
         value = textState,
         colors = TextFieldDefaults.textFieldColors(
@@ -185,7 +177,7 @@ fun CustomPasswordTextFieldd(labelValue: String, textState: String, imageVector:
 }
 
 @Composable
-fun MainButton(text: String, enabled: Boolean = true, onClick: () -> Unit) {
+fun MainButton(textId: Int, enabled: Boolean = true, onClick: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -206,33 +198,14 @@ fun MainButton(text: String, enabled: Boolean = true, onClick: () -> Unit) {
                 contentColor = Color.White
             )
         ) {
-            Text(text = text)
+            Text(text = stringResource(id = textId))
         }
     }
 }
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun CardView(text: String, onClick: () -> Unit) {
-    Card(
-        shape = RoundedCornerShape(8.dp),
-        backgroundColor = MaterialTheme.colors.surface,
-        onClick = { onClick.invoke() }) {
-        Column(
-            modifier = Modifier
-                .width(280.dp)
-                .height(130.dp),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ){
-            Text(text = text, fontSize = 14.sp)
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterialApi::class)
-@Composable
-fun PictureCardView(painter: Painter, onClick: () -> Unit) {
+fun PictureCardView(textId: Int, painter: Painter, onClick: () -> Unit) {
     Card(
         shape = RoundedCornerShape(8.dp),
         backgroundColor = MaterialTheme.colors.surface,
@@ -250,13 +223,15 @@ fun PictureCardView(painter: Painter, onClick: () -> Unit) {
                 modifier = Modifier.size(48.dp),
                 contentDescription = "Picture holder"
             )
+
+            Text(text = stringResource(id = textId), fontSize = 14.sp, textAlign = TextAlign.Center)
         }
     }
 }
 
 @ExperimentalAnimationApi
 @Composable
-fun SearchBar(searchText: String, items: List<String>, textState: MutableState<TextFieldValue>) {
+fun SearchBar(searchTextId: Int, items: List<String>, textState: MutableState<TextFieldValue>) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -267,7 +242,7 @@ fun SearchBar(searchText: String, items: List<String>, textState: MutableState<T
             val focusRequester = remember { FocusRequester() }
 
             TextSearchBar(
-                searchText = searchText,
+                searchText = stringResource(id = searchTextId),
                 modifier = Modifier
                     .focusRequester(focusRequester)
                     .focusable(),
@@ -365,27 +340,91 @@ fun AsyncRoundedImage(image: String, size: Int, cornerSize: Int) {
 }
 
 @Composable
-fun ItemButton(text: String, enabled: Boolean = true, backgroundColor: Color, corners: Int = 20, onClick: () -> Unit) {
+fun ItemButton(textId: Int, enabled: Boolean = true, backgroundColor: Color, corners: Int = 20, padding: Int = 5, contentColor: Color = Color.White, onClick: () -> Unit) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally
     ){
         Button(
             onClick = { onClick.invoke() },
             modifier = Modifier
-                .padding(5.dp),
+                .padding(padding.dp),
             shape = RoundedCornerShape(corners.dp),
             enabled = enabled,
             contentPadding = PaddingValues(10.dp),
             colors = ButtonDefaults.outlinedButtonColors(
                 backgroundColor = backgroundColor,
-                contentColor = Color.White
+                contentColor = contentColor,
             )
         ) {
-            Text(text = text)
+            Text(text = stringResource(id = textId))
         }
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ExpandedTextField(
+    textState: String,
+    imageVector: ImageVector,
+    modifier: Modifier,
+    expanded: Boolean,
+    onValueChanged: (String) -> Unit
+) {
+    var text = textState
+    androidx.compose.material3.TextField(
+        leadingIcon = {
+            androidx.compose.material3.Icon(imageVector = imageVector, null, tint = PrimaryColor)
+        },
+        value = text,
+        colors = androidx.compose.material3.TextFieldDefaults.textFieldColors(
+            textColor = Color.Black,
+            cursorColor = Color.Black,
+            containerColor = Color.White,
+            focusedIndicatorColor = Color.Transparent,
+            unfocusedIndicatorColor = Color.Transparent
+        ),
+        enabled = false,
+        onValueChange = {
+            text = it
+            onValueChanged(it)
+        },
+        trailingIcon = {
+            ExposedDropdownMenuDefaults.TrailingIcon(
+                expanded = expanded
+            )
+        },
+        modifier = modifier,
+        shape = RoundedCornerShape(8.dp),
+        singleLine = true
+    )
+}
+
+@Composable
+fun ProfileImageContent(
+    imageUrl: String,
+    width: Int,
+    height: Int
+) {
+    AsyncImage(
+        model = ImageRequest.Builder(LocalContext.current)
+            .data(imageUrl)
+            .crossfade(true)
+            .build(),
+        contentDescription = null,
+        contentScale = ContentScale.Crop,
+        modifier = Modifier
+            .clip(RoundedCornerShape(16.dp))
+            .width(width.dp)
+            .height(height.dp)
+    )
+}
+
+@Composable
+fun NoItemsText(textId: Int) {
+    Column(modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+        Text(text = stringResource(id = textId), fontSize = 18.sp)
+    }
+}
 
 
 

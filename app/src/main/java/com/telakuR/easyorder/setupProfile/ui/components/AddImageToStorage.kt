@@ -4,12 +4,12 @@ import android.net.Uri
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.telakuR.easyorder.Response
-import com.telakuR.easyorder.setupProfile.viewModels.SetUpProfileViewModel
+import com.telakuR.easyorder.models.Response
+import com.telakuR.easyorder.setupProfile.viewModel.SetUpPictureVM
 
 @Composable
 fun AddImageToStorage(
-    viewModel: SetUpProfileViewModel = hiltViewModel(),
+    viewModel: SetUpPictureVM = hiltViewModel(),
     addImageToDatabase: (downloadUrl: Uri) -> Unit
 ) {
     when(val addImageToStorageResponse = viewModel.addImageToStorageResponse) {

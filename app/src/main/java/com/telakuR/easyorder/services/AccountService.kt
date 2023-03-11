@@ -8,13 +8,13 @@ interface AccountService {
 
     val hasUser: Boolean
 
-    val currentUser: FirebaseUser?
+    var currentUser: FirebaseUser?
 
     suspend fun authenticate(email: String, password: String): FirebaseUser?
 
     suspend fun sendRecoveryEmail(email: String)
 
-    suspend fun createAccount(name: String, email: String, password: String, role: String): Boolean
+    suspend fun createAccount(name: String, email: String, password: String, role: String): FirebaseUser?
 
     suspend fun deleteAccount()
 

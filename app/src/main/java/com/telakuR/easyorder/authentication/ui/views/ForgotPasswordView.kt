@@ -13,6 +13,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import com.telakuR.easyorder.R
 import com.telakuR.easyorder.authentication.models.AuthenticationRoute
@@ -26,23 +27,10 @@ import com.telakuR.easyorder.ui.theme.Toolbar
 fun ForgotPasswordScreen(navController: NavHostController, viewModel: LoginVM = hiltViewModel()) {
     Scaffold(
         topBar = {
-            Column(modifier = Modifier.fillMaxWidth()) {
-                Toolbar(navController = navController)
-
-                Text(
-                    text = stringResource(R.string.forgot_your_password),
-                    modifier = Modifier.padding(start = 10.dp),
-                    fontSize = 25.sp
-                )
-            }
+            TopAppBar(navController = navController)
         },
         bottomBar = {
-            Column(modifier = Modifier.fillMaxWidth()) {
-                MainButton(text = stringResource(id = R.string.next)) {
-                    viewModel.onForgotPasswordClick()
-                    navController.navigate(AuthenticationRoute.Login.route)
-                }
-            }
+            BottomBar(navController = navController, viewModel = viewModel)
         },
         content = {
             val uiState by viewModel.uiState
@@ -64,4 +52,27 @@ fun ForgotPasswordScreen(navController: NavHostController, viewModel: LoginVM = 
         },
         backgroundColor = Background
     )
+}
+
+@Composable
+private fun TopAppBar(navController: NavController) {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Toolbar(navController = navController)
+
+        Text(
+            text = stringResource(R.string.forgot_your_password),
+            modifier = Modifier.padding(start = 10.dp),
+            fontSize = 25.sp
+        )
+    }
+}
+
+@Composable
+private fun BottomBar(navController: NavController, viewModel: LoginVM) {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        MainButton(textId = R.string.next) {
+            viewModel.onForgotPasswordClick()
+            navController.navigate(AuthenticationRoute.Login.route)
+        }
+    }
 }

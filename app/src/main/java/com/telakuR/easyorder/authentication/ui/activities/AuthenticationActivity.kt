@@ -10,6 +10,7 @@ import dagger.hilt.android.AndroidEntryPoint
 class AuthenticationActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         setContent {
             AuthenticationNavigation()
         }

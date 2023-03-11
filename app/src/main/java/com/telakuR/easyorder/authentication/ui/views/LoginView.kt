@@ -1,6 +1,8 @@
 package com.telakuR.easyorder.authentication.ui.views
 
+import android.content.Context
 import android.content.Intent
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.Scaffold
@@ -21,7 +23,10 @@ import androidx.navigation.NavController
 import com.telakuR.easyorder.R
 import com.telakuR.easyorder.authentication.models.AuthenticationRoute
 import com.telakuR.easyorder.authentication.viewmodel.LoginVM
+import com.telakuR.easyorder.home.route.HomeRoute
 import com.telakuR.easyorder.home.ui.HomeActivity
+import com.telakuR.easyorder.setupProfile.route.SetUpProfileRoute
+import com.telakuR.easyorder.setupProfile.ui.activities.SetUpProfileActivity
 import com.telakuR.easyorder.ui.theme.*
 import com.telakuR.easyorder.utils.ToastUtils.showToast
 
@@ -34,21 +39,10 @@ fun LoginScreen(navController: NavController, viewModel: LoginVM = hiltViewModel
             AppThemeLogo()
         },
         bottomBar = {
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                MainButton(stringResource(id = R.string.login)) {
-                    viewModel::onSignInClick.invoke()
-                }
-                TextButton(onClick = { navController.navigate(AuthenticationRoute.SignUp.route) }) {
-                    Text(
-                        text = stringResource(id = R.string.do_not_have_an_account),
-                        color = PrimaryColor,
-                        fontSize = 14.sp
-                    )
-                }
-            }
+            BottomAppBar(
+                navController = navController,
+                viewModel = viewModel
+            )
         },
         content = {
             Column(
@@ -82,24 +76,60 @@ fun LoginScreen(navController: NavController, viewModel: LoginVM = hiltViewModel
                 }
             }
 
-            val showHome = viewModel.shouldShowHomeView.collectAsState().value
+            val screenToSetup = viewModel.screenToSetup.collectAsState().value
 
             val context = LocalContext.current
-            context.run {
-                if(showHome) {
-                    val intent = Intent(this, HomeActivity::class.java)
-                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                    intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
-                    intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
-                    startActivity(intent)
-                }
+            Log.d("rigiii", "screenToSetup: $screenToSetup")
+
+            if(screenToSetup == HomeRoute.Home.route) {
+                startHomeActivity(context)
+            } else if(screenToSetup == SetUpProfileRoute.SelectPicture.route) {
+                startSetupProfileActivity(context)
             }
 
-            val shouldShowToast = viewModel.shouldShowToast.collectAsState().value
-            if(shouldShowToast) showToast(context = context, messageId = R.string.wrong_email_or_password, length = Toast.LENGTH_SHORT)
+            val toastMessageId = viewModel.toastMessageId.collectAsState().value
+            if(toastMessageId != null) showToast(context = context, messageId = toastMessageId, length = Toast.LENGTH_SHORT)
 
         },
         backgroundColor = Background
     )
 }
 
+private fun startHomeActivity(context: Context) {
+    context.run {
+        val intent = Intent(this, HomeActivity::class.java)
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+        startActivity(intent)
+    }
+}
+
+private fun startSetupProfileActivity(context: Context) {
+    context.run {
+        val intent = Intent(this, SetUpProfileActivity::class.java)
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+        startActivity(intent)
+    }
+}
+
+@Composable
+private fun BottomAppBar(navController: NavController, viewModel: LoginVM) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        MainButton(textId = R.string.login) {
+            viewModel::onSignInClick.invoke()
+        }
+        TextButton(onClick = { navController.navigate(AuthenticationRoute.SignUp.route) }) {
+            Text(
+                text = stringResource(id = R.string.do_not_have_an_account),
+                color = PrimaryColor,
+                fontSize = 14.sp
+            )
+        }
+    }
+}

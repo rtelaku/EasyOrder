@@ -22,18 +22,18 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.telakuR.easyorder.R
 import com.telakuR.easyorder.setupProfile.models.MyFileProvider
-import com.telakuR.easyorder.setupProfile.models.SetUpProfileRoute
+import com.telakuR.easyorder.setupProfile.route.SetUpProfileRoute
 import com.telakuR.easyorder.setupProfile.ui.components.AddImageToDatabase
 import com.telakuR.easyorder.setupProfile.ui.components.AddImageToStorage
 import com.telakuR.easyorder.setupProfile.ui.components.GetImageFromDatabase
-import com.telakuR.easyorder.setupProfile.viewModels.SetUpProfileViewModel
+import com.telakuR.easyorder.setupProfile.viewModel.SetUpPictureVM
 import com.telakuR.easyorder.ui.theme.Background
 import com.telakuR.easyorder.ui.theme.MainButton
 import com.telakuR.easyorder.ui.theme.PictureCardView
 import com.telakuR.easyorder.utils.ToastUtils.showToast
 
 @Composable
-fun SelectPictureScreen(navController: NavController, viewModel: SetUpProfileViewModel = hiltViewModel()) {
+fun SelectPictureScreen(navController: NavController, viewModel: SetUpPictureVM = hiltViewModel()) {
 
     var hasImage by remember {
         mutableStateOf(false)
@@ -70,41 +70,10 @@ fun SelectPictureScreen(navController: NavController, viewModel: SetUpProfileVie
 
     Scaffold(
         topBar = {
-            Column(modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 30.dp)) {
-                Text(
-                    text = stringResource(R.string.upload_photo),
-                    modifier = Modifier.padding(start = 10.dp),
-                    fontSize = 25.sp
-                )
-
-                Text(
-                    text = stringResource(R.string.display_data_for_security),
-                    modifier = Modifier.padding(start = 10.dp),
-                    fontSize = 12.sp
-                )
-            }
+            TopAppBar()
         },
         bottomBar = {
-            Column(modifier = Modifier.fillMaxWidth()) {
-                //ADD THIS DATA ON ROOM DB
-               var dbUri:Uri? = null
-                viewModel.getImageFromDatabase()
-                GetImageFromDatabase(
-                    createProfileImageContent = { imageUrl ->
-                        dbUri = imageUri
-                    }
-                )
-
-                MainButton(text = stringResource(id = R.string.next)) {
-                   if(imageUri != null || dbUri != null) {
-                       navController.navigate(SetUpProfileRoute.PicturePreview.route)
-                   } else {
-                       showToast(context = context, message = "Please select a picture for your profile", length = Toast.LENGTH_SHORT)
-                   }
-                }
-            }
+            BottomBar(navController = navController, viewModel = viewModel, imageUri = imageUri)
         },
         content = {
             if (hasImage || imageUri != null) {
@@ -121,7 +90,8 @@ fun SelectPictureScreen(navController: NavController, viewModel: SetUpProfileVie
                     .padding(it)
             ) {
                 PictureCardView(
-                    painter = painterResource(id = R.drawable.ic_gallery_icon),
+                    textId = R.string.from_gallery,
+                    painter = painterResource(id = R.drawable.ic_gallery),
                     onClick = {
                         galleryLauncher.launch("image/*")
                     }
@@ -130,7 +100,8 @@ fun SelectPictureScreen(navController: NavController, viewModel: SetUpProfileVie
                 Spacer(modifier = Modifier.height(30.dp))
 
                 PictureCardView(
-                    painter = painterResource(id = R.drawable.ic_camera_icon),
+                    textId = R.string.take_photo,
+                    painter = painterResource(id = R.drawable.ic_camera),
                     onClick = {
                         if (permissionCheckResult == PackageManager.PERMISSION_GRANTED) {
                             val uri = MyFileProvider.getImageUri(context)
@@ -148,7 +119,51 @@ fun SelectPictureScreen(navController: NavController, viewModel: SetUpProfileVie
 }
 
 @Composable
-fun HandleImageUri(imageUri: Uri, viewModel: SetUpProfileViewModel) {
+private fun TopAppBar() {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 30.dp)
+    ) {
+        Text(
+            text = stringResource(R.string.upload_photo),
+            modifier = Modifier.padding(start = 10.dp),
+            fontSize = 25.sp
+        )
+
+        Text(
+            text = stringResource(R.string.display_data_for_security),
+            modifier = Modifier.padding(start = 10.dp),
+            fontSize = 12.sp
+        )
+    }
+}
+
+@Composable
+private fun BottomBar(navController: NavController, viewModel: SetUpPictureVM, imageUri: Uri?) {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        var dbUri:Uri? = null
+        viewModel.getImageFromDatabase()
+        GetImageFromDatabase(
+            createProfileImageContent = { imageUrl ->
+                dbUri = imageUri
+            }
+        )
+
+        val context = LocalContext.current
+
+        MainButton(textId = R.string.next) {
+            if(imageUri != null || dbUri != null) {
+                navController.navigate(SetUpProfileRoute.PicturePreview.route)
+            } else {
+                showToast(context = context, messageId = R.string.please_select_picture, length = Toast.LENGTH_SHORT)
+            }
+        }
+    }
+}
+
+@Composable
+private fun HandleImageUri(imageUri: Uri, viewModel: SetUpPictureVM) {
     viewModel.addImageToStorage(imageUri)
 
     AddImageToStorage(
@@ -160,7 +175,7 @@ fun HandleImageUri(imageUri: Uri, viewModel: SetUpProfileViewModel) {
     AddImageToDatabase(
         showSnackBar = { isImageAddedToDatabase ->
             if (isImageAddedToDatabase) {
-                showToast(message = "Picture added successfully", length = Toast.LENGTH_SHORT)
+                showToast(messageId = R.string.picture_added_successfully, length = Toast.LENGTH_SHORT)
             }
         }
     )

@@ -8,19 +8,19 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.telakuR.easyorder.setupProfile.models.SetUpProfileRoute
+import com.telakuR.easyorder.setupProfile.route.SetUpProfileRoute
 import com.telakuR.easyorder.setupProfile.ui.views.FindYourCompanyScreen
 import com.telakuR.easyorder.setupProfile.ui.views.PicturePreviewScreen
 import com.telakuR.easyorder.setupProfile.ui.views.SelectPictureScreen
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
-fun NavigateSetUpProfile() {
+fun NavigateSetUpProfile(startDestination: String, shownFromUser: Boolean) {
     val navController = rememberNavController()
 
     NavHost(
         navController = navController,
-        startDestination = SetUpProfileRoute.SelectPicture.route,
+        startDestination = startDestination,
         modifier = Modifier
             .fillMaxWidth()
             .fillMaxHeight()) {
@@ -33,7 +33,7 @@ fun NavigateSetUpProfile() {
         }
 
         composable(route = SetUpProfileRoute.FindYourCompany.route) {
-            FindYourCompanyScreen(navController)
+            FindYourCompanyScreen(navController = navController, shownFromUser = shownFromUser)
         }
     }
 }

@@ -1,18 +1,25 @@
 package com.telakuR.easyorder.authentication.viewmodel
 
 import androidx.compose.runtime.mutableStateOf
+import com.telakuR.easyorder.R
 import com.telakuR.easyorder.authentication.models.AuthUiState
+import com.telakuR.easyorder.home.route.HomeRoute
+import com.telakuR.easyorder.mainViewModel.EasyOrderViewModel
+import com.telakuR.easyorder.modules.IoDispatcher
 import com.telakuR.easyorder.services.AccountService
 import com.telakuR.easyorder.services.LogService
-import com.telakuR.easyorder.viewModels.EasyOrderViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
 class LoginVM @Inject constructor(
     private val accountService: AccountService,
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     logService: LogService
 ) : EasyOrderViewModel(logService) {
     var uiState = mutableStateOf(AuthUiState())
@@ -23,12 +30,11 @@ class LoginVM @Inject constructor(
     private val password
         get() = uiState.value.password
 
+    private val _screenToSetup = MutableStateFlow("")
+    var screenToSetup: StateFlow<String> = _screenToSetup
 
-    private val _shouldShowHomeView = MutableStateFlow(false)
-    var shouldShowHomeView: StateFlow<Boolean> = _shouldShowHomeView
-
-    private val _shouldShowToast = MutableStateFlow(false)
-    var shouldShowToast: StateFlow<Boolean> = _shouldShowToast
+    private val _toastMessageId = MutableStateFlow<Int?>(null)
+    var toastMessageId: StateFlow<Int?> = _toastMessageId
 
     fun onEmailChange(newValue: String) {
         uiState.value = uiState.value.copy(email = newValue)
@@ -40,18 +46,31 @@ class LoginVM @Inject constructor(
 
     fun onSignInClick() {
         launchCatching {
-            val currentUser = accountService.authenticate(email, password)
-            if(currentUser != null) {
-                _shouldShowHomeView.value = true
+            val currentUser = async(ioDispatcher) {
+                return@async accountService.authenticate(email, password)
+            }.await()
+
+            if (currentUser != null) {
+//            if(currentUser.isEmailVerified) {
+                _screenToSetup.value = HomeRoute.Home.route
+//            } else {
+//                if (currentUser.isEmailVerified) {
+//                    _shouldShowHomeView.value = true
+//                } else {
+//                    _toastMessageId.value = R.string.please_verify_your_email
+//                }
+//            }
             } else {
-                _shouldShowToast.value = true
+                _toastMessageId.value = R.string.something_went_wrong
             }
         }
     }
 
     fun onForgotPasswordClick() {
         launchCatching {
-            accountService.sendRecoveryEmail(email)
+            withContext(ioDispatcher) {
+                accountService.sendRecoveryEmail(email)
+            }
         }
     }
 }

@@ -1,33 +1,31 @@
 package com.telakuR.easyorder.home.navigation
 
 import androidx.compose.runtime.Composable
-import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
 import com.telakuR.easyorder.home.route.HomeRoute
-import com.telakuR.easyorder.home.ui.screens.HomeScreen
-import com.telakuR.easyorder.home.ui.screens.NotificationScreen
+import com.telakuR.easyorder.home.ui.screens.UserHomeScreen
+import com.telakuR.easyorder.home.ui.screens.NotificationsScreen
 import com.telakuR.easyorder.home.ui.screens.ProfileScreen
-import com.telakuR.easyorder.home.ui.screens.ReportScreen
+import com.telakuR.easyorder.home.ui.screens.RequestsScreen
 
 @Composable
-fun HomeNavigation(navController: NavHostController) {
+fun HomeNavigation(navController: NavHostController, role: String) {
     NavHost(
     navController = navController,
     startDestination = HomeRoute.Home.route,
     ) {
         composable(route = HomeRoute.Home.route) {
-            HomeScreen()
+            UserHomeScreen(navController = navController, role = role)
         }
 
         composable(route = HomeRoute.Profile.route) {
             ProfileScreen()
         }
 
-        composable(route = HomeRoute.Report.route) {
-            ReportScreen()
+        composable(route = HomeRoute.Requests.route) {
+            RequestsScreen()
         }
 
         composable(route = HomeRoute.Order.route) {
@@ -35,7 +33,7 @@ fun HomeNavigation(navController: NavHostController) {
         }
 
         composable(route = HomeRoute.Notification.route) {
-            NotificationScreen()
+            NotificationsScreen()
         }
 
         composable(route = HomeRoute.OrderDetails.route) {

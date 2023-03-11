@@ -6,7 +6,8 @@ import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.*
+import androidx.compose.material.Scaffold
+import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -18,9 +19,9 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.telakuR.easyorder.R
-import com.telakuR.easyorder.models.User
-import com.telakuR.easyorder.setupProfile.viewModels.SetUpProfileViewModel
 import com.telakuR.easyorder.home.ui.HomeActivity
+import com.telakuR.easyorder.models.User
+import com.telakuR.easyorder.setupProfile.viewModel.FindCompanyVM
 import com.telakuR.easyorder.ui.theme.*
 import com.telakuR.easyorder.utils.ToastUtils.showToast
 import java.util.*
@@ -29,7 +30,8 @@ import java.util.*
 @Composable
 fun FindYourCompanyScreen(
     navController: NavController,
-    viewModel: SetUpProfileViewModel = hiltViewModel()
+    viewModel: FindCompanyVM = hiltViewModel(),
+    shownFromUser: Boolean
 ) {
     viewModel.getCompanies()
     val textState = remember { mutableStateOf(TextFieldValue("")) }
@@ -37,36 +39,15 @@ fun FindYourCompanyScreen(
 
     Scaffold(
         topBar = {
-            Column(modifier = Modifier.fillMaxWidth()) {
-                Toolbar(navController = navController)
-
-                Text(
-                    text = stringResource(R.string.find_your_company),
-                    modifier = Modifier
-                        .padding(start = 10.dp),
-                    fontSize = 25.sp
-                )
-
-                val companiesByName = viewModel.companies.collectAsState().value.map { it.name }
-                SearchBar(searchText = stringResource(id = R.string.where_do_you_work), items = companiesByName, textState = textState)
-            }
+            TopAppBar(
+                navController = navController,
+                shownFromUser = shownFromUser,
+                viewModel = viewModel,
+                textState = textState
+            )
         },
         bottomBar = {
-            val context = LocalContext.current
-            Column(modifier = Modifier.fillMaxWidth()) {
-                MainButton(text = stringResource(id = R.string.continue_text)) {
-                    if(selected.value) {
-                        context.run {
-                            val intent = Intent(this, HomeActivity::class.java)
-                            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                            intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK
-                            startActivity(intent)
-                        }
-                    } else {
-                        showToast(context = context, messageId = R.string.please_select_a_company, length = Toast.LENGTH_SHORT)
-                    }
-                }
-            }
+            BottomBar(selected = selected)
         },
         content = {
             Column(
@@ -86,13 +67,22 @@ fun FindYourCompanyScreen(
 }
 
 @Composable
-fun CompaniesList(
+private fun CompaniesList(
     companies: List<User>,
     selected: MutableState<Boolean>,
     state: MutableState<TextFieldValue>,
-    viewModel: SetUpProfileViewModel
+    viewModel: FindCompanyVM
 ) {
+    viewModel.getSelectedCompany()
+
     val selectedCompany: MutableState<String> = remember { mutableStateOf("") }
+
+    val previousCompany = viewModel.previousRequestedCompany.collectAsState().value
+
+    if(!previousCompany.isNullOrEmpty()) {
+        selected.value = true
+        selectedCompany.value = previousCompany
+    }
 
     var filteredCompanies: List<User>
     LazyColumn(modifier = Modifier.fillMaxWidth()) {
@@ -116,8 +106,45 @@ fun CompaniesList(
     }
 }
 
+@OptIn(ExperimentalAnimationApi::class)
 @Composable
-fun CompanyListItem(company: User, selectedCompany: MutableState<String>, selected: MutableState<Boolean>, viewModel: SetUpProfileViewModel) {
+private fun TopAppBar(navController: NavController, shownFromUser: Boolean, viewModel: FindCompanyVM, textState:  MutableState<TextFieldValue>) {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Toolbar(navController = navController, shownFromUser = shownFromUser)
+
+        Text(
+            text = stringResource(R.string.find_your_company),
+            modifier = Modifier
+                .padding(start = 10.dp),
+            fontSize = 25.sp
+        )
+
+        val companiesByName = viewModel.companies.collectAsState().value.map { it.name }
+        SearchBar(searchTextId =  R.string.where_do_you_work, items = companiesByName, textState = textState)
+    }
+}
+
+@Composable
+private fun BottomBar(selected: MutableState<Boolean>) {
+    val context = LocalContext.current
+    Column(modifier = Modifier.fillMaxWidth()) {
+        MainButton(textId = R.string.continue_text) {
+            if(selected.value) {
+                context.run {
+                    val intent = Intent(this, HomeActivity::class.java)
+                    intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                    intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK
+                    startActivity(intent)
+                }
+            } else {
+                showToast(context = context, messageId = R.string.please_select_a_company, length = Toast.LENGTH_SHORT)
+            }
+        }
+    }
+}
+
+@Composable
+private fun CompanyListItem(company: User, selectedCompany: MutableState<String>, selected: MutableState<Boolean>, viewModel: FindCompanyVM) {
     val color = if (selectedCompany.value == company.email) Background else PrimaryColor
     val textId = if (selectedCompany.value == company.email) R.string.requested else R.string.request_to_join
 
@@ -152,12 +179,12 @@ fun CompanyListItem(company: User, selectedCompany: MutableState<String>, select
 
             Row(horizontalArrangement = Arrangement.End) {
                 ItemButton(
-                    text = stringResource(id = textId),
+                    textId = textId,
                     backgroundColor = color
                 ) {
                     selected.value = !selected.value
                     selectedCompany.value = if (selectedCompany.value == company.email) "" else company.email
-                    viewModel.handleRequestState(email = company.email, state = selected.value)
+                    viewModel.handleRequestState(id = company.id, state = selected.value)
                 }
             }
         }

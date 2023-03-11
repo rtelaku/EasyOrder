@@ -1,27 +1,32 @@
 package com.telakuR.easyorder.authentication.viewmodel
 
 import androidx.compose.runtime.mutableStateOf
+import com.telakuR.easyorder.R
 import com.telakuR.easyorder.authentication.models.AuthUiState
 import com.telakuR.easyorder.enums.RolesEnum
 import com.telakuR.easyorder.ext.isValidEmail
+import com.telakuR.easyorder.mainViewModel.EasyOrderViewModel
+import com.telakuR.easyorder.modules.IoDispatcher
 import com.telakuR.easyorder.services.AccountService
 import com.telakuR.easyorder.services.LogService
-import com.telakuR.easyorder.viewModels.EasyOrderViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
 class SignUpVM @Inject constructor(
     private val accountService: AccountService,
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     logService: LogService
 ) : EasyOrderViewModel(logService) {
     var uiState = mutableStateOf(AuthUiState())
         private set
 
-    private val _toastMessage = MutableStateFlow("")
-    var toastMessage: StateFlow<String> = _toastMessage
+    private val _toastMessageId = MutableStateFlow<Int?>(null)
+    var toastMessageId: StateFlow<Int?> = _toastMessageId
 
     private val _shouldShowLoginView = MutableStateFlow(false)
     var shouldShowLoginView: StateFlow<Boolean> = _shouldShowLoginView
@@ -59,14 +64,20 @@ class SignUpVM @Inject constructor(
 
     fun onSignUpClick(role: String) {
         if (!email.isValidEmail()) {
-            _toastMessage.value = "Invalid email"
+            _toastMessageId.value = R.string.invalid_email
             _shouldShowLoginView.value = false
             return
         }
 
         launchCatching {
-            val continueToLogin = accountService.createAccount(name, email, password, role)
-            _shouldShowLoginView.value = continueToLogin
+            val currentUser = withContext(ioDispatcher) {
+                accountService.createAccount(name, email, password, role)
+            }
+
+            if (currentUser != null) {
+                accountService.signOut()
+                _shouldShowLoginView.value = true
+            }
         }
     }
 }
