@@ -3,14 +3,11 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -19,6 +16,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -34,7 +32,7 @@ import com.telakuR.easyorder.setupProfile.ui.activities.SetUpProfileActivity
 import com.telakuR.easyorder.ui.theme.*
 
 @Composable
-fun HomeView(viewModel: RequestsVM = hiltViewModel()) {
+fun HomeMainView(viewModel: RequestsVM = hiltViewModel()) {
     val navController = rememberNavController()
 
     val role = viewModel.currentUserRole.collectAsState().value
@@ -52,7 +50,7 @@ fun HomeView(viewModel: RequestsVM = hiltViewModel()) {
     }
 
     var showBottomBar = false
-    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val navBackStackEntry = navController.currentBackStackEntryAsState().value
 
     val currentDestination = navBackStackEntry?.destination?.route
 
@@ -62,7 +60,7 @@ fun HomeView(viewModel: RequestsVM = hiltViewModel()) {
 
     Scaffold(
         topBar = {
-            HomeTopBar(navController = navController, currentDestination = currentDestination)
+            HomeTopBar(navController = navController, currentDestination = currentDestination, showBackButton = !showBottomBar)
         },
         bottomBar = {
             HomeBottomBar(showBottomBar = showBottomBar, screens = screens, navController = navController, viewModel = viewModel)
@@ -97,32 +95,38 @@ private fun HomeBottomBar(
 }
 
 @Composable
-private fun HomeTopBar(currentDestination: String?, navController: NavHostController) {
+private fun HomeTopBar(currentDestination: String?, navController: NavHostController, showBackButton: Boolean) {
     if (currentDestination != HomeRoute.Notification.route) {
         TopAppBar(
             modifier = Modifier.fillMaxWidth(),
             backgroundColor = Color.Transparent,
             elevation = 0.dp
         ) {
+            if(showBackButton) {
+                BackAndNotificationTopAppBar(navController = navController)
+            } else {
+                NotificationTopAppBar(navController = navController)
+            }
+        }
+    }
+}
+
+@Composable
+fun NotificationTopAppBar(navController: NavController) {
+    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+        WhiteItemCard(modifier = Modifier
+            .size(50.dp)
+            .clickable { navController.navigate(HomeRoute.Notification.route) }) {
             Column(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalAlignment = Alignment.End
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
             ) {
-                WhiteItemCard(modifier = Modifier
-                    .size(50.dp)
-                    .clickable { navController.navigate(HomeRoute.Notification.route) }) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        BadgedBox(badge = { Badge { Text("6") } }) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.ic_icon_notifiaction),
-                                contentDescription = "icon",
-                                tint = PrimaryColor
-                            )
-                        }
-                    }
+                BadgedBox(badge = { Badge { Text("6") } }) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_icon_notifiaction),
+                        contentDescription = "icon",
+                        tint = PrimaryColor
+                    )
                 }
             }
         }
@@ -132,7 +136,7 @@ private fun HomeTopBar(currentDestination: String?, navController: NavHostContro
 @Composable
 private fun BottomBar(screens: List<HomeRoute>, navController: NavHostController, viewModel: RequestsVM) {
 
-    val navStackBackEntry by navController.currentBackStackEntryAsState()
+    val navStackBackEntry = navController.currentBackStackEntryAsState().value
     val currentDestination = navStackBackEntry?.destination
 
     Row(
@@ -161,17 +165,15 @@ private fun AddItem(
     navController: NavHostController,
     viewModel: RequestsVM
 ) {
-    val selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true
+    val isSelected = currentDestination?.hierarchy?.any { it.route == screen.route } == true
 
-    val background = if (selected) LightGreen else Color.Transparent
+    val background = if (isSelected) LightGreen else Color.Transparent
 
     val contentColor = PrimaryColor
 
     Box(
         modifier = Modifier
-            .height(40.dp)
-            .clip(CircleShape)
-            .background(background)
+            .itemBackground(isSelected, background)
             .clickable(onClick = {
                 navController.navigate(screen.route) {
                     popUpTo(navController.graph.findStartDestination().id)
@@ -179,39 +181,50 @@ private fun AddItem(
                 }
             })
     ) {
-        Row(
-            modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 8.dp, bottom = 8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(4.dp)
-        ) {
-            if (screen.title == HomeRoute.Requests.title) {
-                viewModel.getListOfRequests()
+        AddItemRow(screen, isSelected, contentColor, viewModel)
+    }
+}
 
-                val requestsSize = viewModel.requests.collectAsState().value.size
+@Composable
+private fun AddItemRow(
+    screen: HomeRoute,
+    isSelected: Boolean,
+    contentColor: Color,
+    viewModel: RequestsVM
+) {
+    Row(
+        modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        if (screen.title == HomeRoute.Requests.title) {
+            viewModel.getListOfRequests()
 
-                BadgedBox(badge = { if(requestsSize != 0) Badge { Text(requestsSize.toString()) } }) {
-                    Icon(
-                        painter = painterResource(id = if (selected) screen.icon_focused else screen.icon),
-                        contentDescription = "icon",
-                        tint = contentColor
-                    )
-                }
-            } else {
-                Icon(
-                    painter = painterResource(id = if (selected) screen.icon_focused else screen.icon),
-                    contentDescription = "icon",
-                    tint = contentColor
-                )
+            val requestsSize = viewModel.requests.collectAsState().value.size
+
+            BadgedBox(badge = { if(requestsSize != 0) Badge { Text(requestsSize.toString()) } }) {
+                AddItemIcon(screen, isSelected, contentColor)
             }
+        } else {
+            AddItemIcon(screen, isSelected, contentColor)
+        }
 
-            AnimatedVisibility(visible = selected) {
-                Text(
-                    text = screen.title,
-                    color = Color.Black
-                )
-            }
+        AnimatedVisibility(visible = isSelected) {
+            Text(
+                text = screen.title,
+                color = Color.Black
+            )
         }
     }
+}
+
+@Composable
+private fun AddItemIcon(screen: HomeRoute, isSelected: Boolean, contentColor: Color) {
+    Icon(
+        painter = painterResource(id = if (isSelected) screen.icon_focused else screen.icon),
+        contentDescription = "icon",
+        tint = contentColor
+    )
 }
 
 @Composable

@@ -5,10 +5,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.telakuR.easyorder.home.route.HomeRoute
-import com.telakuR.easyorder.home.ui.screens.UserHomeScreen
-import com.telakuR.easyorder.home.ui.screens.NotificationsScreen
-import com.telakuR.easyorder.home.ui.screens.ProfileScreen
-import com.telakuR.easyorder.home.ui.screens.RequestsScreen
+import com.telakuR.easyorder.home.ui.screens.*
 
 @Composable
 fun HomeNavigation(navController: NavHostController, role: String) {
@@ -41,7 +38,7 @@ fun HomeNavigation(navController: NavHostController, role: String) {
         }
 
         composable(route = HomeRoute.ChooseFastFood.route) {
-            ChooseFastFood()
+            ChooseFastFoodScreen(navController = navController)
         }
 
         composable(route = HomeRoute.ChooseFood.route) {
@@ -70,11 +67,6 @@ fun GroupedOrders() {
 
 @Composable
 fun ChooseFood() {
-
-}
-
-@Composable
-fun ChooseFastFood() {
 
 }
 

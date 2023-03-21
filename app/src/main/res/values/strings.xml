@@ -63,4 +63,7 @@
     <string name="please_verify_your_email">Please verify your email</string>
     <string name="my_profile">My Profile</string>
     <string name="fill_all_fields">Please fill all the fields</string>
+    <string name="no_fast_foods_available">No fast foods available!</string>
+    <string name="select_fastfood">Select your favorite fast food</string>
+    <string name="search_fastFood">Search fast food</string>
 </resources>

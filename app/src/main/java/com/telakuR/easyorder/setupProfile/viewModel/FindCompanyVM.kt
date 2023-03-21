@@ -1,13 +1,12 @@
 package com.telakuR.easyorder.setupProfile.viewModel
 
+import com.telakuR.easyorder.mainViewModel.EasyOrderViewModel
 import com.telakuR.easyorder.models.User
 import com.telakuR.easyorder.modules.IoDispatcher
 import com.telakuR.easyorder.services.LogService
 import com.telakuR.easyorder.setupProfile.repository.SetupProfileRepository
-import com.telakuR.easyorder.mainViewModel.EasyOrderViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.withContext
@@ -50,9 +49,9 @@ class FindCompanyVM @Inject constructor(
 
     fun getSelectedCompany() {
         launchCatching {
-            val previousCompany = async(ioDispatcher) {
+            val previousCompany = withContext(ioDispatcher) {
                 setupProfileRepository.getRequestedCompany()
-            }.await()
+            }
 
             _previousRequestedCompany.value = previousCompany
         }

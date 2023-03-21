@@ -2,7 +2,6 @@ package com.telakuR.easyorder.authentication.ui.views
 
 import android.content.Context
 import android.content.Intent
-import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.Scaffold
@@ -79,7 +78,6 @@ fun LoginScreen(navController: NavController, viewModel: LoginVM = hiltViewModel
             val screenToSetup = viewModel.screenToSetup.collectAsState().value
 
             val context = LocalContext.current
-            Log.d("rigiii", "screenToSetup: $screenToSetup")
 
             if(screenToSetup == HomeRoute.Home.route) {
                 startHomeActivity(context)

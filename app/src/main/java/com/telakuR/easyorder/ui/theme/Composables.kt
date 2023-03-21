@@ -2,8 +2,11 @@ package com.telakuR.easyorder.ui.theme
 
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
@@ -20,6 +23,7 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.FocusState
@@ -42,6 +46,7 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.telakuR.easyorder.R
+import com.telakuR.easyorder.home.route.HomeRoute
 
 @Composable
 fun AppThemeLogo() {
@@ -423,6 +428,47 @@ fun ProfileImageContent(
 fun NoItemsText(textId: Int) {
     Column(modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
         Text(text = stringResource(id = textId), fontSize = 18.sp)
+    }
+}
+
+@Composable
+fun Modifier.itemBackground(isSelected: Boolean, color: Color): Modifier {
+    return this
+        .height(40.dp)
+        .clip(CircleShape)
+        .background(color)
+        .then(if (isSelected) Modifier.alpha(0.8f) else Modifier)
+}
+
+@Composable
+fun BackAndNotificationTopAppBar(navController: NavController) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        IconButton(onClick = { navController.popBackStack() }) {
+            Image(
+                painter = painterResource(R.drawable.ic_back_arrow),
+                contentDescription = "Back arrow"
+            )
+        }
+
+        WhiteItemCard(modifier = Modifier
+            .size(50.dp)
+            .clickable { navController.navigate(HomeRoute.Notification.route) }) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                BadgedBox(badge = { Badge { Text("6") } }) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_icon_notifiaction),
+                        contentDescription = "icon",
+                        tint = PrimaryColor
+                    )
+                }
+            }
+        }
     }
 }
 

@@ -5,6 +5,7 @@ import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.gson.Gson
 import com.telakuR.easyorder.enums.DBCollectionEnum
+import com.telakuR.easyorder.home.models.FastFood
 import com.telakuR.easyorder.home.models.Menu
 import com.telakuR.easyorder.home.models.Order
 import com.telakuR.easyorder.home.models.OrderDetails
@@ -42,7 +43,7 @@ class HomeDataRepositoryImpl @Inject constructor(val firestore: FirebaseFirestor
         }
     }
 
-    override suspend fun getEmployees(requests: List<String>): Flow<List<User>> = flow {
+    override fun getEmployees(requests: List<String>): Flow<List<User>> = flow {
         try {
             val users = mutableListOf<User>()
             coroutineScope {
@@ -95,7 +96,7 @@ class HomeDataRepositoryImpl @Inject constructor(val firestore: FirebaseFirestor
         }
     }
 
-    override suspend fun getRequests(requestsEmails: List<String>): Flow<List<User>> = flow {
+    override fun getRequests(requestsEmails: List<String>): Flow<List<User>> = flow {
         try {
             val users = mutableListOf<User>()
             coroutineScope {
@@ -152,7 +153,7 @@ class HomeDataRepositoryImpl @Inject constructor(val firestore: FirebaseFirestor
         }
     }
 
-    override suspend fun getMenuItems(companyName: String): Flow<List<Order>> = flow {
+    override fun getMenuItems(companyName: String): Flow<List<Order>> = flow {
         try {
             val companyOrdersList = arrayListOf<Order>()
 
@@ -191,11 +192,11 @@ class HomeDataRepositoryImpl @Inject constructor(val firestore: FirebaseFirestor
             delay(1000)
             emit(companyOrdersList)
         } catch (e: Exception) {
-            Log.e(TAG, "Couldn't get requests: ", e)
+            Log.e(TAG, "Couldn't get menu items: ", e)
         }
     }
 
-    override suspend fun getOrders(userCompanyId: String): Flow<List<OrderDetails>> = flow {
+    override fun getOrders(userCompanyId: String): Flow<List<OrderDetails>> = flow {
         try {
             val companyOrdersList = arrayListOf<OrderDetails>()
 
@@ -231,7 +232,26 @@ class HomeDataRepositoryImpl @Inject constructor(val firestore: FirebaseFirestor
             delay(1000)
             emit(companyOrdersList)
         } catch (e: Exception) {
-            Log.e(TAG, "Couldn't get requests: ", e)
+            Log.e(TAG, "Couldn't get orders: ", e)
+        }
+    }
+
+    override fun getFastFoods(): Flow<List<FastFood>> = flow {
+        try {
+            val fastFoods = arrayListOf<FastFood>()
+
+            firestore.collection(DBCollectionEnum.FAST_FOODS.title).get()
+                .addOnSuccessListener { documents ->
+                    for (document in documents) {
+                        val fastFood = Gson().fromJson(Gson().toJson(document.data), FastFood::class.java)
+                        fastFoods.add(fastFood)
+                    }
+                }
+
+            delay(1000)
+            emit(fastFoods)
+        } catch (e: Exception) {
+            Log.e(TAG, "Couldn't get fast foods: ", e)
         }
     }
 }
