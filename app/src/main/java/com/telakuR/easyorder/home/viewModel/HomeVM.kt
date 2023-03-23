@@ -2,11 +2,11 @@ package com.telakuR.easyorder.home.viewModel
 
 import com.telakuR.easyorder.home.models.OrderDetails
 import com.telakuR.easyorder.home.repository.HomeRepository
+import com.telakuR.easyorder.mainRepository.UserDataRepository
+import com.telakuR.easyorder.mainViewModel.EasyOrderViewModel
 import com.telakuR.easyorder.models.User
 import com.telakuR.easyorder.modules.IoDispatcher
-import com.telakuR.easyorder.mainRepository.UserDataRepository
 import com.telakuR.easyorder.services.LogService
-import com.telakuR.easyorder.mainViewModel.EasyOrderViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.async
@@ -36,6 +36,9 @@ class HomeVM @Inject constructor(
     private val _isUserOnACompany = MutableStateFlow<Boolean?>(null)
     var isUserOnACompany: StateFlow<Boolean?> = _isUserOnACompany
 
+    private val _hasAlreadyAnOrder = MutableStateFlow<Boolean?>(null)
+    var hasAlreadyAnOrder: StateFlow<Boolean?> = _hasAlreadyAnOrder
+
     init {
         shouldShowSetupProfile()
     }
@@ -54,7 +57,7 @@ class HomeVM @Inject constructor(
                     return@async homeRepository.getEmployeesList()
                 }.await()
 
-                homeRepository.getEmployees(employeesList)
+                homeRepository.getEmployees(employees = employeesList)
             }.collect {
                 _employees.value = it
             }
@@ -64,7 +67,7 @@ class HomeVM @Inject constructor(
     fun removeEmployee(id: String) {
         launchCatching {
             withContext(ioDispatcher) {
-                homeRepository.removeEmployee(id)
+                homeRepository.removeEmployee(id = id)
                 delay(1000)
                 getListOfEmployees()
             }
@@ -89,6 +92,20 @@ class HomeVM @Inject constructor(
             }
 
             _isUserOnACompany.value = userCompany
+        }
+    }
+
+    fun checkIfUserHasAnOrder() {
+        launchCatching {
+            val hasOrder = withContext(ioDispatcher) {
+                val companyId = userDataRepository.getCompanyId()
+                return@withContext homeRepository.checkIfEmployeeHasAnOrder(companyId = companyId)
+            }
+
+            _hasAlreadyAnOrder.value = hasOrder
+
+            delay(1000)
+            _hasAlreadyAnOrder.value = null
         }
     }
 }

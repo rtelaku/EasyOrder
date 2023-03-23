@@ -6,6 +6,12 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.telakuR.easyorder.home.route.HomeRoute
 import com.telakuR.easyorder.home.ui.screens.*
+import com.telakuR.easyorder.home.ui.screens.companyView.RequestsScreen
+import com.telakuR.easyorder.home.ui.screens.employeeView.ChooseFastFoodScreen
+import com.telakuR.easyorder.home.ui.screens.employeeView.ChooseFoodScreen
+import com.telakuR.easyorder.home.ui.screens.employeeView.MyOrderScreen
+
+const val FAST_FOOD_NAME: String = "fastFoodName"
 
 @Composable
 fun HomeNavigation(navController: NavHostController, role: String) {
@@ -26,7 +32,7 @@ fun HomeNavigation(navController: NavHostController, role: String) {
         }
 
         composable(route = HomeRoute.Order.route) {
-            OrderScreen()
+            MyOrderScreen(navController = navController)
         }
 
         composable(route = HomeRoute.Notification.route) {
@@ -41,8 +47,8 @@ fun HomeNavigation(navController: NavHostController, role: String) {
             ChooseFastFoodScreen(navController = navController)
         }
 
-        composable(route = HomeRoute.ChooseFood.route) {
-            ChooseFood()
+        composable(route = HomeRoute.ChooseFood.route + "/{$FAST_FOOD_NAME}") {
+            ChooseFoodScreen(navController = navController, fastFoodName = it.arguments?.getString(FAST_FOOD_NAME) ?: "")
         }
 
         composable(route = HomeRoute.GroupedOrders.route) {
@@ -66,16 +72,7 @@ fun GroupedOrders() {
 }
 
 @Composable
-fun ChooseFood() {
-
-}
-
-@Composable
 fun OrderDetails() {
 
 }
 
-@Composable
-fun OrderScreen() {
-
-}

@@ -1,6 +1,5 @@
 package com.telakuR.easyorder.home.ui.screens
 
-import BottomRightButton
 import PartOfNoCompanyView
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.Image
@@ -19,6 +18,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import com.telakuR.easyorder.R
 import com.telakuR.easyorder.enums.RolesEnum
@@ -50,42 +50,40 @@ private fun EmployeeHome(viewModel: HomeVM, navController: NavHostController) {
         if (isUserInACompany == false) {
             PartOfNoCompanyView()
         } else if (isUserInACompany == true) {
-
-            viewModel.getListOfOrders()
-
-            val textState = remember { mutableStateOf(TextFieldValue("")) }
-
-            val orders = viewModel.orders.collectAsState().value
-
-            Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.Top) {
-                Text(
-                    text = stringResource(id = R.string.orders),
-                    modifier = Modifier.padding(start = 10.dp),
-                    fontSize = 25.sp
-                )
-            }
-
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 20.dp), verticalArrangement = Arrangement.Center
-            ) {
-                if (orders.isEmpty()) {
-                    NoItemsText(textId = R.string.no_orders)
-                } else {
-                    OrderList(orders = orders, state = textState, navController = navController)
-                }
-            }
-
-            BottomRightButton(textId = R.string.create_order) {
-                navController.navigate(HomeRoute.ChooseFastFood.route)
-            }
+            AllOrders(viewModel = viewModel, navController = navController)
         }
     }
 }
 
 @Composable
-private fun OrderList(orders: List<OrderDetails>, state: MutableState<TextFieldValue>, navController: NavHostController) {
+private fun AllOrders(viewModel: HomeVM, navController: NavController) {
+    viewModel.getListOfOrders()
+
+    val orders = viewModel.orders.collectAsState().value
+
+    Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.Top) {
+        Text(
+            text = stringResource(id = R.string.orders),
+            modifier = Modifier.padding(start = 10.dp),
+            fontSize = 25.sp
+        )
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 20.dp), verticalArrangement = Arrangement.Center
+    ) {
+        if (orders.isEmpty()) {
+            NoItemsText(textId = R.string.no_orders)
+        } else {
+            OrderList(orders = orders, navController = navController)
+        }
+    }
+}
+
+@Composable
+private fun OrderList(orders: List<OrderDetails>, navController: NavController) {
     LazyColumn(modifier = Modifier.fillMaxWidth()) {
         items(orders) { order ->
             OrderItem(order = order, navController = navController)
@@ -94,7 +92,7 @@ private fun OrderList(orders: List<OrderDetails>, state: MutableState<TextFieldV
 }
 
 @Composable
-private fun OrderItem(order: OrderDetails, navController: NavHostController) {
+private fun OrderItem(order: OrderDetails, navController: NavController) {
     Box(
         modifier = Modifier.fillMaxWidth()
     ) {

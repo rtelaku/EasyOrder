@@ -16,7 +16,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.telakuR.easyorder.R
 import com.telakuR.easyorder.enums.RolesEnum
-import com.telakuR.easyorder.home.ui.HomeActivity
+import com.telakuR.easyorder.home.ui.activities.HomeActivity
 import com.telakuR.easyorder.setupProfile.route.SetUpProfileRoute
 import com.telakuR.easyorder.setupProfile.ui.components.GetImageFromDatabase
 import com.telakuR.easyorder.setupProfile.viewModel.SetUpPictureVM

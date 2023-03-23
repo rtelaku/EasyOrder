@@ -9,7 +9,7 @@ import androidx.lifecycle.lifecycleScope
 import com.telakuR.easyorder.authentication.models.AuthenticationRoute
 import com.telakuR.easyorder.authentication.ui.activities.AuthenticationActivity
 import com.telakuR.easyorder.home.route.HomeRoute
-import com.telakuR.easyorder.home.ui.HomeActivity
+import com.telakuR.easyorder.home.ui.activities.HomeActivity
 import com.telakuR.easyorder.mainViewModel.MainVM
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch

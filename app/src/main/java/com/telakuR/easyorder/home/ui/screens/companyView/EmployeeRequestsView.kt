@@ -1,4 +1,4 @@
-package com.telakuR.easyorder.home.ui.screens
+package com.telakuR.easyorder.home.ui.screens.companyView
 
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.layout.*

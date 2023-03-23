@@ -51,7 +51,7 @@ class UserDataRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun getProfile(): Flow<User> = flow {
+    override fun getProfile(): Flow<User> = flow {
         try {
             val doc = fireStore.collection(DBCollectionEnum.USERS.title).document(accountService.currentUserId).get().await()
             val user = Gson().fromJson(Gson().toJson(doc.data), User::class.java)

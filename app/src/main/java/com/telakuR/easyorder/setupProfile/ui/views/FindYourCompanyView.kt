@@ -19,7 +19,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.telakuR.easyorder.R
-import com.telakuR.easyorder.home.ui.HomeActivity
+import com.telakuR.easyorder.home.ui.activities.HomeActivity
 import com.telakuR.easyorder.models.User
 import com.telakuR.easyorder.setupProfile.viewModel.FindCompanyVM
 import com.telakuR.easyorder.ui.theme.*

@@ -9,9 +9,9 @@ interface UserDataRepository {
 
     suspend fun getUserRole(): String
 
-    suspend fun getProfile(): Flow<User>
-
     suspend fun getCompanyId(): String
 
     suspend fun isUserInACompany(): Boolean
+
+    fun getProfile(): Flow<User>
 }

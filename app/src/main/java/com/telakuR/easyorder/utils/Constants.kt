@@ -12,4 +12,6 @@ object Constants {
     const val COMPANY_ID = "companyId"
     const val EMPLOYEE_ID = "employeeId"
     const val PROFILE_PIC = "profilePic"
+    const val FAST_FOOD = "fastFood"
+    const val MENU = "menu"
 }

@@ -25,7 +25,7 @@
             android:name=".authentication.ui.activities.AuthenticationActivity"
             android:exported="false" />
         <activity
-            android:name=".home.ui.HomeActivity"
+            android:name=".home.ui.activities.HomeActivity"
             android:exported="false" />
         <activity
             android:name=".setupProfile.ui.activities.SetUpProfileActivity"

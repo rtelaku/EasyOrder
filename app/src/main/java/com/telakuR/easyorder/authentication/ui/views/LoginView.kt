@@ -23,7 +23,7 @@ import com.telakuR.easyorder.R
 import com.telakuR.easyorder.authentication.models.AuthenticationRoute
 import com.telakuR.easyorder.authentication.viewmodel.LoginVM
 import com.telakuR.easyorder.home.route.HomeRoute
-import com.telakuR.easyorder.home.ui.HomeActivity
+import com.telakuR.easyorder.home.ui.activities.HomeActivity
 import com.telakuR.easyorder.setupProfile.route.SetUpProfileRoute
 import com.telakuR.easyorder.setupProfile.ui.activities.SetUpProfileActivity
 import com.telakuR.easyorder.ui.theme.*

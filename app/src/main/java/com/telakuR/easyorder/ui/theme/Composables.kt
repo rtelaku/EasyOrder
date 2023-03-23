@@ -65,7 +65,8 @@ fun AppThemeLogo() {
             fontWeight = FontWeight.Bold)
 
         Text(text = stringResource(R.string.easy_order_description),
-            fontSize = 15.sp
+            fontSize = 15.sp,
+            fontWeight = FontWeight.SemiBold
         )
     }
 }
@@ -90,7 +91,15 @@ fun Toolbar(navController: NavController, shownFromUser: Boolean = false) {
 }
 
 @Composable
-fun CustomTextField(labelValue: String, textState: String, onNewValue: (String) -> Unit, imageVector: ImageVector) {
+fun CustomTextField(
+    labelValue: String,
+    textState: String,
+    onNewValue: (String) -> Unit,
+    imageVector: ImageVector,
+    modifier: Modifier = Modifier
+        .padding(10.dp)
+        .width(280.dp)
+) {
     TextField(
         leadingIcon = {
             Icon(imageVector = imageVector, null, tint = PrimaryColor)
@@ -105,9 +114,7 @@ fun CustomTextField(labelValue: String, textState: String, onNewValue: (String) 
         onValueChange = {
             onNewValue(it)
         },
-        modifier = Modifier
-            .padding(10.dp)
-            .width(280.dp),
+        modifier = modifier,
         placeholder = { Text(labelValue) },
         shape = RoundedCornerShape(8.dp),
         singleLine = true
@@ -336,6 +343,21 @@ fun WhiteItemCard(modifier: Modifier, content: @Composable () -> Unit) {
 fun AsyncRoundedImage(image: String, size: Int, cornerSize: Int) {
     AsyncImage(
         model = image,
+        contentDescription = null,
+        contentScale = ContentScale.Crop,
+        modifier = Modifier
+            .size(size.dp)
+            .clip(RoundedCornerShape(corner = CornerSize(cornerSize.dp)))
+    )
+}
+
+@Composable
+fun AsyncRoundedImageFromUrl(image: String, size: Int, cornerSize: Int) {
+    AsyncImage(
+        model = ImageRequest.Builder(LocalContext.current)
+            .data(image)
+            .crossfade(true)
+            .build(),
         contentDescription = null,
         contentScale = ContentScale.Crop,
         modifier = Modifier

@@ -1,10 +1,12 @@
 import android.content.Intent
+import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -27,12 +29,14 @@ import com.telakuR.easyorder.R
 import com.telakuR.easyorder.enums.RolesEnum
 import com.telakuR.easyorder.home.navigation.HomeNavigation
 import com.telakuR.easyorder.home.route.HomeRoute
+import com.telakuR.easyorder.home.viewModel.HomeVM
 import com.telakuR.easyorder.home.viewModel.RequestsVM
 import com.telakuR.easyorder.setupProfile.ui.activities.SetUpProfileActivity
 import com.telakuR.easyorder.ui.theme.*
+import com.telakuR.easyorder.utils.ToastUtils
 
 @Composable
-fun HomeMainView(viewModel: RequestsVM = hiltViewModel()) {
+fun BaseHomeScreen(viewModel: RequestsVM = hiltViewModel(), homeVM: HomeVM = hiltViewModel()) {
     val navController = rememberNavController()
 
     val role = viewModel.currentUserRole.collectAsState().value
@@ -72,6 +76,29 @@ fun HomeMainView(viewModel: RequestsVM = hiltViewModel()) {
             navController = navController,
             role = role
         )
+
+        if(currentDestination == HomeRoute.Home.route) {
+            BottomRightButton(textId = R.string.create_order) {
+                homeVM.checkIfUserHasAnOrder()
+            }
+        }
+
+        val context = LocalContext.current
+        val userHasAnOrder = homeVM.hasAlreadyAnOrder.collectAsState().value
+
+        LaunchedEffect(userHasAnOrder) {
+            if(userHasAnOrder != null) {
+                if(!userHasAnOrder) {
+                    navController.navigate(HomeRoute.ChooseFastFood.route)
+                } else {
+                    ToastUtils.showToast(
+                        context = context,
+                        messageId = R.string.you_have_an_order,
+                        length = Toast.LENGTH_SHORT
+                    )
+                }
+            }
+        }
     }
 }
 
@@ -135,7 +162,6 @@ fun NotificationTopAppBar(navController: NavController) {
 
 @Composable
 private fun BottomBar(screens: List<HomeRoute>, navController: NavHostController, viewModel: RequestsVM) {
-
     val navStackBackEntry = navController.currentBackStackEntryAsState().value
     val currentDestination = navStackBackEntry?.destination
 
@@ -228,7 +254,7 @@ private fun AddItemIcon(screen: HomeRoute, isSelected: Boolean, contentColor: Co
 }
 
 @Composable
-fun BottomRightButton(textId: Int, onClick: () -> Unit) {
+private fun BottomRightButton(textId: Int, onClick: () -> Unit) {
     Box(
         contentAlignment = Alignment.BottomEnd,
         modifier = Modifier

@@ -3,16 +3,17 @@ package com.telakuR.easyorder.home.repository
 import android.util.Log
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.QuerySnapshot
 import com.google.gson.Gson
 import com.telakuR.easyorder.enums.DBCollectionEnum
-import com.telakuR.easyorder.home.models.FastFood
-import com.telakuR.easyorder.home.models.Menu
-import com.telakuR.easyorder.home.models.Order
-import com.telakuR.easyorder.home.models.OrderDetails
+import com.telakuR.easyorder.home.models.*
 import com.telakuR.easyorder.models.User
 import com.telakuR.easyorder.services.AccountService
 import com.telakuR.easyorder.utils.Constants.COMPANY_ID
 import com.telakuR.easyorder.utils.Constants.EMPLOYEES
+import com.telakuR.easyorder.utils.Constants.EMPLOYEE_ID
+import com.telakuR.easyorder.utils.Constants.FAST_FOOD
+import com.telakuR.easyorder.utils.Constants.MENU
 import com.telakuR.easyorder.utils.Constants.NAME
 import com.telakuR.easyorder.utils.Constants.ORDERED
 import com.telakuR.easyorder.utils.Constants.ORDERS
@@ -23,8 +24,10 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
+import kotlin.math.log
 
 class HomeDataRepositoryImpl @Inject constructor(val firestore: FirebaseFirestore, val accountService: AccountService): HomeRepository {
     private val TAG = HomeDataRepositoryImpl::class.simpleName
@@ -32,7 +35,6 @@ class HomeDataRepositoryImpl @Inject constructor(val firestore: FirebaseFirestor
     override suspend fun getEmployeesList(): List<String> = suspendCoroutine { continuation ->
         try {
             firestore.collection(DBCollectionEnum.EMPLOYEES.title).whereEqualTo(COMPANY_ID, accountService.currentUser?.uid).limit(1).get().addOnSuccessListener {
-
                 it.documents.forEach { company ->
                 val employees = company.data?.get(EMPLOYEES) as ArrayList<String>
                 continuation.resume(employees)
@@ -43,12 +45,12 @@ class HomeDataRepositoryImpl @Inject constructor(val firestore: FirebaseFirestor
         }
     }
 
-    override fun getEmployees(requests: List<String>): Flow<List<User>> = flow {
+    override fun getEmployees(employees: List<String>): Flow<List<User>> = flow {
         try {
             val users = mutableListOf<User>()
             coroutineScope {
                 launch {
-                    requests.forEach { id ->
+                    employees.forEach { id ->
                         firestore.collection(DBCollectionEnum.USERS.title).document(id)
                             .get()
                             .addOnSuccessListener { result ->
@@ -216,10 +218,15 @@ class HomeDataRepositoryImpl @Inject constructor(val firestore: FirebaseFirestor
                                                     OrderDetails::class.java
                                                 )
 
-                                                firestore.collection(DBCollectionEnum.USERS.title).document(orderDetail.employeeId).get().addOnSuccessListener { snapshot ->
-                                                    val employeeName = snapshot.get(NAME) as String
-                                                    orderDetail.owner = employeeName
-                                                    companyOrdersList.add(orderDetail)
+                                                if(orderDetail.employeeId != accountService.currentUserId) {
+                                                    firestore.collection(DBCollectionEnum.USERS.title)
+                                                        .document(orderDetail.employeeId).get()
+                                                        .addOnSuccessListener { snapshot ->
+                                                            val employeeName =
+                                                                snapshot.get(NAME) as String
+                                                            orderDetail.owner = employeeName
+                                                            companyOrdersList.add(orderDetail)
+                                                        }
                                                 }
                                             }
                                         }
@@ -253,5 +260,112 @@ class HomeDataRepositoryImpl @Inject constructor(val firestore: FirebaseFirestor
         } catch (e: Exception) {
             Log.e(TAG, "Couldn't get fast foods: ", e)
         }
+    }
+
+    override fun getFastFoodMenu(fastFoodName: String): Flow<List<MenuItem>> = flow {
+        try {
+            val menuItems = arrayListOf<MenuItem>()
+
+            firestore.collection(DBCollectionEnum.FAST_FOODS.title).get()
+                .addOnSuccessListener { documents ->
+                    for (document in documents) {
+                        val fastFood = Gson().fromJson(Gson().toJson(document.data), FastFood::class.java)
+
+                        if(fastFood.name == fastFoodName) {
+                            document.reference.collection(MENU).get().addOnSuccessListener { subDocs ->
+                                for(subDoc in subDocs) {
+                                    val menuItem = Gson().fromJson(Gson().toJson(subDoc.data), MenuItem::class.java)
+                                    menuItems.add(menuItem)
+                                }
+                            }
+                        }
+                    }
+                }
+
+            delay(1000)
+            emit(menuItems)
+        } catch (e: Exception) {
+            Log.e(TAG, "Couldn't get fast food menu: ", e)
+        }
+    }
+
+    override suspend fun createOrderWithFastFood(
+        companyId: String,
+        fastFood: String,
+        menuItem: MenuItem
+    ): Boolean = suspendCoroutine { continuation ->
+        try {
+            firestore.collection(DBCollectionEnum.ORDERS.title)
+                .whereEqualTo(COMPANY_ID, companyId)
+                .get()
+                .addOnSuccessListener { snapshot ->
+                    if (!snapshot.isEmpty) {
+                        val docRef = snapshot.documents[0].reference
+
+                        val order = hashMapOf(
+                            FAST_FOOD to fastFood,
+                            EMPLOYEE_ID to accountService.currentUserId
+                        )
+
+                        val orderCollection = docRef.collection(ORDERS)
+                        orderCollection.add(order)
+
+                        orderCollection.get().addOnSuccessListener { subSnapShots ->
+                            val subSnapShot = subSnapShots.documents[0].reference
+                            subSnapShot.collection(ORDERED).add(menuItem)
+
+                            continuation.resume(true)
+                        }
+                    }
+                }
+        } catch (e: Exception) {
+            Log.e(TAG, "Couldn't add order: ", e)
+        }
+    }
+
+    override suspend fun checkIfEmployeeHasAnOrder(companyId: String): Boolean = suspendCoroutine {
+        try {
+            firestore.collection(DBCollectionEnum.ORDERS.title)
+                .whereEqualTo(COMPANY_ID, companyId)
+                .get()
+                .addOnCompleteListener { task ->
+                    if (task.isSuccessful) {
+                        val document = task.result
+
+                        if (document != null && !document.isEmpty)
+                            handleEmployeeOrderResponse(document = document, continuation = it)
+
+                    } else {
+                        it.resume(false)
+                    }
+                }
+        } catch (e: Exception) {
+            Log.e(TAG, "Couldn't check if employee has an order: ", e)
+        }
+    }
+
+    private fun handleEmployeeOrderResponse(
+        document: QuerySnapshot,
+        continuation: Continuation<Boolean>
+    ) {
+        document.documents[0].reference.collection(ORDERS).get()
+            .addOnCompleteListener { subTask ->
+                if (subTask.isSuccessful && (!subTask.result.isEmpty && subTask.result != null)) {
+                    var countOfOrders = 0
+
+                    for (doc in subTask.result.documents) {
+                        val order =
+                            Gson().fromJson(Gson().toJson(doc.data), OrderDetails::class.java)
+
+                        if (order.owner == accountService.currentUserId) {
+                            countOfOrders++
+                        }
+                    }
+
+                    continuation.resume(countOfOrders >= 1)
+                } else {
+                    continuation.resume(false)
+                }
+            }
     }
 }

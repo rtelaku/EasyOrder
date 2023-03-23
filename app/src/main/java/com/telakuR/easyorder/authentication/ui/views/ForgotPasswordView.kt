@@ -33,20 +33,20 @@ fun ForgotPasswordScreen(navController: NavHostController, viewModel: LoginVM = 
             BottomBar(navController = navController, viewModel = viewModel)
         },
         content = {
+            it
             val uiState by viewModel.uiState
 
             Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(it),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.Top,
+                horizontalAlignment = Alignment.Start
             ) {
                 CustomTextField(
                     stringResource(id = R.string.email),
                     uiState.email,
                     viewModel::onEmailChange,
-                    Icons.Filled.Email
+                    Icons.Filled.Email,
+                    Modifier.fillMaxWidth().padding(15.dp)
                 )
             }
         },

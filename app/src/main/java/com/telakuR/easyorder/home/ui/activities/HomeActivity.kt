@@ -1,6 +1,6 @@
-package com.telakuR.easyorder.home.ui
+package com.telakuR.easyorder.home.ui.activities
 
-import HomeMainView
+import BaseHomeScreen
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -32,7 +32,7 @@ class HomeActivity: ComponentActivity() {
         }
 
         setContent {
-            HomeMainView()
+            BaseHomeScreen()
         }
     }
 }
