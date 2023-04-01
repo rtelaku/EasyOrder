@@ -3,6 +3,7 @@ package com.telakuR.easyorder.home.viewModel
 import androidx.compose.runtime.mutableStateOf
 import com.telakuR.easyorder.authentication.models.AuthUiState
 import com.telakuR.easyorder.authentication.models.AuthenticationRoute
+import com.telakuR.easyorder.mainRepository.UserDataRepository
 import com.telakuR.easyorder.models.User
 import com.telakuR.easyorder.modules.IoDispatcher
 import com.telakuR.easyorder.mainRepository.impl.AccountServiceImpl
@@ -10,6 +11,7 @@ import com.telakuR.easyorder.mainRepository.impl.UserDataRepositoryImpl
 import com.telakuR.easyorder.services.LogService
 import com.telakuR.easyorder.setupProfile.route.SetUpProfileRoute
 import com.telakuR.easyorder.mainViewModel.EasyOrderViewModel
+import com.telakuR.easyorder.services.AccountService
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.delay
@@ -20,8 +22,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ProfileVM @Inject constructor(
-    private val userDataRepositoryImpl: UserDataRepositoryImpl,
-    private val accountServiceImpl: AccountServiceImpl,
+    private val userDataRepository: UserDataRepository,
+    private val accountService: AccountService,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     logService: LogService
 ) : EasyOrderViewModel(logService) {
@@ -40,7 +42,7 @@ class ProfileVM @Inject constructor(
     }
 
     private fun setScreenToLaunch() = launchCatching {
-        val profilePic = userDataRepositoryImpl.getUserProfilePicture()
+        val profilePic = userDataRepository.getUserProfilePicture()
 
         if (profilePic.isNullOrEmpty()) {
             _screenToSetup.value = SetUpProfileRoute.SelectPicture.route
@@ -62,7 +64,7 @@ class ProfileVM @Inject constructor(
     fun getProfile() {
         launchCatching {
             withContext(ioDispatcher) {
-                userDataRepositoryImpl.getProfile()
+                userDataRepository.getProfile()
             }.collect {
                 _profile.value = it
                 uiState.value =
@@ -74,7 +76,7 @@ class ProfileVM @Inject constructor(
     fun editProfile() {
         launchCatching {
             withContext(ioDispatcher) {
-                accountServiceImpl.editProfile(uiState.value)
+                accountService.editProfile(uiState.value)
 
                 delay(1000)
                 getProfile()
@@ -84,7 +86,7 @@ class ProfileVM @Inject constructor(
 
     fun logOut() {
         launchCatching {
-            accountServiceImpl.signOut()
+            accountService.signOut()
             _screenToSetup.value = AuthenticationRoute.Login.route
         }
     }

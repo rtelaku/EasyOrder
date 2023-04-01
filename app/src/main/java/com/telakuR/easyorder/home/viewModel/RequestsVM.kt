@@ -1,14 +1,12 @@
 package com.telakuR.easyorder.home.viewModel
 
-import com.telakuR.easyorder.home.repository.HomeDataRepositoryImpl
+import com.telakuR.easyorder.home.repository.HomeRepository
+import com.telakuR.easyorder.mainViewModel.EasyOrderViewModel
 import com.telakuR.easyorder.models.User
 import com.telakuR.easyorder.modules.IoDispatcher
-import com.telakuR.easyorder.mainRepository.impl.UserDataRepositoryImpl
 import com.telakuR.easyorder.services.LogService
-import com.telakuR.easyorder.mainViewModel.EasyOrderViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -17,8 +15,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class RequestsVM @Inject constructor(
-    private val homeDataRepositoryImpl: HomeDataRepositoryImpl,
-    private val userDataRepositoryImpl: UserDataRepositoryImpl,
+    private val homeRepository: HomeRepository,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     logService: LogService
 ) : EasyOrderViewModel(logService) {
@@ -26,30 +23,13 @@ class RequestsVM @Inject constructor(
     private val _requests = MutableStateFlow<List<User>>(emptyList())
     var requests: StateFlow<List<User>> = _requests
 
-    private val _currentUserRole = MutableStateFlow("")
-    var currentUserRole: StateFlow<String> = _currentUserRole
-
-    init {
-        getUserRole()
-    }
-
-    private fun getUserRole() = launchCatching {
-        val userRole = withContext(ioDispatcher) {
-            userDataRepositoryImpl.getUserRole()
-        }
-
-        _currentUserRole.value = userRole
-    }
-
     fun getListOfRequests() {
         launchCatching {
-            withContext(ioDispatcher) {
-                val requestsList = async {
-                    return@async homeDataRepositoryImpl.getRequestsList()
-                }.await()
+            val requestsList = withContext(ioDispatcher) {
+                    return@withContext homeRepository.getRequestsList()
+                }
 
-                homeDataRepositoryImpl.getRequests(requestsList)
-            }.collect {
+            homeRepository.getEmployeesRequestsDetails(requestsList).collect {
                 _requests.value = it
             }
         }
@@ -58,7 +38,7 @@ class RequestsVM @Inject constructor(
     fun acceptRequest(id: String) {
         launchCatching {
             withContext(ioDispatcher) {
-                homeDataRepositoryImpl.acceptRequest(id)
+                homeRepository.acceptRequest(id)
                 delay(1000)
                 getListOfRequests()
             }
@@ -68,7 +48,7 @@ class RequestsVM @Inject constructor(
     fun removeRequest(id: String) {
         launchCatching {
             withContext(ioDispatcher) {
-                homeDataRepositoryImpl.removeRequest(id)
+                homeRepository.removeRequest(id)
                 delay(1000)
                 getListOfRequests()
             }

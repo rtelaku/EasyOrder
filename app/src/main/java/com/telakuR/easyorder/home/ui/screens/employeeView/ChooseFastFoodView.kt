@@ -103,7 +103,7 @@ private fun FastFoodList(fastFoods: List<FastFood>, textState: MutableState<Text
                     .height(200.dp)
                     .padding(horizontal = 5.dp, vertical = 10.dp)
                     .clickable {
-                        navController.navigate(HomeRoute.ChooseFood.route + "/${fastFood.name}")
+                        navController.navigate(HomeRoute.ChooseFood.route + "/${fastFood.name}/ ")
                     },
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.SpaceAround) {

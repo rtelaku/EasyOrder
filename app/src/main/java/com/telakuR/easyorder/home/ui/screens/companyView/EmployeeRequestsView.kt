@@ -27,16 +27,15 @@ import java.util.*
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun RequestsScreen(viewModel: RequestsVM = hiltViewModel()) {
+    viewModel.getListOfRequests()
+
+    val textState = remember { mutableStateOf(TextFieldValue("")) }
+    val requests = viewModel.requests.collectAsState().value
+
     Scaffold(
         content = {
             it
             Column(modifier = Modifier.fillMaxSize()) {
-
-                viewModel.getListOfRequests()
-
-                val textState = remember { mutableStateOf(TextFieldValue("")) }
-
-                val requests = viewModel.requests.collectAsState().value
 
                 Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.Top) {
                     Text(

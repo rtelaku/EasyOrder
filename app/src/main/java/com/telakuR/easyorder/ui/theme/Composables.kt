@@ -340,6 +340,18 @@ fun WhiteItemCard(modifier: Modifier, content: @Composable () -> Unit) {
 }
 
 @Composable
+fun RoundedItemCard(modifier: Modifier, backgroundColor: Color, content: @Composable () -> Unit) {
+    Card(
+        modifier = modifier,
+        elevation = 1.dp,
+        backgroundColor = backgroundColor,
+        shape = RoundedCornerShape(corner = CornerSize(20.dp))
+    ) {
+        content.invoke()
+    }
+}
+
+@Composable
 fun AsyncRoundedImage(image: String, size: Int, cornerSize: Int) {
     AsyncImage(
         model = image,

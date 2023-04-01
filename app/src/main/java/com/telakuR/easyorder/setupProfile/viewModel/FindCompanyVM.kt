@@ -27,9 +27,7 @@ class FindCompanyVM @Inject constructor(
 
     fun getCompanies() {
         launchCatching {
-            withContext(ioDispatcher) {
-                setupProfileRepository.getCompanies()
-            }.collect {
+            setupProfileRepository.getCompanies().collect {
                 _companies.value = it
             }
         }

@@ -14,7 +14,6 @@ import com.telakuR.easyorder.enums.DBCollectionEnum
 import com.telakuR.easyorder.enums.RolesEnum
 import com.telakuR.easyorder.models.User
 import com.telakuR.easyorder.services.AccountService
-import com.telakuR.easyorder.utils.Constants.COMPANY_ID
 import com.telakuR.easyorder.utils.Constants.EMAIL
 import com.telakuR.easyorder.utils.Constants.EMPLOYEES
 import com.telakuR.easyorder.utils.Constants.NAME
@@ -114,13 +113,12 @@ class AccountServiceImpl @Inject constructor(private val auth: FirebaseAuth, pri
             val employees = fireStore.collection(DBCollectionEnum.EMPLOYEES.title).document(currentUser.uid)
             employees.set(
                 mapOf(
-                    COMPANY_ID to currentUser.uid,
                     EMPLOYEES to emptyList<Map<String, Any>>(),
                     REQUESTS to emptyList<Map<String, Any>>()
                 )
             )
 //
-//            val orders = fireStore.collection(DBCollectionEnum.ORDERS.title).document(currentUser.uid)
+//            val orders = fireStore.collection(DBCollectionEnum.ORDERS.title).document()
 //            orders.set(mapOf(COMPANY_ID to currentUser.uid))
 //
 //            val employeeOrders = orders.collection(ORDERS).document()

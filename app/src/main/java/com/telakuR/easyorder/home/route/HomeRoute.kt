@@ -24,9 +24,9 @@ sealed class HomeRoute(
         icon_focused = R.drawable.ic_group_request
     )
 
-    object Order : HomeRoute(
-        route = "order",
-        title = EasyOrder.getInstance().getString(R.string.my_order),
+    object Orders : HomeRoute(
+        route = "orders",
+        title = EasyOrder.getInstance().getString(R.string.my_orders),
         icon = R.drawable.ic_icon_order,
         icon_focused = R.drawable.ic_icon_order
     )

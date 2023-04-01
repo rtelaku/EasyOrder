@@ -30,6 +30,8 @@ fun PicturePreviewScreen(
     navController: NavController,
     viewModel: SetUpPictureVM = hiltViewModel()
 ) {
+    viewModel.getImageFromDatabase()
+
     Scaffold(
         topBar = {
             TopAppBar(navController = navController)
@@ -45,8 +47,6 @@ fun PicturePreviewScreen(
                     .fillMaxSize()
                     .padding(it)
             ) {
-                viewModel.getImageFromDatabase()
-
                 GetImageFromDatabase(
                     createProfileImageContent = { imageUrl ->
                         ProfileImageContent(imageUrl = imageUrl, width = 245, height = 238)

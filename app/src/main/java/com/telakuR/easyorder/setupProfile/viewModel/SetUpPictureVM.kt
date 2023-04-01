@@ -63,28 +63,22 @@ class SetUpPictureVM @Inject constructor(
     }
 
     fun addImageToStorage(imageUri: Uri) = launchCatching {
-        withContext(ioDispatcher) {
-            addImageToStorageResponse = Loading
-            setupProfileRepository.addImageToFirebaseStorage(imageUri)
-        }.collect {
+        addImageToStorageResponse = Loading
+        setupProfileRepository.addImageToFirebaseStorage(imageUri).collect {
             addImageToStorageResponse = it
         }
     }
 
     fun addImageToDatabase(downloadUrl: Uri) = launchCatching {
-        withContext(ioDispatcher) {
-            addImageToDatabaseResponse = Loading
-            setupProfileRepository.addImageToFirestore(downloadUrl)
-        }.collect {
+        addImageToDatabaseResponse = Loading
+        setupProfileRepository.addImageToFirestore(downloadUrl).collect {
             addImageToDatabaseResponse = it
         }
     }
 
     fun getImageFromDatabase() = launchCatching {
-        withContext(ioDispatcher) {
-            getImageFromDatabaseResponse = Loading
-            setupProfileRepository.getImageFromFirestore()
-        }.collect {
+        getImageFromDatabaseResponse = Loading
+        setupProfileRepository.getImageFromFirestore().collect {
             getImageFromDatabaseResponse = it
         }
     }

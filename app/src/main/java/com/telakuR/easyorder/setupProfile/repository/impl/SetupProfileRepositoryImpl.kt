@@ -8,16 +8,18 @@ import com.google.firebase.storage.StorageReference
 import com.google.gson.Gson
 import com.telakuR.easyorder.enums.DBCollectionEnum
 import com.telakuR.easyorder.enums.RolesEnum
-import com.telakuR.easyorder.mainRepository.impl.AccountServiceImpl
 import com.telakuR.easyorder.models.Response
 import com.telakuR.easyorder.models.User
+import com.telakuR.easyorder.modules.IoDispatcher
+import com.telakuR.easyorder.services.AccountService
 import com.telakuR.easyorder.setupProfile.repository.SetupProfileRepository
-import com.telakuR.easyorder.utils.Constants.COMPANY_ID
 import com.telakuR.easyorder.utils.Constants.PROFILE_PIC
 import com.telakuR.easyorder.utils.Constants.REQUESTS
 import com.telakuR.easyorder.utils.Constants.ROLE
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -28,114 +30,95 @@ import kotlin.coroutines.suspendCoroutine
 class SetupProfileRepositoryImpl @Inject constructor(
     private val imagesStorageRef: StorageReference,
     private val fireStore: FirebaseFirestore,
-    private val accountServiceImpl: AccountServiceImpl
+    private val accountService: AccountService,
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) : SetupProfileRepository {
 
     private val TAG = SetupProfileRepositoryImpl::class.simpleName
 
-    override suspend fun addImageToFirebaseStorage(imageUri: Uri) = flow {
+    override fun addImageToFirebaseStorage(imageUri: Uri) = flow {
         try {
             emit(Response.Loading)
-            val downloadUrl = imagesStorageRef.child(accountServiceImpl.currentUserId)
+            val downloadUrl = imagesStorageRef.child(accountService.currentUserId)
                 .putFile(imageUri).await()
                 .storage.downloadUrl.await()
             emit(Response.Success(downloadUrl))
         } catch (e: Exception) {
             Log.e(TAG, "Failed to add image in storage: ", e)
         }
-    }
+    }.flowOn(ioDispatcher)
 
-    override suspend fun addImageToFirestore(downloadUrl: Uri) = flow {
+    override fun addImageToFirestore(downloadUrl: Uri) = flow {
         try {
             emit(Response.Loading)
-            fireStore.collection(DBCollectionEnum.USERS.title).document(accountServiceImpl.currentUserId).update(PROFILE_PIC, downloadUrl).await()
+            fireStore.collection(DBCollectionEnum.USERS.title).document(accountService.currentUserId).update(PROFILE_PIC, downloadUrl).await()
             emit(Response.Success(true))
         } catch (e: Exception) {
             Log.e(TAG, "Failed to add image in firestore: ", e)
         }
-    }
+    }.flowOn(ioDispatcher)
 
-    override suspend fun getImageFromFirestore(): Flow<Response<String>> = flow {
+    override fun getImageFromFirestore(): Flow<Response<String>> = flow {
         try {
             emit(Response.Loading)
-            val url = fireStore.collection(DBCollectionEnum.USERS.title).document(accountServiceImpl.currentUserId).get().await().get(PROFILE_PIC).toString()
+            val url = fireStore.collection(DBCollectionEnum.USERS.title).document(accountService.currentUserId).get().await().get(PROFILE_PIC).toString()
             emit(Response.Success(url))
         } catch (e: Exception) {
             Log.e(TAG, "Failed to get image from firestore: ", e)
         }
-    }
+    }.flowOn(ioDispatcher)
 
-    override suspend fun getCompanies(): Flow<List<User>> = flow {
+    override fun getCompanies(): Flow<List<User>> = flow {
         try {
             val list = arrayListOf<User>()
             val companies = fireStore.collection(DBCollectionEnum.USERS.title).whereEqualTo(ROLE, RolesEnum.COMPANY.role).get().await()
             companies.forEach {
-                val decodedCompanies = Gson().fromJson(Gson().toJson(it.data), User::class.java)
-                decodedCompanies.id = it.id
-                list.add(decodedCompanies)
+                val decodedCompany = Gson().fromJson(Gson().toJson(it.data), User::class.java)
+                decodedCompany.id = it.id
+                list.add(decodedCompany)
             }
             emit(list)
         } catch (e: Exception) {
             Log.e(TAG, "Get companies: ", e)
         }
-    }
+    }.flowOn(ioDispatcher)
 
     override suspend fun requestToJoin(id: String) {
-        try {
-            fireStore.collection(DBCollectionEnum.EMPLOYEES.title)
-                .whereEqualTo(COMPANY_ID, id)
-                .get()
-                .addOnSuccessListener { snapshot ->
-                    if (!snapshot.isEmpty) {
-                        val docRef = snapshot.documents[0].reference
-                        docRef.update(REQUESTS, FieldValue.arrayUnion(accountServiceImpl.currentUserId))
-                    }
-                }
-        } catch (e: Exception) {
-            Log.e(TAG, "Request to join: ", e)
-        }
+        fireStore.collection(DBCollectionEnum.EMPLOYEES.title).document(id)
+            .update(REQUESTS, FieldValue.arrayUnion(accountService.currentUserId))
+            .addOnFailureListener { exception ->
+                Log.e(TAG, "Couldn't request to join: ", exception)
+            }
     }
 
     override suspend fun removeRequest(id: String) {
-        try {
-            fireStore.collection(DBCollectionEnum.EMPLOYEES.title)
-                .whereEqualTo(COMPANY_ID, id)
-                .get()
-                .addOnSuccessListener { snapshot ->
-                    if (!snapshot.isEmpty) {
-                        val docRef = snapshot.documents[0].reference
-                        docRef.update(REQUESTS, FieldValue.arrayRemove(accountServiceImpl.currentUserId))
-                    }
-                }
-        } catch (e: Exception) {
-            Log.e(TAG, "Remove request: ", e)
-        }
+        fireStore.collection(DBCollectionEnum.EMPLOYEES.title).document(id)
+            .update(REQUESTS, FieldValue.arrayRemove(accountService.currentUserId))
+            .addOnFailureListener { exception ->
+                Log.e(TAG, "Couldn't remove request: ", exception)
+            }
     }
 
     override suspend fun getRequestedCompany(): String? = suspendCoroutine { continuation ->
-        try {
-            fireStore.collection(DBCollectionEnum.EMPLOYEES.title).get()
-                .addOnSuccessListener { snapshot ->
-                    var count = 0
-                    for(sn in snapshot) {
-                        val company = Gson().fromJson(Gson().toJson(sn.data), User::class.java)
-                        val requests = sn.data[REQUESTS] as ArrayList<String>
-                        requests.forEach {
-                            if(it == accountServiceImpl.currentUserId) {
-                                count = 1
-                            }
+        fireStore.collection(DBCollectionEnum.EMPLOYEES.title).get()
+            .addOnSuccessListener { snapshots ->
+                for (sn in snapshots) {
+                    fireStore.collection(DBCollectionEnum.USERS.title)
+                        .document(sn.id).get()
+                        .addOnSuccessListener { subDoc ->
+                            val company =
+                                Gson().fromJson(Gson().toJson(subDoc.data), User::class.java)
+                            val requests = sn.data[REQUESTS] as ArrayList<String>
+                            val hasRequested =
+                                requests.any { it == accountService.currentUserId }
 
-                            if(count == 1) {
-                                continuation.resume(company.email)
-                            }
+                            val email = if (hasRequested) company.email else null
+                            continuation.resume(email)
                         }
-                    }
-                    if(count == 0) {
-                        continuation.resume(null)
-                    }
+                }
             }
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to get requested company: ", e)
-        }
+            .addOnFailureListener { exception ->
+                Log.e(TAG, "Failed to get requested company: ", exception)
+            }
     }
 }

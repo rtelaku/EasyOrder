@@ -28,9 +28,15 @@ import java.util.*
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
-fun ChooseFoodScreen(fastFoodName: String, navController: NavController, viewModel: OrdersVM = hiltViewModel()) {
+fun ChooseFoodScreen(
+    fastFoodName: String,
+    navController: NavController,
+    viewModel: OrdersVM = hiltViewModel(),
+    orderId: String?
+) {
+
     viewModel.getMenuItems(fastFoodName)
-    val menuList = viewModel.menu.collectAsState().value
+    val menuList = viewModel.fastFoodMenu.collectAsState().value
 
     Scaffold(
         topBar = {
@@ -54,7 +60,7 @@ fun ChooseFoodScreen(fastFoodName: String, navController: NavController, viewMod
                     modifier = Modifier.fillMaxWidth(),
                     verticalArrangement = Arrangement.Center
                 ) {
-                   MenuItemsList(menu = menuList, textState = textState, viewModel = viewModel, fastFoodName = fastFoodName)
+                   MenuItemsList(menu = menuList, textState = textState, viewModel = viewModel, fastFoodName = fastFoodName, orderId = orderId ?: "")
                 }
             }
         },
@@ -67,7 +73,7 @@ fun ChooseFoodScreen(fastFoodName: String, navController: NavController, viewMod
     LaunchedEffect(continueWithOrder) {
         if (continueWithOrder != null) {
             if(continueWithOrder) {
-                navController.navigate(HomeRoute.Order.route)
+                navController.navigate(HomeRoute.Home.route)
             } else {
                 ToastUtils.showToast(
                     context = context,
@@ -92,7 +98,7 @@ private fun TopAppBar() {
 }
 
 @Composable
-private fun MenuItemsList(menu: List<MenuItem>, textState: MutableState<TextFieldValue>, viewModel: OrdersVM, fastFoodName: String) {
+private fun MenuItemsList(menu: List<MenuItem>, textState: MutableState<TextFieldValue>, viewModel: OrdersVM, fastFoodName: String, orderId: String) {
     var filteredMenu: List<MenuItem>
 
     LazyColumn {
@@ -113,18 +119,22 @@ private fun MenuItemsList(menu: List<MenuItem>, textState: MutableState<TextFiel
         }
 
         items(filteredMenu) { item ->
-            MenuItem(item = item, viewModel = viewModel, fastFoodName = fastFoodName)
+            FoodMenuItem(item = item, viewModel = viewModel, fastFoodName = fastFoodName, orderId = orderId)
         }
     }
 }
 
 @Composable
-private fun MenuItem(item: MenuItem, viewModel: OrdersVM, fastFoodName: String) {
+private fun FoodMenuItem(item: MenuItem, viewModel: OrdersVM, fastFoodName: String, orderId: String) {
     WhiteItemCard(modifier = Modifier
         .fillMaxWidth()
         .padding(horizontal = 10.dp)
         .clickable {
-            viewModel.createOrder(fastFood = fastFoodName, menuItem = item)
+            if (orderId.isBlank()) {
+                viewModel.createOrder(fastFood = fastFoodName, menuItem = item)
+            } else {
+                viewModel.addMenuItem(menuItem = item, orderId = orderId)
+            }
         }) {
         Row(
             modifier = Modifier

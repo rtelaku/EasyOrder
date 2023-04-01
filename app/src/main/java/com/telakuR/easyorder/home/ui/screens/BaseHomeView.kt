@@ -39,24 +39,11 @@ import com.telakuR.easyorder.utils.ToastUtils
 fun BaseHomeScreen(viewModel: RequestsVM = hiltViewModel(), homeVM: HomeVM = hiltViewModel()) {
     val navController = rememberNavController()
 
-    val role = viewModel.currentUserRole.collectAsState().value
-
-    val screens = arrayListOf<HomeRoute>()
-
-    if (role == RolesEnum.COMPANY.role) {
-        screens.add(HomeRoute.Home)
-        screens.add(HomeRoute.Requests)
-        screens.add(HomeRoute.Profile)
-    } else if (role == RolesEnum.USER.role) {
-        screens.add(HomeRoute.Home)
-        screens.add(HomeRoute.Order)
-        screens.add(HomeRoute.Profile)
-    }
-
-    var showBottomBar = false
+    val role = homeVM.currentUserRole.collectAsState().value
+    val screens = homeVM.getHomeScreens()
     val navBackStackEntry = navController.currentBackStackEntryAsState().value
-
     val currentDestination = navBackStackEntry?.destination?.route
+    var showBottomBar = false
 
     screens.forEach {
         if(it.route == currentDestination) showBottomBar = true
@@ -77,7 +64,9 @@ fun BaseHomeScreen(viewModel: RequestsVM = hiltViewModel(), homeVM: HomeVM = hil
             role = role
         )
 
-        if(currentDestination == HomeRoute.Home.route) {
+        homeVM.isUserInACompany()
+        val isUserInACompany = homeVM.isUserOnACompany.collectAsState().value
+        if(role == RolesEnum.USER.role && currentDestination == HomeRoute.Home.route && isUserInACompany == true) {
             BottomRightButton(textId = R.string.create_order) {
                 homeVM.checkIfUserHasAnOrder()
             }

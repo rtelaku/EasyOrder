@@ -70,4 +70,12 @@
     <string name="search_food">What do you want to order?</string>
     <string name="select_favorite_food">Select your favorite food</string>
     <string name="you_have_an_order">You already have an order!</string>
+    <string name="no_order">Currently you don\'t have an order!</string>
+    <string name="grouped_orders">Grouped orders</string>
+    <string name="payment_details">Payment details</string>
+    <string name="my_orders">My orders</string>
+    <string name="order_removed">Order removed</string>
+    <string name="failed_order_deletion">Failed to delete order</string>
+    <string name="order_completed">Order completed</string>
+    <string name="failed_order_completion">Failed to complete order</string>
 </resources>

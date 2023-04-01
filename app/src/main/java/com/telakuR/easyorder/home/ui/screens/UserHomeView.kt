@@ -115,7 +115,7 @@ private fun OrderItem(order: OrderDetails, navController: NavController) {
                 contentColor = PrimaryColor,
                 padding = 0
             ) {
-                navController.navigate(HomeRoute.ChooseFood.route)
+                navController.navigate(HomeRoute.ChooseFood.route + "/${order.fastFood}/${order.id}")
             }
         }
 

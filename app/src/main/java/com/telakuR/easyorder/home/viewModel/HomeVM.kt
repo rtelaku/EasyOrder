@@ -1,7 +1,9 @@
 package com.telakuR.easyorder.home.viewModel
 
+import com.telakuR.easyorder.enums.RolesEnum
 import com.telakuR.easyorder.home.models.OrderDetails
 import com.telakuR.easyorder.home.repository.HomeRepository
+import com.telakuR.easyorder.home.route.HomeRoute
 import com.telakuR.easyorder.mainRepository.UserDataRepository
 import com.telakuR.easyorder.mainViewModel.EasyOrderViewModel
 import com.telakuR.easyorder.models.User
@@ -39,7 +41,14 @@ class HomeVM @Inject constructor(
     private val _hasAlreadyAnOrder = MutableStateFlow<Boolean?>(null)
     var hasAlreadyAnOrder: StateFlow<Boolean?> = _hasAlreadyAnOrder
 
+    private val _currentUserRole = MutableStateFlow("")
+    var currentUserRole: StateFlow<String> = _currentUserRole
+
+    private val _toastMessageId = MutableStateFlow<Int?>(null)
+    var toastMessageId: StateFlow<Int?> = _toastMessageId
+
     init {
+        getUserRole()
         shouldShowSetupProfile()
     }
 
@@ -57,7 +66,7 @@ class HomeVM @Inject constructor(
                     return@async homeRepository.getEmployeesList()
                 }.await()
 
-                homeRepository.getEmployees(employees = employeesList)
+                homeRepository.getEmployeesDetails(employees = employeesList)
             }.collect {
                 _employees.value = it
             }
@@ -76,10 +85,8 @@ class HomeVM @Inject constructor(
 
     fun getListOfOrders() {
         launchCatching {
-            withContext(ioDispatcher) {
-                val userCompanyId = userDataRepository.getCompanyId()
-                homeRepository.getOrders(userCompanyId = userCompanyId)
-            }.collect {
+            val userCompanyId = userDataRepository.getCompanyId()
+            homeRepository.getOrders(userCompanyId = userCompanyId).collect {
                 _orders.value = it
             }
         }
@@ -107,5 +114,30 @@ class HomeVM @Inject constructor(
             delay(1000)
             _hasAlreadyAnOrder.value = null
         }
+    }
+
+    private fun getUserRole() = launchCatching {
+        val userRole = withContext(ioDispatcher) {
+            userDataRepository.getUserRole()
+        }
+
+        _currentUserRole.value = userRole
+    }
+
+    fun getHomeScreens(): ArrayList<HomeRoute> {
+        val role = _currentUserRole.value
+        val screens: ArrayList<HomeRoute> = arrayListOf()
+
+        if (role == RolesEnum.COMPANY.role) {
+            screens.add(HomeRoute.Home)
+            screens.add(HomeRoute.Requests)
+            screens.add(HomeRoute.Profile)
+        } else if (role == RolesEnum.USER.role) {
+            screens.add(HomeRoute.Home)
+            screens.add(HomeRoute.Orders)
+            screens.add(HomeRoute.Profile)
+        }
+
+        return screens
     }
 }

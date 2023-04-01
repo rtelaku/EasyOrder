@@ -6,21 +6,24 @@ import com.google.gson.Gson
 import com.telakuR.easyorder.enums.DBCollectionEnum
 import com.telakuR.easyorder.mainRepository.UserDataRepository
 import com.telakuR.easyorder.models.User
+import com.telakuR.easyorder.modules.IoDispatcher
 import com.telakuR.easyorder.services.AccountService
-import com.telakuR.easyorder.utils.Constants.COMPANY_ID
 import com.telakuR.easyorder.utils.Constants.EMPLOYEES
 import com.telakuR.easyorder.utils.Constants.PROFILE_PIC
 import com.telakuR.easyorder.utils.Constants.ROLE
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
 class UserDataRepositoryImpl @Inject constructor(
-    val fireStore: FirebaseFirestore,
-    val accountService: AccountService
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
+    private val fireStore: FirebaseFirestore,
+    private val accountService: AccountService
 ): UserDataRepository {
 
     private val TAG = UserDataRepositoryImpl::class.simpleName
@@ -59,19 +62,15 @@ class UserDataRepositoryImpl @Inject constructor(
         } catch (e: Exception) {
             Log.e(TAG, "Couldn't get profile: ", e)
         }
-    }
+    }.flowOn(ioDispatcher)
 
     override suspend fun getCompanyId(): String = suspendCoroutine { continuation ->
         try {
             fireStore.collection(DBCollectionEnum.EMPLOYEES.title).get().addOnSuccessListener { documents ->
                 for(document in documents) {
-                    val companyId = document.data[COMPANY_ID] as String
                     val employees = document.data[EMPLOYEES] as ArrayList<String>
-                    employees.forEach {
-                        if(it == accountService.currentUserId) {
-                            continuation.resume(companyId)
-                        }
-                    }
+                    val hasCompanyId = employees.any { it == accountService.currentUserId }
+                    if(hasCompanyId) continuation.resume(document.id)
                 }
             }
         } catch (e: Exception) {
@@ -82,16 +81,11 @@ class UserDataRepositoryImpl @Inject constructor(
     override suspend fun isUserInACompany(): Boolean = suspendCoroutine { continuation ->
         try {
             fireStore.collection(DBCollectionEnum.EMPLOYEES.title).get().addOnSuccessListener { documents ->
-                var count = 0
                 for(document in documents) {
                     val employees = document.data[EMPLOYEES] as ArrayList<String>
-                    employees.forEach {
-                        if(it == accountService.currentUserId) {
-                            count = 1
-                        }
-                    }
+                    val isInACompany = employees.any { it == accountService.currentUserId }
+                    continuation.resume(isInACompany)
                 }
-                continuation.resume(count == 1)
             }
         } catch (e: Exception) {
             Log.e(TAG, "Couldn't get if user is in a company: ", e)
