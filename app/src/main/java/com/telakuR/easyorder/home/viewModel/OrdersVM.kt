@@ -103,18 +103,14 @@ class OrdersVM @Inject constructor(
         return accountService.currentUserId
     }
 
-    fun removeMenuItem(orderId: String) {
-       launchCatching {
-           val companyId = userDataRepository.getCompanyId()
-           homeRepository.removeMenuItemFromOrder(orderId = orderId, companyId = companyId)
-       }
+    fun removeMenuItem(orderId: String, menuItemName: String) = launchCatching {
+        val companyId = userDataRepository.getCompanyId()
+        homeRepository.removeMenuItemFromOrder(orderId = orderId, companyId = companyId, menuItemName = menuItemName)
     }
 
-    fun completeOrder(orderId: String) {
-        launchCatching {
-            val companyId = userDataRepository.getCompanyId()
-            homeRepository.completeOrder(orderId = orderId, companyId = companyId)
-        }
+    fun completeOrder(orderId: String) = launchCatching {
+        val companyId = userDataRepository.getCompanyId()
+        homeRepository.completeOrder(orderId = orderId, companyId = companyId)
     }
 
     fun isMyOrder(employeeId: String): Boolean {
@@ -147,5 +143,10 @@ class OrdersVM @Inject constructor(
         homeRepository.getOtherOrder(companyId = companyId, orderId = orderId).collect {
             _myOrderMenu.value = it
         }
+    }
+
+    fun removeOrder(orderId: String) = launchCatching {
+        val companyId = userDataRepository.getCompanyId()
+        homeRepository.removeOrder(orderId = orderId, companyId = companyId)
     }
 }

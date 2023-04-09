@@ -1,5 +1,7 @@
 package com.telakuR.easyorder.home.ui.screens.employeeView
 
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -8,11 +10,16 @@ import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
@@ -32,6 +39,7 @@ fun OrderDetailsScreen(
     orderId: String
 ) {
     val isMyOrder = viewModel.isMyOrder(employeeId)
+    val dialogState: MutableState<Pair<Boolean, String>> = remember { mutableStateOf(Pair(false, "")) }
 
     Scaffold(
         content = {
@@ -40,14 +48,17 @@ fun OrderDetailsScreen(
                 MyOrderMenuDetails(
                     orderId = orderId,
                     viewModel = viewModel,
-                    navController = navController
+                    dialogState = dialogState
                 )
             } else {
                 OtherOrderMenuDetails(
                     orderId = orderId,
-                    viewModel = viewModel
+                    viewModel = viewModel,
+                    dialogState = dialogState
                 )
             }
+
+            RemoveMenuItemDialog(dialogState = dialogState, viewModel = viewModel, orderId = orderId)
         },
         bottomBar = {
             BottomBar(isMyOrder = isMyOrder, navController = navController, orderId = orderId)
@@ -57,7 +68,11 @@ fun OrderDetailsScreen(
 }
 
 @Composable
-fun MyOrderMenuDetails(orderId: String, viewModel: OrdersVM, navController: NavController) {
+fun MyOrderMenuDetails(
+    orderId: String,
+    viewModel: OrdersVM,
+    dialogState: MutableState<Pair<Boolean, String>>
+) {
     viewModel.getMyOrderMenu(orderId = orderId)
     val myOrderMenu = viewModel.myOrderMenu.collectAsStateWithLifecycle().value
 
@@ -65,26 +80,35 @@ fun MyOrderMenuDetails(orderId: String, viewModel: OrdersVM, navController: NavC
         Column(modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 10.dp), verticalArrangement = Arrangement.Center) {
-            MyOrderList(myOrderMenu = myOrderMenu)
+            MyOrderList(myOrderMenu = myOrderMenu, dialogState = dialogState)
         }
     }
 }
 
 @Composable
 private fun MyOrderList(
-    myOrderMenu: List<EmployeeMenuItem>) {
+    myOrderMenu: List<EmployeeMenuItem>,
+    dialogState: MutableState<Pair<Boolean, String>>
+) {
     LazyColumn(modifier = Modifier.fillMaxWidth()) {
         items(myOrderMenu) { menuItem ->
-            OrderMenuItem(menuItem = menuItem)
+            OrderMenuItem(menuItem = menuItem, dialogState = dialogState)
         }
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun OrderMenuItem(menuItem: EmployeeMenuItem) {
+private fun OrderMenuItem(menuItem: EmployeeMenuItem, dialogState: MutableState<Pair<Boolean, String>>) {
     WhiteItemCard(modifier = Modifier
         .fillMaxWidth()
-        .padding(horizontal = 10.dp)) {
+        .padding(horizontal = 10.dp)
+        .combinedClickable(
+            onClick = {},
+            onLongClick = {
+                dialogState.value = Pair(true, menuItem.menuItem.name)
+            }
+        )) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -125,7 +149,7 @@ private fun OrderMenuItem(menuItem: EmployeeMenuItem) {
 }
 
 @Composable
-fun OtherOrderMenuDetails(orderId: String, viewModel: OrdersVM) {
+fun OtherOrderMenuDetails(orderId: String, viewModel: OrdersVM, dialogState: MutableState<Pair<Boolean, String>>) {
     viewModel.getOtherOrder(orderId = orderId)
     val myOrderMenu = viewModel.myOrderMenu.collectAsStateWithLifecycle().value
 
@@ -135,7 +159,7 @@ fun OtherOrderMenuDetails(orderId: String, viewModel: OrdersVM) {
             Column(modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 10.dp), verticalArrangement = Arrangement.Center) {
-                OtherOrderList(myOrderMenu = myOrderMenu)
+                OtherOrderList(myOrderMenu = myOrderMenu, dialogState = dialogState)
             }
         },
         backgroundColor = Background
@@ -144,10 +168,12 @@ fun OtherOrderMenuDetails(orderId: String, viewModel: OrdersVM) {
 
 @Composable
 private fun OtherOrderList(
-    myOrderMenu: List<EmployeeMenuItem>) {
+    myOrderMenu: List<EmployeeMenuItem>,
+    dialogState: MutableState<Pair<Boolean, String>>
+) {
     LazyColumn(modifier = Modifier.fillMaxWidth()) {
         items(myOrderMenu) { menuItem ->
-            OrderMenuItem(menuItem = menuItem)
+            OrderMenuItem(menuItem = menuItem, dialogState = dialogState)
         }
     }
 }
@@ -194,6 +220,45 @@ fun BottomBar(isMyOrder: Boolean, navController: NavController, orderId: String)
                 )
             ) {
                 Icon(imageVector = Icons.Default.Add, contentDescription = null)
+            }
+        }
+    }
+}
+
+@Composable
+private fun RemoveMenuItemDialog(
+    dialogState: MutableState<Pair<Boolean, String>>,
+    viewModel: OrdersVM,
+    orderId: String
+) {
+    val menuItemName = dialogState.value.second
+
+    if (dialogState.value.first) {
+        Dialog(onDismissRequest = { dialogState.value = Pair(false, "") }) {
+            WhiteItemCard(modifier = Modifier.padding(16.dp)) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+
+                    Text(text = stringResource(id = R.string.are_you_sure_you_want_to_delete_item))
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Button(
+                        colors = ButtonDefaults.buttonColors(backgroundColor = PrimaryColor),
+                        shape = RoundedCornerShape(15.dp),
+                        onClick = {
+                            viewModel.removeMenuItem(orderId = orderId, menuItemName = menuItemName)
+                            dialogState.value = Pair(false, "")
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(48.dp)
+                    ) {
+                        Text(stringResource(id = R.string.confirm), color = Color.White)
+                    }
+                }
             }
         }
     }

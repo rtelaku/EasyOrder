@@ -25,9 +25,11 @@ interface HomeRepository {
 
     fun completeOrder(orderId: String, companyId: String)
 
-    fun removeMenuItemFromOrder(orderId: String, companyId: String)
+    fun removeMenuItemFromOrder(orderId: String, companyId: String, menuItemName: String)
 
     fun getOtherOrder(companyId: String, orderId: String): Flow<List<EmployeeMenuItem>>
+
+    fun removeOrder(orderId: String, companyId: String)
 
     suspend fun getFastFoodName(orderId: String, companyId: String): String
 

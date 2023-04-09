@@ -80,4 +80,7 @@
     <string name="failed_order_completion">Failed to complete order</string>
     <string name="order_groups">Order groups</string>
     <string name="confirm">Confirm</string>
+    <string name="are_you_sure_you_want_to_complete_order">Are you sure you want to complete this order?</string>
+    <string name="are_you_sure_you_want_to_remove_order">Are you sure you want to remove this order?</string>
+    <string name="are_you_sure_you_want_to_delete_item">Are you sure you want to delete this item?</string>
 </resources>

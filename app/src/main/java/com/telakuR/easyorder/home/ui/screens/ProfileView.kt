@@ -34,7 +34,7 @@ fun ProfileScreen(viewModel: ProfileVM = hiltViewModel()) {
 
     val uiState by viewModel.uiState
     val screen = viewModel.screenToSetup.collectAsStateWithLifecycle().value
-    var showDialog: MutableState<Boolean> = remember { mutableStateOf(false) }
+    val showDialog: MutableState<Boolean> = remember { mutableStateOf(false) }
 
     val context = LocalContext.current
     if(screen == AuthenticationRoute.Login.route) {

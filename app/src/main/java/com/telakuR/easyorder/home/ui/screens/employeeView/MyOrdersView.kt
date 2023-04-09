@@ -6,12 +6,14 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.Icon
-import androidx.compose.material.Scaffold
-import androidx.compose.material.Text
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -19,6 +21,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
@@ -33,6 +36,7 @@ import com.telakuR.easyorder.ui.theme.*
 fun MyOrdersScreen(navController: NavHostController, viewModel: OrdersVM = hiltViewModel()) {
     viewModel.getListOfMyOrders()
     val orders = viewModel.myOrderList.collectAsStateWithLifecycle().value
+    val dialogState: MutableState<Triple<Boolean, Boolean, String>> = remember { mutableStateOf(Triple(false, false, "")) }
 
     Scaffold(
         content = {
@@ -54,9 +58,11 @@ fun MyOrdersScreen(navController: NavHostController, viewModel: OrdersVM = hiltV
                     if (orders.isEmpty()) {
                         NoItemsText(textId = R.string.no_order)
                     } else {
-                        OrderList(orders = orders, navController = navController, viewModel = viewModel)
+                        OrderList(orders = orders, navController = navController, viewModel = viewModel, dialogState = dialogState)
                     }
                 }
+
+                CompleteOrderDialog(dialogState = dialogState, viewModel = viewModel)
             }
         },
         backgroundColor = Background
@@ -64,7 +70,12 @@ fun MyOrdersScreen(navController: NavHostController, viewModel: OrdersVM = hiltV
 }
 
 @Composable
-private fun OrderList(orders: List<OrderDetails>, navController: NavController, viewModel: OrdersVM) {
+private fun OrderList(
+    orders: List<OrderDetails>,
+    navController: NavController,
+    viewModel: OrdersVM,
+    dialogState: MutableState<Triple<Boolean, Boolean, String>>
+) {
     val myId = viewModel.getMyId()
 
     LazyColumn(modifier = Modifier.fillMaxWidth()) {
@@ -72,17 +83,23 @@ private fun OrderList(orders: List<OrderDetails>, navController: NavController, 
             val isMyOrder = order.employeeId == myId
 
             if(isMyOrder) {
-                MyOrderItem(order = order, navController = navController, viewModel = viewModel)
+                MyOrderItem(order = order, navController = navController, dialogState = dialogState)
             } else {
-                OrderItem(order = order, navController = navController, viewModel = viewModel)
+                OrderItem(order = order, navController = navController, dialogState = dialogState)
             }
         }
     }
+
+
 }
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun MyOrderItem(order: OrderDetails, navController: NavController, viewModel: OrdersVM) {
+private fun MyOrderItem(
+    order: OrderDetails,
+    navController: NavController,
+    dialogState: MutableState<Triple<Boolean, Boolean, String>>
+) {
     RoundedItemCard(
         modifier = Modifier
             .fillMaxWidth()
@@ -90,7 +107,7 @@ private fun MyOrderItem(order: OrderDetails, navController: NavController, viewM
             .combinedClickable(
                 onClick = {},
                 onLongClick = {
-                    viewModel.completeOrder(orderId = order.id)
+                    dialogState.value = Triple(true, true, order.id)
                 }
             ),
         backgroundColor = PrimaryColor
@@ -134,13 +151,22 @@ private fun MyOrderItem(order: OrderDetails, navController: NavController, viewM
     Spacer(modifier = Modifier.height(5.dp))
 }
 
-
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun OrderItem(order: OrderDetails, navController: NavController, viewModel: OrdersVM) {
+private fun OrderItem(
+    order: OrderDetails,
+    navController: NavController,
+    dialogState: MutableState<Triple<Boolean, Boolean, String>>
+) {
     WhiteItemCard(modifier = Modifier
         .fillMaxWidth()
-        .padding(horizontal = 10.dp)) {
+        .padding(horizontal = 10.dp)
+        .combinedClickable(
+            onClick = {},
+            onLongClick = {
+                dialogState.value = Triple(true, false, order.id)
+            }
+        )) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -178,4 +204,45 @@ private fun OrderItem(order: OrderDetails, navController: NavController, viewMod
     }
 
     Spacer(modifier = Modifier.height(5.dp))
+}
+
+@Composable
+private fun CompleteOrderDialog(dialogState: MutableState<Triple<Boolean, Boolean, String>>, viewModel: OrdersVM) {
+    val isMyOrder = dialogState.value.second
+    val orderId = dialogState.value.third
+
+    if (dialogState.value.first) {
+        Dialog(onDismissRequest = { dialogState.value = Triple(false, false, "") }) {
+            WhiteItemCard(modifier = Modifier.padding(16.dp)) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+
+                    val messageId = if(isMyOrder) R.string.are_you_sure_you_want_to_complete_order else R.string.are_you_sure_you_want_to_remove_order
+                    Text(text = stringResource(id = messageId))
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Button(
+                        colors = ButtonDefaults.buttonColors(backgroundColor = PrimaryColor),
+                        shape = RoundedCornerShape(15.dp),
+                        onClick = {
+                            if(isMyOrder) {
+                                viewModel.completeOrder(orderId = orderId)
+                            } else {
+                                viewModel.removeOrder(orderId = orderId)
+                            }
+                            dialogState.value = Triple(false, false, "")
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(48.dp)
+                    ) {
+                        Text(stringResource(id = R.string.confirm), color = Color.White)
+                    }
+                }
+            }
+        }
+    }
 }

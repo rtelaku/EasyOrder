@@ -1,6 +1,7 @@
 package com.telakuR.easyorder.utils
 
 object Constants {
+    const val MENU_ITEM_NAME: String = "menuItem.name"
     const val TOKEN: String = "token"
     const val CHOSEN_ROLE = "chosenRole"
     const val NAME = "name"
