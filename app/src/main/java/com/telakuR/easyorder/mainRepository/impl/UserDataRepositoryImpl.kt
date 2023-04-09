@@ -30,9 +30,10 @@ class UserDataRepositoryImpl @Inject constructor(
 
     override suspend fun getUserProfilePicture(): String? = suspendCoroutine { continuation ->
         try {
-            if(accountService.currentUser?.uid != null) {
+            val currentUserId = accountService.currentUserId
+            if(currentUserId.isNotEmpty()) {
                 fireStore.collection(DBCollectionEnum.USERS.title)
-                    .document(accountService.currentUserId).get().addOnSuccessListener {
+                    .document(currentUserId).get().addOnSuccessListener {
                         val profilePic = it.get(PROFILE_PIC) as String
                         continuation.resume(profilePic)
                     }

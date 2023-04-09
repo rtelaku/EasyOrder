@@ -4,17 +4,14 @@ import androidx.compose.runtime.mutableStateOf
 import com.telakuR.easyorder.authentication.models.AuthUiState
 import com.telakuR.easyorder.authentication.models.AuthenticationRoute
 import com.telakuR.easyorder.mainRepository.UserDataRepository
+import com.telakuR.easyorder.mainViewModel.EasyOrderViewModel
 import com.telakuR.easyorder.models.User
 import com.telakuR.easyorder.modules.IoDispatcher
-import com.telakuR.easyorder.mainRepository.impl.AccountServiceImpl
-import com.telakuR.easyorder.mainRepository.impl.UserDataRepositoryImpl
+import com.telakuR.easyorder.services.AccountService
 import com.telakuR.easyorder.services.LogService
 import com.telakuR.easyorder.setupProfile.route.SetUpProfileRoute
-import com.telakuR.easyorder.mainViewModel.EasyOrderViewModel
-import com.telakuR.easyorder.services.AccountService
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.withContext
@@ -73,13 +70,10 @@ class ProfileVM @Inject constructor(
         }
     }
 
-    fun editProfile() {
+    fun editProfile(currentPassword: String) {
         launchCatching {
             withContext(ioDispatcher) {
-                accountService.editProfile(uiState.value)
-
-                delay(1000)
-                getProfile()
+                accountService.editProfile(profile = uiState.value, currentPassword = currentPassword)
             }
         }
     }

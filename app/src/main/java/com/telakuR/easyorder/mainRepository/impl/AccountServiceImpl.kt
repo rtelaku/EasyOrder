@@ -1,9 +1,9 @@
 package com.telakuR.easyorder.mainRepository.impl
 
-import android.os.Handler
-import android.os.Looper
 import android.util.Log
 import android.widget.Toast
+import com.google.api.LogDescriptor
+import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.FirebaseUser
@@ -14,10 +14,14 @@ import com.telakuR.easyorder.enums.DBCollectionEnum
 import com.telakuR.easyorder.enums.RolesEnum
 import com.telakuR.easyorder.models.User
 import com.telakuR.easyorder.services.AccountService
+import com.telakuR.easyorder.utils.Constants.COMPANY_ID
 import com.telakuR.easyorder.utils.Constants.EMAIL
 import com.telakuR.easyorder.utils.Constants.EMPLOYEES
 import com.telakuR.easyorder.utils.Constants.NAME
+import com.telakuR.easyorder.utils.Constants.ORDERED
+import com.telakuR.easyorder.utils.Constants.ORDERS
 import com.telakuR.easyorder.utils.Constants.REQUESTS
+import com.telakuR.easyorder.utils.Constants.TOKEN
 import com.telakuR.easyorder.utils.ToastUtils.showToast
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
@@ -117,12 +121,12 @@ class AccountServiceImpl @Inject constructor(private val auth: FirebaseAuth, pri
                     REQUESTS to emptyList<Map<String, Any>>()
                 )
             )
-//
-//            val orders = fireStore.collection(DBCollectionEnum.ORDERS.title).document()
-//            orders.set(mapOf(COMPANY_ID to currentUser.uid))
-//
-//            val employeeOrders = orders.collection(ORDERS).document()
-//            employeeOrders.collection(ORDERED)
+
+            val orders = fireStore.collection(DBCollectionEnum.ORDERS.title).document()
+            orders.set(mapOf(COMPANY_ID to currentUser.uid))
+
+            val employeeOrders = orders.collection(ORDERS).document()
+            employeeOrders.collection(ORDERED)
         }
     }
 
@@ -143,17 +147,12 @@ class AccountServiceImpl @Inject constructor(private val auth: FirebaseAuth, pri
     }
 
     suspend fun doesEmailExist(email: String): Boolean = suspendCoroutine { continuation ->
-        var count = 0
         auth.fetchSignInMethodsForEmail(email)
-            .addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-                    val result = task.result
-                    if (result != null && result.signInMethods != null && !result.signInMethods.isNullOrEmpty()) {
-                        count = 1
-                    }
-
-                    continuation.resume(count == 1)
-                }
+            .addOnSuccessListener { result ->
+                continuation.resume(result.signInMethods?.isNotEmpty() == true)
+            }
+            .addOnFailureListener {
+                continuation.resume(false)
             }
     }
 
@@ -165,34 +164,53 @@ class AccountServiceImpl @Inject constructor(private val auth: FirebaseAuth, pri
        auth.signOut()
     }
 
-    override suspend fun editProfile(profile: AuthUiState) {
+    override suspend fun editProfile(profile: AuthUiState, currentPassword: String) {
         val userRef = fireStore.collection(DBCollectionEnum.USERS.title).document(currentUserId)
-
-        if(doesEmailExist(email = profile.email)) {
-            auth.currentUser?.updateEmail(profile.email)
-            val updates = mapOf(EMAIL to profile.email)
-            userRef.update(updates)
-        } else {
-            Handler(Looper.getMainLooper()).post {
-                showToast(messageId = R.string.email_already_exists, length = Toast.LENGTH_SHORT)
+        val doesEmailExist = doesEmailExist(email = profile.email)
+        val credential = EmailAuthProvider.getCredential(auth.currentUser?.email ?: "", currentPassword)
+        auth.currentUser?.reauthenticate(credential)?.addOnSuccessListener {
+            if (!doesEmailExist) {
+                auth.currentUser?.updateEmail(profile.email)
+                    ?.addOnSuccessListener {
+                        val updates = mapOf(EMAIL to profile.email)
+                        userRef.update(updates)
+                    }
+                    ?.addOnFailureListener { e ->
+                        Log.d(TAG, "Couldn't update email: $e")
+                    }
+            } else {
+                if (profile.email != currentUser?.email) {
+                    showToast(
+                        messageId = R.string.email_already_exists,
+                        length = Toast.LENGTH_SHORT
+                    )
+                }
             }
-        }
 
-        if(profile.password.isNotEmpty()) {
-            auth.currentUser?.updatePassword(profile.password)
-        } else {
-            Handler(Looper.getMainLooper()).post {
-                showToast(messageId = R.string.password_changing_failed, length = Toast.LENGTH_SHORT)
+            if (profile.password.isNotEmpty()) {
+                auth.currentUser?.updatePassword(profile.password)
             }
+
+        }?.addOnFailureListener { e ->
+            Log.d(TAG, "Couldn't update email: $e")
         }
 
         if(profile.name.isNotEmpty()) {
             val updates = mapOf(NAME to profile.name)
             userRef.update(updates)
-        } else {
-            Handler(Looper.getMainLooper()).post {
-                showToast(messageId = R.string.name_changing_failed, length = Toast.LENGTH_SHORT)
-            }
         }
+    }
+
+    override fun generateToken() {
+        auth.currentUser?.getIdToken(true)
+            ?.addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    val idToken = task.result?.token
+                    fireStore.collection(DBCollectionEnum.USERS.title).document(currentUserId)
+                        .update(TOKEN, idToken)
+                } else {
+                    Log.d(TAG, "Error getting ID token")
+                }
+            }
     }
 }

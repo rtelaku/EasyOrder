@@ -16,9 +16,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.telakuR.easyorder.R
 import com.telakuR.easyorder.home.models.FastFood
+import com.telakuR.easyorder.home.navigation.FAST_FOOD_NAME
 import com.telakuR.easyorder.home.route.HomeRoute
 import com.telakuR.easyorder.home.viewModel.OrdersVM
 import com.telakuR.easyorder.ui.theme.*
@@ -28,7 +30,7 @@ import java.util.*
 @Composable
 fun ChooseFastFoodScreen(navController: NavController, viewModel: OrdersVM = hiltViewModel()) {
     viewModel.getFastFoods()
-    val fastFoods = viewModel.fastFoods.collectAsState().value
+    val fastFoods = viewModel.fastFoods.collectAsStateWithLifecycle().value
 
     Scaffold(
         topBar = {
@@ -103,7 +105,7 @@ private fun FastFoodList(fastFoods: List<FastFood>, textState: MutableState<Text
                     .height(200.dp)
                     .padding(horizontal = 5.dp, vertical = 10.dp)
                     .clickable {
-                        navController.navigate(HomeRoute.ChooseFood.route + "/${fastFood.name}/ ")
+                        navController.navigate(HomeRoute.ChooseFood.route + "/?$FAST_FOOD_NAME=${fastFood.name}")
                     },
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.SpaceAround) {

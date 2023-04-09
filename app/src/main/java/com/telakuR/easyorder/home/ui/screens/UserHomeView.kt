@@ -14,15 +14,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import com.telakuR.easyorder.R
 import com.telakuR.easyorder.enums.RolesEnum
 import com.telakuR.easyorder.home.models.OrderDetails
+import com.telakuR.easyorder.home.navigation.FAST_FOOD_NAME
+import com.telakuR.easyorder.home.navigation.ORDER_ID
 import com.telakuR.easyorder.home.route.HomeRoute
 import com.telakuR.easyorder.home.viewModel.HomeVM
 import com.telakuR.easyorder.models.User
@@ -44,7 +48,7 @@ fun UserHomeScreen(navController: NavHostController, viewModel: HomeVM = hiltVie
 @Composable
 private fun EmployeeHome(viewModel: HomeVM, navController: NavHostController) {
     viewModel.isUserInACompany()
-    val isUserInACompany = viewModel.isUserOnACompany.collectAsState().value
+    val isUserInACompany = viewModel.isUserOnACompany.collectAsStateWithLifecycle().value
 
     Column(modifier = Modifier.fillMaxSize()) {
         if (isUserInACompany == false) {
@@ -58,12 +62,11 @@ private fun EmployeeHome(viewModel: HomeVM, navController: NavHostController) {
 @Composable
 private fun AllOrders(viewModel: HomeVM, navController: NavController) {
     viewModel.getListOfOrders()
-
-    val orders = viewModel.orders.collectAsState().value
+    val orders = viewModel.orders.collectAsStateWithLifecycle().value
 
     Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.Top) {
         Text(
-            text = stringResource(id = R.string.orders),
+            text = stringResource(id = R.string.order_groups),
             modifier = Modifier.padding(start = 10.dp),
             fontSize = 25.sp
         )
@@ -105,7 +108,7 @@ private fun OrderItem(order: OrderDetails, navController: NavController) {
         Column(modifier = Modifier
             .fillMaxWidth()
             .padding(top = 20.dp, start = 70.dp), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.Start) {
-            Text(text = "${order.owner}:", color = Color.White, fontSize = 15.sp)
+            Text(text = order.owner, color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
             Text(text = order.fastFood, color = Color.White, fontSize = 15.sp)
 
             ItemButton(
@@ -115,10 +118,9 @@ private fun OrderItem(order: OrderDetails, navController: NavController) {
                 contentColor = PrimaryColor,
                 padding = 0
             ) {
-                navController.navigate(HomeRoute.ChooseFood.route + "/${order.fastFood}/${order.id}")
+                navController.navigate(HomeRoute.ChooseFood.route + "/?$FAST_FOOD_NAME=${order.fastFood}&$ORDER_ID=${order.id}")
             }
         }
-
     }
 
     Spacer(modifier = Modifier.height(20.dp))
@@ -133,7 +135,7 @@ private fun CompanyHome(viewModel: HomeVM) {
 
         val textState = remember { mutableStateOf(TextFieldValue("")) }
 
-        val employees = viewModel.employees.collectAsState().value
+        val employees = viewModel.employees.collectAsStateWithLifecycle().value
 
         Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.Top) {
             Text(

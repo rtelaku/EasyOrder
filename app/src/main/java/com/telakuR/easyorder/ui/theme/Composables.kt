@@ -189,12 +189,18 @@ fun ProfilePasswordTextField(labelValue: String, textState: String, imageVector:
 }
 
 @Composable
-fun MainButton(textId: Int, enabled: Boolean = true, onClick: () -> Unit) {
+fun MainButton(
+    textId: Int,
+    modifier: Modifier = Modifier
+        .fillMaxWidth()
+        .padding(bottom = 50.dp),
+    enabled: Boolean = true,
+    alignment: Alignment.Horizontal = Alignment.CenterHorizontally,
+    onClick: () -> Unit
+) {
     Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(bottom = 50.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+        modifier = modifier,
+        horizontalAlignment = alignment
     ){
         OutlinedButton(
             onClick = { onClick.invoke() },

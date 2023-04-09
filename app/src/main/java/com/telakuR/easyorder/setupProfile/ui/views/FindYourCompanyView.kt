@@ -17,6 +17,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.telakuR.easyorder.R
 import com.telakuR.easyorder.home.ui.activities.HomeActivity
@@ -77,7 +78,7 @@ private fun CompaniesList(
 
     val selectedCompany: MutableState<String> = remember { mutableStateOf("") }
 
-    val previousCompany = viewModel.previousRequestedCompany.collectAsState().value
+    val previousCompany = viewModel.previousRequestedCompany.collectAsStateWithLifecycle().value
 
     if(!previousCompany.isNullOrEmpty()) {
         selected.value = true
@@ -119,7 +120,7 @@ private fun TopAppBar(navController: NavController, shownFromUser: Boolean, view
             fontSize = 25.sp
         )
 
-        val companiesByName = viewModel.companies.collectAsState().value.map { it.name }
+        val companiesByName = viewModel.companies.collectAsStateWithLifecycle().value.map { it.name }
         SearchBar(searchTextId =  R.string.where_do_you_work, items = companiesByName, textState = textState)
     }
 }

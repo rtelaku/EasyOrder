@@ -1,4 +1,4 @@
-package com.telakuR.easyorder.setupProfile.models
+package com.telakuR.easyorder.utils
 
 import android.content.Context
 import android.net.Uri

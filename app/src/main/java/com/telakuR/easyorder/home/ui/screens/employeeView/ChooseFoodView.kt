@@ -17,6 +17,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.telakuR.easyorder.R
 import com.telakuR.easyorder.home.models.MenuItem
@@ -34,9 +35,11 @@ fun ChooseFoodScreen(
     viewModel: OrdersVM = hiltViewModel(),
     orderId: String?
 ) {
+    fastFoodName.ifEmpty { viewModel.getFastFoodByOrderId(orderId = orderId) }
+    val fastFood = viewModel.fastFoodName.collectAsStateWithLifecycle().value
 
-    viewModel.getMenuItems(fastFoodName)
-    val menuList = viewModel.fastFoodMenu.collectAsState().value
+    viewModel.getMenuItems(fastFood.ifEmpty { fastFoodName })
+    val menuList = viewModel.fastFoodMenu.collectAsStateWithLifecycle().value
 
     Scaffold(
         topBar = {
@@ -73,7 +76,7 @@ fun ChooseFoodScreen(
     LaunchedEffect(continueWithOrder) {
         if (continueWithOrder != null) {
             if(continueWithOrder) {
-                navController.navigate(HomeRoute.Home.route)
+                navController.navigate(HomeRoute.Orders.route)
             } else {
                 ToastUtils.showToast(
                     context = context,

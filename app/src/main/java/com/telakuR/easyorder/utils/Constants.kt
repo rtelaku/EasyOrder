@@ -1,6 +1,7 @@
 package com.telakuR.easyorder.utils
 
 object Constants {
+    const val TOKEN: String = "token"
     const val CHOSEN_ROLE = "chosenRole"
     const val NAME = "name"
     const val ROLE = "role"

@@ -2,15 +2,16 @@ package com.telakuR.easyorder.home.ui.screens
 
 import android.content.Intent
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.Button
+import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Password
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -18,7 +19,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.telakuR.easyorder.R
 import com.telakuR.easyorder.authentication.models.AuthenticationRoute
 import com.telakuR.easyorder.authentication.ui.activities.AuthenticationActivity
@@ -30,8 +33,8 @@ fun ProfileScreen(viewModel: ProfileVM = hiltViewModel()) {
     viewModel.getProfile()
 
     val uiState by viewModel.uiState
-
-    val screen = viewModel.screenToSetup.collectAsState().value
+    val screen = viewModel.screenToSetup.collectAsStateWithLifecycle().value
+    var showDialog: MutableState<Boolean> = remember { mutableStateOf(false) }
 
     val context = LocalContext.current
     if(screen == AuthenticationRoute.Login.route) {
@@ -94,7 +97,7 @@ fun ProfileScreen(viewModel: ProfileVM = hiltViewModel()) {
                         backgroundColor = Color.Green,
                         corners = 10
                     ) {
-                        viewModel.editProfile()
+                        showDialog.value = true
                     }
 
                     ItemButton(
@@ -106,8 +109,48 @@ fun ProfileScreen(viewModel: ProfileVM = hiltViewModel()) {
                     }
                 }
             }
+
+            ConfirmDialog(showDialog = showDialog, viewModel = viewModel)
         }
     },
         backgroundColor = Background
     )
+}
+
+@Composable
+private fun ConfirmDialog(showDialog: MutableState<Boolean>, viewModel: ProfileVM) {
+    var currentPassword by remember { mutableStateOf("") }
+
+    if (showDialog.value) {
+        Dialog(onDismissRequest = { showDialog.value = false }) {
+            WhiteItemCard(modifier = Modifier.padding(16.dp)) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    ProfilePasswordTextField(
+                        stringResource(id = R.string.password),
+                        currentPassword,
+                        Icons.Filled.Password,
+                    ) { currentPassword = it }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Button(
+                        colors = ButtonDefaults.buttonColors(backgroundColor = PrimaryColor),
+                        shape = RoundedCornerShape(15.dp),
+                        onClick = {
+                            viewModel.editProfile(currentPassword = currentPassword)
+                            showDialog.value = false
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(48.dp)
+                    ) {
+                        Text(stringResource(id = R.string.confirm), color = Color.White)
+                    }
+                }
+            }
+        }
+    }
 }

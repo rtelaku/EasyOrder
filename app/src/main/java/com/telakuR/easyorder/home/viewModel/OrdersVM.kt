@@ -41,11 +41,8 @@ class OrdersVM @Inject constructor(
     private val _myOrderMenu = MutableStateFlow<List<EmployeeMenuItem>>(emptyList())
     val myOrderMenu: StateFlow<List<EmployeeMenuItem>> get() = _myOrderMenu
 
-    private val _fastFoodName = MutableStateFlow("")
+    private val _fastFoodName = MutableStateFlow<String>("")
     val fastFoodName: StateFlow<String> get() = _fastFoodName
-
-    private val _toastMessageId = MutableStateFlow<Int?>(null)
-    var toastMessageId: StateFlow<Int?> = _toastMessageId
 
     fun getFastFoods() {
         launchCatching {
@@ -80,9 +77,11 @@ class OrdersVM @Inject constructor(
         }
     }
 
-    fun getMyOrderMenu() {
-
-
+    fun getMyOrderMenu(orderId: String) = launchCatching {
+        val companyId = userDataRepository.getCompanyId()
+        homeRepository.getMyOrder(companyId = companyId, orderId = orderId).collect {
+            _myOrderMenu.value = it
+        }
     }
 
     fun addMenuItem(menuItem: MenuItem, orderId: String) {
@@ -97,19 +96,6 @@ class OrdersVM @Inject constructor(
             }
 
             _continueOrder.value = continueWithOrder
-        }
-    }
-
-    fun getListOfMyOrders() {
-        launchCatching {
-            val companyId = userDataRepository.getCompanyId()
-            homeRepository.getMyOrders(companyId = companyId).collect { ordersList ->
-                val myList = ordersList.toMutableList()
-                val myOrder = ordersList.firstOrNull { it.employeeId == accountService.currentUserId }
-                myList.remove(myOrder)
-                myOrder?.let { myList.add(0, it) }
-                _myOrderList.value = myList
-            }
         }
     }
 
@@ -128,6 +114,38 @@ class OrdersVM @Inject constructor(
         launchCatching {
             val companyId = userDataRepository.getCompanyId()
             homeRepository.completeOrder(orderId = orderId, companyId = companyId)
+        }
+    }
+
+    fun isMyOrder(employeeId: String): Boolean {
+        return accountService.currentUserId == employeeId
+    }
+
+    fun getFastFoodByOrderId(orderId: String?) = launchCatching {
+        val fastFoodName = withContext(ioDispatcher) {
+            val companyId = userDataRepository.getCompanyId()
+            return@withContext homeRepository.getFastFoodName(orderId = orderId ?: "", companyId = companyId)
+        }
+
+        _fastFoodName.value = fastFoodName
+    }
+
+    fun getListOfMyOrders() = launchCatching {
+        val companyId = userDataRepository.getCompanyId()
+        homeRepository.getMyOrders(companyId = companyId).collect { ordersList ->
+            val myList = ordersList.toMutableList()
+            val myOrder =
+                ordersList.firstOrNull { it.employeeId == accountService.currentUserId }
+            myList.remove(myOrder)
+            myOrder?.let { myList.add(0, it) }
+            _myOrderList.value = myList
+        }
+    }
+
+    fun getOtherOrder(orderId: String) = launchCatching {
+        val companyId = userDataRepository.getCompanyId()
+        homeRepository.getOtherOrder(companyId = companyId, orderId = orderId).collect {
+            _myOrderMenu.value = it
         }
     }
 }

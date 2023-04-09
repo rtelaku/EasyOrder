@@ -10,6 +10,8 @@ interface AccountService {
 
     var currentUser: FirebaseUser?
 
+    fun generateToken()
+
     suspend fun authenticate(email: String, password: String): FirebaseUser?
 
     suspend fun sendRecoveryEmail(email: String)
@@ -20,5 +22,5 @@ interface AccountService {
 
     suspend fun signOut()
 
-    suspend fun editProfile(profile: AuthUiState)
+    suspend fun editProfile(profile: AuthUiState, currentPassword: String)
 }

@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -18,6 +17,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hierarchy
@@ -39,7 +39,7 @@ import com.telakuR.easyorder.utils.ToastUtils
 fun BaseHomeScreen(viewModel: RequestsVM = hiltViewModel(), homeVM: HomeVM = hiltViewModel()) {
     val navController = rememberNavController()
 
-    val role = homeVM.currentUserRole.collectAsState().value
+    val role = homeVM.currentUserRole.collectAsStateWithLifecycle().value
     val screens = homeVM.getHomeScreens()
     val navBackStackEntry = navController.currentBackStackEntryAsState().value
     val currentDestination = navBackStackEntry?.destination?.route
@@ -65,7 +65,7 @@ fun BaseHomeScreen(viewModel: RequestsVM = hiltViewModel(), homeVM: HomeVM = hil
         )
 
         homeVM.isUserInACompany()
-        val isUserInACompany = homeVM.isUserOnACompany.collectAsState().value
+        val isUserInACompany = homeVM.isUserOnACompany.collectAsStateWithLifecycle().value
         if(role == RolesEnum.USER.role && currentDestination == HomeRoute.Home.route && isUserInACompany == true) {
             BottomRightButton(textId = R.string.create_order) {
                 homeVM.checkIfUserHasAnOrder()
@@ -73,7 +73,7 @@ fun BaseHomeScreen(viewModel: RequestsVM = hiltViewModel(), homeVM: HomeVM = hil
         }
 
         val context = LocalContext.current
-        val userHasAnOrder = homeVM.hasAlreadyAnOrder.collectAsState().value
+        val userHasAnOrder = homeVM.hasAlreadyAnOrder.collectAsStateWithLifecycle().value
 
         LaunchedEffect(userHasAnOrder) {
             if(userHasAnOrder != null) {
@@ -215,7 +215,7 @@ private fun AddItemRow(
         if (screen.title == HomeRoute.Requests.title) {
             viewModel.getListOfRequests()
 
-            val requestsSize = viewModel.requests.collectAsState().value.size
+            val requestsSize = viewModel.requests.collectAsStateWithLifecycle().value.size
 
             BadgedBox(badge = { if(requestsSize != 0) Badge { Text(requestsSize.toString()) } }) {
                 AddItemIcon(screen, isSelected, contentColor)

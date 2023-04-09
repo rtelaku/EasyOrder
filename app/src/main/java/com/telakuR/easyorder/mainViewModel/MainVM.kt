@@ -6,6 +6,7 @@ import com.telakuR.easyorder.services.AccountService
 import com.telakuR.easyorder.services.LogService
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import javax.inject.Inject
 
 @HiltViewModel
@@ -14,8 +15,8 @@ class MainVM @Inject constructor(
     logService: LogService
 ) : EasyOrderViewModel(logService) {
 
-    var screenToLaunch = MutableStateFlow("")
-        private set
+    private val _screenToLaunch = MutableStateFlow("")
+    var screenToLaunch: StateFlow<String> = _screenToLaunch
 
     init {
         setScreenToLaunch()
@@ -23,9 +24,9 @@ class MainVM @Inject constructor(
 
     private fun setScreenToLaunch() = launchCatching {
         if(accountService.currentUser != null) {
-            screenToLaunch.value = HomeRoute.Home.route
+            _screenToLaunch.value = HomeRoute.Home.route
         } else {
-            screenToLaunch.value = AuthenticationRoute.Login.route
+            _screenToLaunch.value = AuthenticationRoute.Login.route
         }
     }
 }

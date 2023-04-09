@@ -18,6 +18,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.telakuR.easyorder.R
 import com.telakuR.easyorder.home.viewModel.RequestsVM
 import com.telakuR.easyorder.models.User
@@ -30,7 +31,7 @@ fun RequestsScreen(viewModel: RequestsVM = hiltViewModel()) {
     viewModel.getListOfRequests()
 
     val textState = remember { mutableStateOf(TextFieldValue("")) }
-    val requests = viewModel.requests.collectAsState().value
+    val requests = viewModel.requests.collectAsStateWithLifecycle().value
 
     Scaffold(
         content = {

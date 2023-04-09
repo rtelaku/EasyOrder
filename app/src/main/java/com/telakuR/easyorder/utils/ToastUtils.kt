@@ -2,6 +2,9 @@ package com.telakuR.easyorder.utils
 
 import android.content.Context
 import android.widget.Toast
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 object ToastUtils {
     fun showToast(
@@ -9,7 +12,9 @@ object ToastUtils {
         messageId: Int,
         length: Int
     ) {
-        val message = context.getString(messageId)
-        Toast.makeText(context, message, length).show()
+        CoroutineScope(Dispatchers.Main).launch {
+            val message = context.getString(messageId)
+            Toast.makeText(context, message, length).show()
+        }
     }
 }

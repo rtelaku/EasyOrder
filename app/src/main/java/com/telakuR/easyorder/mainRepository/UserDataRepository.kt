@@ -5,6 +5,8 @@ import kotlinx.coroutines.flow.Flow
 
 interface UserDataRepository {
 
+    fun getProfile(): Flow<User>
+
     suspend fun getUserProfilePicture(): String?
 
     suspend fun getUserRole(): String
@@ -12,6 +14,4 @@ interface UserDataRepository {
     suspend fun getCompanyId(): String
 
     suspend fun isUserInACompany(): Boolean
-
-    fun getProfile(): Flow<User>
 }

@@ -21,7 +21,7 @@ import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.telakuR.easyorder.R
-import com.telakuR.easyorder.setupProfile.models.MyFileProvider
+import com.telakuR.easyorder.utils.MyFileProvider
 import com.telakuR.easyorder.setupProfile.route.SetUpProfileRoute
 import com.telakuR.easyorder.setupProfile.ui.components.AddImageToDatabase
 import com.telakuR.easyorder.setupProfile.ui.components.AddImageToStorage

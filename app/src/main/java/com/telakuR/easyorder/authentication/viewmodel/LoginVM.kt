@@ -52,6 +52,7 @@ class LoginVM @Inject constructor(
 
             if (currentUser != null) {
 //            if(currentUser.isEmailVerified) {
+                accountService.generateToken()
                 _screenToSetup.value = HomeRoute.Home.route
 //            } else {
 //                if (currentUser.isEmailVerified) {

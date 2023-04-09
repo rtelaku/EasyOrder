@@ -1,6 +1,6 @@
 package com.telakuR.easyorder.modules
 
-import com.telakuR.easyorder.home.repository.HomeDataRepositoryImpl
+import com.telakuR.easyorder.home.repository.impl.HomeDataRepositoryImpl
 import com.telakuR.easyorder.home.repository.HomeRepository
 import com.telakuR.easyorder.mainRepository.UserDataRepository
 import com.telakuR.easyorder.mainRepository.impl.AccountServiceImpl
