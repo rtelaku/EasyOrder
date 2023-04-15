@@ -25,12 +25,12 @@ import androidx.navigation.NavHostController
 import com.telakuR.easyorder.R
 import com.telakuR.easyorder.enums.RolesEnum
 import com.telakuR.easyorder.home.models.OrderDetails
-import com.telakuR.easyorder.home.navigation.FAST_FOOD_NAME
-import com.telakuR.easyorder.home.navigation.ORDER_ID
 import com.telakuR.easyorder.home.route.HomeRoute
 import com.telakuR.easyorder.home.viewModel.HomeVM
 import com.telakuR.easyorder.models.User
 import com.telakuR.easyorder.ui.theme.*
+import com.telakuR.easyorder.utils.Constants.FAST_FOOD_NAME
+import com.telakuR.easyorder.utils.Constants.ORDER_ID
 import java.util.*
 
 @Composable

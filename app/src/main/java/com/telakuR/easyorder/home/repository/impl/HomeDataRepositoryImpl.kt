@@ -12,9 +12,11 @@ import com.telakuR.easyorder.R
 import com.telakuR.easyorder.enums.DBCollectionEnum
 import com.telakuR.easyorder.home.models.*
 import com.telakuR.easyorder.home.repository.HomeRepository
+import com.telakuR.easyorder.mainRepository.UserDataRepository
 import com.telakuR.easyorder.models.User
 import com.telakuR.easyorder.modules.IoDispatcher
 import com.telakuR.easyorder.services.AccountService
+import com.telakuR.easyorder.services.MyFirebaseMessagingService
 import com.telakuR.easyorder.utils.Constants
 import com.telakuR.easyorder.utils.Constants.COMPANY_ID
 import com.telakuR.easyorder.utils.Constants.EMPLOYEES
@@ -24,8 +26,10 @@ import com.telakuR.easyorder.utils.Constants.MENU
 import com.telakuR.easyorder.utils.Constants.NAME
 import com.telakuR.easyorder.utils.Constants.ORDERED
 import com.telakuR.easyorder.utils.Constants.ORDERS
+import com.telakuR.easyorder.utils.Constants.PAID
 import com.telakuR.easyorder.utils.Constants.PROFILE_PIC
 import com.telakuR.easyorder.utils.Constants.REQUESTS
+import com.telakuR.easyorder.utils.Constants.TOTAL_PRICE
 import com.telakuR.easyorder.utils.ToastUtils.showToast
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
@@ -37,7 +41,12 @@ import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
-class HomeDataRepositoryImpl @Inject constructor(@IoDispatcher val ioDispatcher: CoroutineDispatcher, val fireStore: FirebaseFirestore, val accountService: AccountService):
+class HomeDataRepositoryImpl @Inject constructor(
+    @IoDispatcher val ioDispatcher: CoroutineDispatcher,
+    private val fireStore: FirebaseFirestore,
+    private val accountService: AccountService,
+    private val userDataRepository: UserDataRepository
+) :
     HomeRepository {
     private val TAG = HomeDataRepositoryImpl::class.simpleName
 
@@ -253,11 +262,11 @@ class HomeDataRepositoryImpl @Inject constructor(@IoDispatcher val ioDispatcher:
                             .document(employeeMenuItemResponse.employeeId).get()
 
                         Tasks.await(employeeTask)
-                        val employee = employeeTask.result!!
+                        val employee = employeeTask.result
 
                         val employeeName = employee.getString(NAME) ?: ""
                         val employeePicture = employee.getString(PROFILE_PIC) ?: ""
-                        val userInfo = UserInfo(name = employeeName, picture = employeePicture)
+                        val userInfo = UserInfo(id = employee.id, name = employeeName, picture = employeePicture)
                         val employeeMenuItem = EmployeeMenuItem(
                             userInfo = userInfo,
                             menuItem = employeeMenuItemResponse.menuItem
@@ -323,15 +332,31 @@ class HomeDataRepositoryImpl @Inject constructor(@IoDispatcher val ioDispatcher:
                         employeeId = accountService.currentUserId,
                         menuItem = menuItem
                     )
-
                     docRef.collection(ORDERS).document(orderId).collection(ORDERED)
                         .add(employeeMenuItem).addOnSuccessListener {
                             continuation.resume(true)
                         }.addOnFailureListener {
                             continuation.resume(false)
                         }
+
+                    savePaymentDetails(orderId = orderId, employeeMenuItem = employeeMenuItem)
                 }
             }
+    }
+
+    private fun savePaymentDetails(orderId: String, employeeMenuItem: EmployeeMenuItemResponse) {
+        val paymentRef = fireStore.collection(DBCollectionEnum.PAYMENTS.title).document(orderId).collection(accountService.currentUserId).document("myDocumentId")
+        paymentRef.get().addOnCompleteListener { document ->
+            if (document.result.exists()) {
+                val totalPrice = employeeMenuItem.menuItem.price + document.result.get(TOTAL_PRICE) as Double
+                val paid = document.result.get(PAID) as Double
+                val paymentModel = UserPaymentModel(orderId = orderId, totalPayment = totalPrice, paid = paid)
+                paymentRef.set(paymentModel)
+            } else {
+                val paymentModel = UserPaymentModel(orderId = orderId, totalPayment = employeeMenuItem.menuItem.price, paid = 0.00)
+                paymentRef.set(paymentModel)
+            }
+        }
     }
 
     override suspend fun createOrderWithFastFood(
@@ -360,6 +385,8 @@ class HomeDataRepositoryImpl @Inject constructor(@IoDispatcher val ioDispatcher:
                                 )
                                 document.reference.collection(ORDERED).add(employeeMenuItem).addOnSuccessListener {
                                     continuation.resume(true)
+                                    savePaymentDetails(orderId = orderReference.id, employeeMenuItem = employeeMenuItem)
+                                    MyFirebaseMessagingService.sendMessage(fastFood = fastFood)
                                 }
                             }
                         }
@@ -595,7 +622,7 @@ class HomeDataRepositoryImpl @Inject constructor(@IoDispatcher val ioDispatcher:
                     continuation.resume("")
                 }
             } catch (e: Exception) {
-                Log.e(TAG, "Couldn't get profile picture: ", e)
+                Log.e(TAG, "Couldn't get fast food: ", e)
             }
     }
 }

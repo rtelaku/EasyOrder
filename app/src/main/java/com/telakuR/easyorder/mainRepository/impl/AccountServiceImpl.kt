@@ -8,6 +8,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.messaging.FirebaseMessaging
 import com.telakuR.easyorder.R
 import com.telakuR.easyorder.authentication.models.AuthUiState
 import com.telakuR.easyorder.enums.DBCollectionEnum
@@ -202,15 +203,13 @@ class AccountServiceImpl @Inject constructor(private val auth: FirebaseAuth, pri
     }
 
     override fun generateToken() {
-        auth.currentUser?.getIdToken(true)
-            ?.addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-                    val idToken = task.result?.token
-                    fireStore.collection(DBCollectionEnum.USERS.title).document(currentUserId)
-                        .update(TOKEN, idToken)
-                } else {
-                    Log.d(TAG, "Error getting ID token")
-                }
+        FirebaseMessaging.getInstance().token
+            .addOnSuccessListener { token ->
+                fireStore.collection(DBCollectionEnum.USERS.title).document(currentUserId)
+                    .update(TOKEN, token)
+            }
+            .addOnFailureListener { e ->
+                Log.d("rigiii", "Failed to generate token: $e")
             }
     }
 }

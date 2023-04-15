@@ -83,4 +83,13 @@
     <string name="are_you_sure_you_want_to_complete_order">Are you sure you want to complete this order?</string>
     <string name="are_you_sure_you_want_to_remove_order">Are you sure you want to remove this order?</string>
     <string name="are_you_sure_you_want_to_delete_item">Are you sure you want to delete this item?</string>
+    <string name="price">Price</string>
+    <string name="paid">Paid</string>
+    <string name="owe">Owe</string>
+    <string name="ordered">Ordered</string>
+    <string name="sub_total">Sub-Total</string>
+    <string name="delivery_charge">Delivery Charge</string>
+    <string name="total">Total</string>
+    <string name="new_order">New order!</string>
+    <string name="ordering_notification">%s is ordering at %s . Wanna join?</string>
 </resources>

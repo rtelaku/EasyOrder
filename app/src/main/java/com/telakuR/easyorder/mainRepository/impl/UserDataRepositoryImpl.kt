@@ -11,10 +11,8 @@ import com.telakuR.easyorder.services.AccountService
 import com.telakuR.easyorder.utils.Constants.EMPLOYEES
 import com.telakuR.easyorder.utils.Constants.PROFILE_PIC
 import com.telakuR.easyorder.utils.Constants.ROLE
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOn
+import com.telakuR.easyorder.utils.Constants.TOKEN
+import kotlinx.coroutines.*
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import kotlin.coroutines.resume
@@ -55,15 +53,15 @@ class UserDataRepositoryImpl @Inject constructor(
         }
     }
 
-    override fun getProfile(): Flow<User> = flow {
-        try {
-            val doc = fireStore.collection(DBCollectionEnum.USERS.title).document(accountService.currentUserId).get().await()
-            val user = Gson().fromJson(Gson().toJson(doc.data), User::class.java)
-            emit(user)
-        } catch (e: Exception) {
-            Log.e(TAG, "Couldn't get profile: ", e)
-        }
-    }.flowOn(ioDispatcher)
+    override suspend fun getProfile(): User? = suspendCoroutine { continuation ->
+        fireStore.collection(DBCollectionEnum.USERS.title).document(accountService.currentUserId)
+            .get().addOnSuccessListener {
+                val user = Gson().fromJson(Gson().toJson(it.data), User::class.java)
+                continuation.resume(user)
+            }.addOnFailureListener {
+                continuation.resume(null)
+            }
+    }
 
     override suspend fun getCompanyId(): String = suspendCoroutine { continuation ->
         try {
@@ -90,6 +88,36 @@ class UserDataRepositoryImpl @Inject constructor(
             }
         } catch (e: Exception) {
             Log.e(TAG, "Couldn't get if user is in a company: ", e)
+        }
+    }
+
+    override suspend fun getTokens(): List<String> = withContext(ioDispatcher) {
+        try {
+            val listOfTokens = arrayListOf<String>()
+            val documents = fireStore.collection(DBCollectionEnum.EMPLOYEES.title).get().await()
+            val deferredList = mutableListOf<Deferred<String?>>()
+            for(document in documents) {
+                val employees = document.data[EMPLOYEES] as ArrayList<String>
+                val hasCompanyId = employees.any { it == accountService.currentUserId }
+                if(hasCompanyId) {
+                    employees.forEach {
+                        val deferredToken = async {
+                            val user = fireStore.collection(DBCollectionEnum.USERS.title).document(it).get().await()
+                            user.get(TOKEN) as? String
+                        }
+                        deferredList.add(deferredToken)
+                    }
+                }
+            }
+            deferredList.awaitAll().forEach {
+                if(it != null) {
+                    listOfTokens.add(it)
+                }
+            }
+            listOfTokens
+        } catch (e: Exception) {
+            Log.e(TAG, "Couldn't get device tokens: ", e)
+            emptyList()
         }
     }
 }

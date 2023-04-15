@@ -11,14 +11,10 @@ import com.telakuR.easyorder.home.ui.screens.NotificationsScreen
 import com.telakuR.easyorder.home.ui.screens.ProfileScreen
 import com.telakuR.easyorder.home.ui.screens.UserHomeScreen
 import com.telakuR.easyorder.home.ui.screens.companyView.RequestsScreen
-import com.telakuR.easyorder.home.ui.screens.employeeView.ChooseFastFoodScreen
-import com.telakuR.easyorder.home.ui.screens.employeeView.ChooseFoodScreen
-import com.telakuR.easyorder.home.ui.screens.employeeView.OrderDetailsScreen
-import com.telakuR.easyorder.home.ui.screens.employeeView.MyOrdersScreen
+import com.telakuR.easyorder.home.ui.screens.employeeView.*
 import com.telakuR.easyorder.utils.Constants.EMPLOYEE_ID
-
-const val FAST_FOOD_NAME: String = "fastFoodName"
-const val ORDER_ID: String = "orderId"
+import com.telakuR.easyorder.utils.Constants.FAST_FOOD_NAME
+import com.telakuR.easyorder.utils.Constants.ORDER_ID
 
 @Composable
 fun HomeNavigation(navController: NavHostController, role: String) {
@@ -78,24 +74,14 @@ fun HomeNavigation(navController: NavHostController, role: String) {
             )
         }
 
-        composable(route = HomeRoute.GroupedOrders.route) {
-            GroupedOrders()
+        composable(route = HomeRoute.GroupedOrders.route + "/{$ORDER_ID}") {
+            GroupedOrdersScreen(orderId = it.arguments?.getString(ORDER_ID) ?: "")
         }
 
-        composable(route = HomeRoute.PaymentDetails.route) {
-            PaymentDetails()
+        composable(route = HomeRoute.PaymentDetails.route + "/{$ORDER_ID}") {
+            PaymentDetailsScreen(orderId = it.arguments?.getString(ORDER_ID) ?: "")
         }
     }
-}
-
-@Composable
-fun PaymentDetails() {
-
-}
-
-@Composable
-fun GroupedOrders() {
-
 }
 
 

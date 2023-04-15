@@ -20,10 +20,10 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.telakuR.easyorder.R
 import com.telakuR.easyorder.home.models.FastFood
-import com.telakuR.easyorder.home.navigation.FAST_FOOD_NAME
 import com.telakuR.easyorder.home.route.HomeRoute
 import com.telakuR.easyorder.home.viewModel.OrdersVM
 import com.telakuR.easyorder.ui.theme.*
+import com.telakuR.easyorder.utils.Constants.FAST_FOOD_NAME
 import java.util.*
 
 @OptIn(ExperimentalAnimationApi::class)

@@ -1,9 +1,6 @@
 package com.telakuR.easyorder.home.viewModel
 
-import com.telakuR.easyorder.home.models.EmployeeMenuItem
-import com.telakuR.easyorder.home.models.FastFood
-import com.telakuR.easyorder.home.models.MenuItem
-import com.telakuR.easyorder.home.models.OrderDetails
+import com.telakuR.easyorder.home.models.*
 import com.telakuR.easyorder.home.repository.HomeRepository
 import com.telakuR.easyorder.mainRepository.UserDataRepository
 import com.telakuR.easyorder.mainViewModel.EasyOrderViewModel
@@ -41,8 +38,11 @@ class OrdersVM @Inject constructor(
     private val _myOrderMenu = MutableStateFlow<List<EmployeeMenuItem>>(emptyList())
     val myOrderMenu: StateFlow<List<EmployeeMenuItem>> get() = _myOrderMenu
 
-    private val _fastFoodName = MutableStateFlow<String>("")
+    private val _fastFoodName = MutableStateFlow("")
     val fastFoodName: StateFlow<String> get() = _fastFoodName
+
+    private val _paymentDetailsList = MutableStateFlow<List<UserPaymentModelResponse>>(emptyList())
+    val paymentDetailsList: StateFlow<List<UserPaymentModelResponse>> get() = _paymentDetailsList
 
     fun getFastFoods() {
         launchCatching {

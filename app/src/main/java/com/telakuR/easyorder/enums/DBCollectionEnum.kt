@@ -4,5 +4,6 @@ enum class DBCollectionEnum(val title: String) {
     USERS("users"),
     FAST_FOODS("fastfoods"),
     ORDERS("orders"),
-    EMPLOYEES("employees")
+    EMPLOYEES("employees"),
+    PAYMENTS("payments")
 }

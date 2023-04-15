@@ -60,12 +60,13 @@ class ProfileVM @Inject constructor(
 
     fun getProfile() {
         launchCatching {
-            withContext(ioDispatcher) {
-                userDataRepository.getProfile()
-            }.collect {
-                _profile.value = it
-                uiState.value =
-                    uiState.value.copy(name = profile.value?.name ?: "", email = profile.value?.email ?: "")
+            val userProfile = userDataRepository.getProfile()
+            if(userProfile != null) {
+                _profile.value = userProfile
+                uiState.value = uiState.value.copy(
+                    name = profile.value?.name ?: "",
+                    email = profile.value?.email ?: ""
+                )
             }
         }
     }

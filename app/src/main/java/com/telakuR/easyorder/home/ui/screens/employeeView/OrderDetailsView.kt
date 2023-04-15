@@ -19,17 +19,17 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.telakuR.easyorder.R
 import com.telakuR.easyorder.home.models.EmployeeMenuItem
-import com.telakuR.easyorder.home.navigation.ORDER_ID
 import com.telakuR.easyorder.home.route.HomeRoute
 import com.telakuR.easyorder.home.viewModel.OrdersVM
-import com.telakuR.easyorder.setupProfile.route.SetUpProfileRoute
 import com.telakuR.easyorder.ui.theme.*
+import com.telakuR.easyorder.utils.Constants.ORDER_ID
 
 @Composable
 fun OrderDetailsScreen(
@@ -42,33 +42,44 @@ fun OrderDetailsScreen(
     val dialogState: MutableState<Pair<Boolean, String>> = remember { mutableStateOf(Pair(false, "")) }
 
     Scaffold(
-        content = {
-            it
-            if (isMyOrder) {
-                MyOrderMenuDetails(
-                    orderId = orderId,
-                    viewModel = viewModel,
-                    dialogState = dialogState
-                )
-            } else {
-                OtherOrderMenuDetails(
-                    orderId = orderId,
-                    viewModel = viewModel,
-                    dialogState = dialogState
-                )
-            }
+        content = { it
+            Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.Top) {
+                Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.Top) {
+                    Text(
+                        text = stringResource(id = R.string.ordered),
+                        modifier = Modifier.padding(start = 10.dp),
+                        fontSize = 25.sp
+                    )
+                }
 
-            RemoveMenuItemDialog(dialogState = dialogState, viewModel = viewModel, orderId = orderId)
+                Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.Center) {
+                    if (isMyOrder) {
+                        MyOrderMenuDetails(
+                            orderId = orderId,
+                            viewModel = viewModel,
+                            dialogState = dialogState
+                        )
+                    } else {
+                        OtherOrderMenuDetails(
+                            orderId = orderId,
+                            viewModel = viewModel,
+                            dialogState = dialogState
+                        )
+                    }
+
+                    RemoveMenuItemDialog(dialogState = dialogState, viewModel = viewModel, orderId = orderId)
+                }
+            }
         },
         bottomBar = {
-            BottomBar(isMyOrder = isMyOrder, navController = navController, orderId = orderId)
+            OrderDetailsBottomBar(isMyOrder = isMyOrder, navController = navController, orderId = orderId)
         },
         backgroundColor = Background
     )
 }
 
 @Composable
-fun MyOrderMenuDetails(
+private fun MyOrderMenuDetails(
     orderId: String,
     viewModel: OrdersVM,
     dialogState: MutableState<Pair<Boolean, String>>
@@ -76,12 +87,12 @@ fun MyOrderMenuDetails(
     viewModel.getMyOrderMenu(orderId = orderId)
     val myOrderMenu = viewModel.myOrderMenu.collectAsStateWithLifecycle().value
 
-    Column(modifier = Modifier.fillMaxSize()) {
-        Column(modifier = Modifier
+    Column(
+        modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 10.dp), verticalArrangement = Arrangement.Center) {
-            MyOrderList(myOrderMenu = myOrderMenu, dialogState = dialogState)
-        }
+            .padding(vertical = 10.dp), verticalArrangement = Arrangement.Center
+    ) {
+        MyOrderList(myOrderMenu = myOrderMenu, dialogState = dialogState)
     }
 }
 
@@ -149,21 +160,17 @@ private fun OrderMenuItem(menuItem: EmployeeMenuItem, dialogState: MutableState<
 }
 
 @Composable
-fun OtherOrderMenuDetails(orderId: String, viewModel: OrdersVM, dialogState: MutableState<Pair<Boolean, String>>) {
+private fun OtherOrderMenuDetails(orderId: String, viewModel: OrdersVM, dialogState: MutableState<Pair<Boolean, String>>) {
     viewModel.getOtherOrder(orderId = orderId)
     val myOrderMenu = viewModel.myOrderMenu.collectAsStateWithLifecycle().value
 
-    Scaffold(
-        content = {
-            it
-            Column(modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 10.dp), verticalArrangement = Arrangement.Center) {
-                OtherOrderList(myOrderMenu = myOrderMenu, dialogState = dialogState)
-            }
-        },
-        backgroundColor = Background
-    )
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 10.dp), verticalArrangement = Arrangement.Center
+    ) {
+        OtherOrderList(myOrderMenu = myOrderMenu, dialogState = dialogState)
+    }
 }
 
 @Composable
@@ -179,7 +186,7 @@ private fun OtherOrderList(
 }
 
 @Composable
-fun BottomBar(isMyOrder: Boolean, navController: NavController, orderId: String) {
+private fun OrderDetailsBottomBar(isMyOrder: Boolean, navController: NavController, orderId: String) {
     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
 
         if(isMyOrder) {
@@ -188,7 +195,7 @@ fun BottomBar(isMyOrder: Boolean, navController: NavController, orderId: String)
                 alignment = Alignment.Start,
                 modifier = Modifier.weight(2f)
             ) {
-                navController.navigate(SetUpProfileRoute.PicturePreview.route)
+                navController.navigate(HomeRoute.GroupedOrders.route + "/$orderId")
             }
 
             MainButton(
@@ -196,9 +203,8 @@ fun BottomBar(isMyOrder: Boolean, navController: NavController, orderId: String)
                 alignment = Alignment.End,
                 modifier = Modifier.weight(2f)
             ) {
-                navController.navigate(SetUpProfileRoute.PicturePreview.route)
+                navController.navigate(HomeRoute.PaymentDetails.route + "/$orderId")
             }
-
         }
 
         Box(
