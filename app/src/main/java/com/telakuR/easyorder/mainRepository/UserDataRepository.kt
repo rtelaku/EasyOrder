@@ -14,5 +14,7 @@ interface UserDataRepository {
 
     suspend fun isUserInACompany(): Boolean
 
-    suspend fun getTokens(): List<String>
+    suspend fun getTokens(companyId: String): List<String>
+
+    suspend fun getOrderOwnerDeviceToken(ownerId: String): String?
 }

@@ -140,6 +140,9 @@ class HomeDataRepositoryImpl @Inject constructor(
                 REQUESTS, FieldValue.arrayRemove(id),
                 EMPLOYEES, FieldValue.arrayUnion(id)
             )
+            .addOnSuccessListener {
+                MyFirebaseMessagingService.sendRequestStateMessage(employeeId = id, hasBeenAccepted = true)
+            }
             .addOnFailureListener { exception ->
                 Log.e(TAG, "Couldn't accept request: ", exception)
             }
@@ -149,6 +152,9 @@ class HomeDataRepositoryImpl @Inject constructor(
         fireStore.collection(DBCollectionEnum.EMPLOYEES.title)
             .document(accountService.currentUserId)
             .update(REQUESTS, FieldValue.arrayRemove(id))
+            .addOnSuccessListener {
+                MyFirebaseMessagingService.sendRequestStateMessage(employeeId = id, hasBeenAccepted = false)
+            }
             .addOnFailureListener { exception ->
                 Log.e(TAG, "Couldn't remove request: ", exception)
             }
@@ -338,12 +344,18 @@ class HomeDataRepositoryImpl @Inject constructor(
                         employeeId = accountService.currentUserId,
                         menuItem = menuItem
                     )
-                    docRef.collection(ORDERS).document(orderId).collection(ORDERED)
-                        .add(employeeMenuItem).addOnSuccessListener {
+                    val orderDoc = docRef.collection(ORDERS).document(orderId)
+
+                    orderDoc.collection(ORDERED).add(employeeMenuItem)
+                        .addOnSuccessListener { documentRef ->
+                            orderDoc.get().addOnSuccessListener { documentSnapshot ->
+                                val ownerId = documentSnapshot.get(EMPLOYEE_ID) as String
+                                MyFirebaseMessagingService.sendNewMenuItemMessage(ownerId = ownerId)
+                            }
                             continuation.resume(true)
                         }.addOnFailureListener {
-                            continuation.resume(false)
-                        }
+                        continuation.resume(false)
+                    }
 
                     savePaymentDetails(orderId = orderId, employeeMenuItem = employeeMenuItem)
                 }
@@ -431,7 +443,11 @@ class HomeDataRepositoryImpl @Inject constructor(
                                 document.reference.collection(ORDERED).add(employeeMenuItem).addOnSuccessListener {
                                     continuation.resume(orderReference.id)
                                     savePaymentDetails(orderId = orderReference.id, employeeMenuItem = employeeMenuItem)
-                                    MyFirebaseMessagingService.sendNewOrderMessage(fastFood = fastFood)
+
+                                    fireStore.collection(DBCollectionEnum.FAST_FOODS.title).document(fastFood).get().addOnSuccessListener {
+                                        val fastFoodName = it.get(NAME) as String
+                                        MyFirebaseMessagingService.sendNewOrderMessage(fastFood = fastFoodName)
+                                    }
                                 }
                             }
                         }

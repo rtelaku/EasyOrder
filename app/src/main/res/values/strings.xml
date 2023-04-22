@@ -94,4 +94,10 @@
     <string name="ordering_notification">%s is ordering at %s . Wanna join?</string>
     <string name="notifications">Notifications</string>
     <string name="no_notifications">There are no notifications!</string>
+    <string name="new_menu_item_added">New menu item added on your order</string>
+    <string name="employee_added_menu_item">%s has has ordered</string>
+    <string name="you_have_been_accepted">You have been accepted!</string>
+    <string name="you_have_been_not_accepted">You have not been accepted :(</string>
+    <string name="you_have_been_accepted_to_company">Your request to %s has been accepted</string>
+    <string name="you_have_been_declined_from_company">Your request to %s has been declined</string>
 </resources>

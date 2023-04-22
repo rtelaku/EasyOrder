@@ -24,4 +24,12 @@ object Constants {
     const val MENU = "menu"
     const val FAST_FOOD_ID: String = "fastFoodID"
     const val ORDER_ID: String = "orderId"
+    const val BODY: String = "body"
+    const val TITLE: String = "title"
+    const val MESSAGE: String = "message"
+    const val NOTIFICATION: String = "notification"
+    const val OWNER: String = "owner"
+    const val DATA: String = "data"
+    const val NOTIFICATION_TYPE: String = "notification_type"
+    const val TO: String = "to"
 }

@@ -97,23 +97,18 @@ class UserDataRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun getTokens(): List<String> = withContext(ioDispatcher) {
+    override suspend fun getTokens(companyId: String): List<String> = withContext(ioDispatcher) {
         try {
             val listOfTokens = arrayListOf<String>()
-            val documents = fireStore.collection(DBCollectionEnum.EMPLOYEES.title).get().await()
+            val document = fireStore.collection(DBCollectionEnum.EMPLOYEES.title).document(companyId).get().await()
             val deferredList = mutableListOf<Deferred<String?>>()
-            for (document in documents) {
-                val employees = document.data[EMPLOYEES] as ArrayList<String>
-                val hasCompanyId = employees.any { it == accountService.currentUserId }
-                if (hasCompanyId) {
-                    employees.forEach {
-                        val deferredToken = async {
-                            val user = fireStore.collection(DBCollectionEnum.USERS.title).document(it).get().await()
-                            user.get(TOKEN) as? String
-                        }
-                        deferredList.add(deferredToken)
-                    }
+            val employees = document.data?.get(EMPLOYEES) as? ArrayList<String>
+            employees?.forEach {
+                val deferredToken = async {
+                    val user = fireStore.collection(DBCollectionEnum.USERS.title).document(it).get().await()
+                    user.get(TOKEN) as? String
                 }
+                deferredList.add(deferredToken)
             }
             deferredList.awaitAll().forEach {
                 if (it != null) {
@@ -125,5 +120,17 @@ class UserDataRepositoryImpl @Inject constructor(
             Log.e(TAG, "Couldn't get device tokens: ", e)
             emptyList()
         }
+    }
+
+    override suspend fun getOrderOwnerDeviceToken(ownerId: String): String? = suspendCoroutine { continuation ->
+        fireStore.collection(DBCollectionEnum.USERS.title).document(ownerId).get()
+            .addOnSuccessListener { snapShot ->
+                val token = snapShot.get(TOKEN) as? String
+                continuation.resume(token)
+            }
+            .addOnFailureListener { e ->
+                Log.e(TAG, "Couldn't get device token: ", e)
+                continuation.resume(null)
+            }
     }
 }

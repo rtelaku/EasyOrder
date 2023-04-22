@@ -104,7 +104,7 @@ private fun MyOrderItem(
             .combinedClickable(
                 onClick = {},
                 onLongClick = {
-                    dialogState.value = Triple(true, true, order.id)
+                    dialogState.value = Triple(true, isMyOrder, order.id)
                 }
             ),
         backgroundColor = backgroundColor

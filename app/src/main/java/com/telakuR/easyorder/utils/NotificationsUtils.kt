@@ -10,17 +10,17 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.telakuR.easyorder.R
 import com.telakuR.easyorder.home.ui.activities.HomeActivity
+import com.telakuR.easyorder.models.CreateNotificationModel
 
 object NotificationsUtils {
-    fun createOrderNotification(message: String) {
-        val defaultSound = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
+
+    fun createNotification(createNotificationModel: CreateNotificationModel) {
         val channelId = "easyOrderChannelId"
+        val defaultSound = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
 
-        val context = EasyOrder.getInstance().applicationContext
-
-        val intent = Intent(context, HomeActivity::class.java)
+        val intent = Intent(createNotificationModel.context, HomeActivity::class.java)
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-        val pendingIntent = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_IMMUTABLE)
+        val pendingIntent = PendingIntent.getActivity(createNotificationModel.context, 0, intent, PendingIntent.FLAG_IMMUTABLE)
 
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val name: CharSequence = "easyOrderChannel"
@@ -31,17 +31,17 @@ object NotificationsUtils {
             notificationManager.createNotificationChannel(channel)
         }
 
-        val notificationBuilder = NotificationCompat.Builder(context, channelId)
+        val notificationBuilder = NotificationCompat.Builder(createNotificationModel.context, channelId)
             .setSmallIcon(R.drawable.ic_easy_order_logo)
-            .setContentTitle(context.getString(R.string.new_order))
-            .setContentText(message)
+            .setContentTitle(createNotificationModel.title)
+            .setContentText(createNotificationModel.message)
             .setAutoCancel(true)
             .setDefaults(NotificationCompat.DEFAULT_ALL)
             .setContentIntent(pendingIntent)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setSound(defaultSound)
 
-        val notificationManager = NotificationManagerCompat.from(context)
+        val notificationManager = NotificationManagerCompat.from(createNotificationModel.context)
         notificationManager.notify(200, notificationBuilder.build())
     }
 }
