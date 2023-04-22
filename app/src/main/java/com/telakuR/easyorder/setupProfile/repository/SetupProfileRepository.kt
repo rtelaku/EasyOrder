@@ -5,7 +5,7 @@ import com.telakuR.easyorder.models.Response
 import com.telakuR.easyorder.models.User
 import kotlinx.coroutines.flow.Flow
 
-interface SetupProfileRepository {
+interface  SetupProfileRepository {
     fun addImageToFirebaseStorage(imageUri: Uri): Flow<Response<Uri>>
 
     fun addImageToFirestore(downloadUrl: Uri): Flow<Response<Boolean>>
@@ -14,9 +14,12 @@ interface SetupProfileRepository {
 
     fun getCompanies(): Flow<List<User>>
 
+    fun getRequestedCompanyId(): String
+
+    fun saveCompanyIdToPreferences(companyId: String)
+
     suspend fun requestToJoin(id: String)
 
     suspend fun removeRequest(id: String)
 
-    suspend fun getRequestedCompany(): String?
 }

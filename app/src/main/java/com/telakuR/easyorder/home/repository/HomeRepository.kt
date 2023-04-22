@@ -22,13 +22,21 @@ interface HomeRepository {
 
     fun completeOrder(orderId: String, companyId: String)
 
-    fun removeMenuItemFromOrder(orderId: String, companyId: String, menuItemName: String)
+    fun removeMenuItemFromOrder(orderId: String, companyId: String, menuItem: MenuItem)
 
     fun getOtherOrder(companyId: String, orderId: String): Flow<List<EmployeeMenuItem>>
 
     fun removeOrder(orderId: String, companyId: String)
 
-    suspend fun getFastFoodName(orderId: String, companyId: String): String
+    fun getPaymentDetails(companyId: String, orderId: String): Flow<List<UserPaymentModelResponse>>
+
+    fun removeMenuItemPaymentDetails(orderId: String, menuItem: MenuItem)
+
+    fun setPaidValuesToPayments(employeeId: String, paid: String, orderId: String)
+
+    suspend fun getOrder(orderId: String, companyId: String): OrderDetails
+
+    suspend fun getFastFoodId(orderId: String, companyId: String): String
 
     suspend fun getEmployeesList(): List<String>
 
@@ -40,7 +48,7 @@ interface HomeRepository {
 
     suspend fun removeRequest(id: String)
 
-    suspend fun createOrderWithFastFood(companyId: String, fastFood: String, menuItem: MenuItem): Boolean
+    suspend fun createOrderWithFastFood(companyId: String, fastFood: String, menuItem: MenuItem): String
 
     suspend fun checkIfEmployeeHasAnOrder(companyId: String): Boolean
 

@@ -30,8 +30,8 @@ class SetUpPictureVM @Inject constructor(
     private val _currentUserRole = MutableStateFlow("")
     var currentUserRole: StateFlow<String> = _currentUserRole
 
-    private val _shouldShowFindCompanyScreen = MutableStateFlow(true)
-    var shouldShowFindCompanyScreen: StateFlow<Boolean> = _shouldShowFindCompanyScreen
+    private val _shouldShowFindCompanyScreen = MutableStateFlow<Boolean?>(null)
+    var shouldShowFindCompanyScreen: StateFlow<Boolean?> = _shouldShowFindCompanyScreen
 
     var addImageToStorageResponse by mutableStateOf<Response<Uri>>(Success(null))
         private set
@@ -56,10 +56,7 @@ class SetUpPictureVM @Inject constructor(
 
     private suspend fun checkIfUserHasSetupPic() {
         val pic = userDataRepository.getUserProfilePicture()
-
-        if (pic.isNullOrEmpty()) {
-            _shouldShowFindCompanyScreen.value = false
-        }
+        _shouldShowFindCompanyScreen.value = !pic.isNullOrEmpty()
     }
 
     fun addImageToStorage(imageUri: Uri) = launchCatching {

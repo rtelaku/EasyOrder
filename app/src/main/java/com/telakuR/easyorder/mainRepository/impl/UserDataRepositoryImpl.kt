@@ -29,10 +29,10 @@ class UserDataRepositoryImpl @Inject constructor(
     override suspend fun getUserProfilePicture(): String? = suspendCoroutine { continuation ->
         try {
             val currentUserId = accountService.currentUserId
-            if(currentUserId.isNotEmpty()) {
+            if (currentUserId.isNotEmpty()) {
                 fireStore.collection(DBCollectionEnum.USERS.title)
                     .document(currentUserId).get().addOnSuccessListener {
-                        val profilePic = it.get(PROFILE_PIC) as String
+                        val profilePic = it.get(PROFILE_PIC) as? String
                         continuation.resume(profilePic)
                     }
             }
@@ -65,13 +65,14 @@ class UserDataRepositoryImpl @Inject constructor(
 
     override suspend fun getCompanyId(): String = suspendCoroutine { continuation ->
         try {
-            fireStore.collection(DBCollectionEnum.EMPLOYEES.title).get().addOnSuccessListener { documents ->
-                for(document in documents) {
-                    val employees = document.data[EMPLOYEES] as ArrayList<String>
-                    val hasCompanyId = employees.any { it == accountService.currentUserId }
-                    if(hasCompanyId) continuation.resume(document.id)
+            fireStore.collection(DBCollectionEnum.EMPLOYEES.title).get()
+                .addOnSuccessListener { documents ->
+                    for (document in documents) {
+                        val employees = document.data[EMPLOYEES] as ArrayList<String>
+                        val hasCompanyId = employees.any { it == accountService.currentUserId }
+                        if (hasCompanyId) continuation.resume(document.id)
+                    }
                 }
-            }
         } catch (e: Exception) {
             Log.e(TAG, "Couldn't get company name: ", e)
         }
@@ -80,11 +81,16 @@ class UserDataRepositoryImpl @Inject constructor(
     override suspend fun isUserInACompany(): Boolean = suspendCoroutine { continuation ->
         try {
             fireStore.collection(DBCollectionEnum.EMPLOYEES.title).get().addOnSuccessListener { documents ->
+                var count = 0
                 for(document in documents) {
                     val employees = document.data[EMPLOYEES] as ArrayList<String>
-                    val isInACompany = employees.any { it == accountService.currentUserId }
-                    continuation.resume(isInACompany)
+                    employees.forEach {
+                        if(it == accountService.currentUserId) {
+                            count = 1
+                        }
+                    }
                 }
+                continuation.resume(count == 1)
             }
         } catch (e: Exception) {
             Log.e(TAG, "Couldn't get if user is in a company: ", e)
@@ -96,10 +102,10 @@ class UserDataRepositoryImpl @Inject constructor(
             val listOfTokens = arrayListOf<String>()
             val documents = fireStore.collection(DBCollectionEnum.EMPLOYEES.title).get().await()
             val deferredList = mutableListOf<Deferred<String?>>()
-            for(document in documents) {
+            for (document in documents) {
                 val employees = document.data[EMPLOYEES] as ArrayList<String>
                 val hasCompanyId = employees.any { it == accountService.currentUserId }
-                if(hasCompanyId) {
+                if (hasCompanyId) {
                     employees.forEach {
                         val deferredToken = async {
                             val user = fireStore.collection(DBCollectionEnum.USERS.title).document(it).get().await()
@@ -110,7 +116,7 @@ class UserDataRepositoryImpl @Inject constructor(
                 }
             }
             deferredList.awaitAll().forEach {
-                if(it != null) {
+                if (it != null) {
                     listOfTokens.add(it)
                 }
             }

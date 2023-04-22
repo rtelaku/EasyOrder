@@ -30,15 +30,17 @@ import java.util.*
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun ChooseFoodScreen(
-    fastFoodName: String,
+    fastFoodId: String,
     navController: NavController,
     viewModel: OrdersVM = hiltViewModel(),
-    orderId: String?
-) {
-    fastFoodName.ifEmpty { viewModel.getFastFoodByOrderId(orderId = orderId) }
-    val fastFood = viewModel.fastFoodName.collectAsStateWithLifecycle().value
+    orderId: String?) {
+    if(fastFoodId.isEmpty()) {
+        viewModel.getFastFoodByOrderId(orderId = orderId)
+    }
 
-    viewModel.getMenuItems(fastFood.ifEmpty { fastFoodName })
+    val orderFastFoodId = viewModel.fastFoodId.collectAsStateWithLifecycle().value
+
+    viewModel.getMenuItems(orderFastFoodId.ifEmpty { fastFoodId })
     val menuList = viewModel.fastFoodMenu.collectAsStateWithLifecycle().value
 
     Scaffold(
@@ -63,7 +65,7 @@ fun ChooseFoodScreen(
                     modifier = Modifier.fillMaxWidth(),
                     verticalArrangement = Arrangement.Center
                 ) {
-                   MenuItemsList(menu = menuList, textState = textState, viewModel = viewModel, fastFoodName = fastFoodName, orderId = orderId ?: "")
+                   MenuItemsList(menu = menuList, textState = textState, viewModel = viewModel, fastFoodId = fastFoodId, orderId = orderId ?: "")
                 }
             }
         },
@@ -71,12 +73,12 @@ fun ChooseFoodScreen(
     )
 
     val context = LocalContext.current
-    val continueWithOrder = viewModel.continueOrder.collectAsState().value
+    val order = viewModel.continueWithOrder.collectAsState().value
 
-    LaunchedEffect(continueWithOrder) {
-        if (continueWithOrder != null) {
-            if(continueWithOrder) {
-                navController.navigate(HomeRoute.Orders.route)
+    LaunchedEffect(order) {
+        if (order != null) {
+            if(order.id.isNotEmpty()) {
+                navController.navigate(HomeRoute.OrderDetails.route + "/${order.id}/${order.employeeId}")
             } else {
                 ToastUtils.showToast(
                     context = context,
@@ -101,7 +103,7 @@ private fun TopAppBar() {
 }
 
 @Composable
-private fun MenuItemsList(menu: List<MenuItem>, textState: MutableState<TextFieldValue>, viewModel: OrdersVM, fastFoodName: String, orderId: String) {
+private fun MenuItemsList(menu: List<MenuItem>, textState: MutableState<TextFieldValue>, viewModel: OrdersVM, fastFoodId: String, orderId: String) {
     var filteredMenu: List<MenuItem>
 
     LazyColumn {
@@ -122,19 +124,19 @@ private fun MenuItemsList(menu: List<MenuItem>, textState: MutableState<TextFiel
         }
 
         items(filteredMenu) { item ->
-            FoodMenuItem(item = item, viewModel = viewModel, fastFoodName = fastFoodName, orderId = orderId)
+            FoodMenuItem(item = item, viewModel = viewModel, fastFoodId = fastFoodId, orderId = orderId)
         }
     }
 }
 
 @Composable
-private fun FoodMenuItem(item: MenuItem, viewModel: OrdersVM, fastFoodName: String, orderId: String) {
+private fun FoodMenuItem(item: MenuItem, viewModel: OrdersVM, fastFoodId: String, orderId: String) {
     WhiteItemCard(modifier = Modifier
         .fillMaxWidth()
         .padding(horizontal = 10.dp)
         .clickable {
             if (orderId.isBlank()) {
-                viewModel.createOrder(fastFood = fastFoodName, menuItem = item)
+                viewModel.createOrder(fastFood = fastFoodId, menuItem = item)
             } else {
                 viewModel.addMenuItem(menuItem = item, orderId = orderId)
             }

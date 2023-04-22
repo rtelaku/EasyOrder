@@ -16,6 +16,7 @@ import com.telakuR.easyorder.setupProfile.repository.SetupProfileRepository
 import com.telakuR.easyorder.utils.Constants.PROFILE_PIC
 import com.telakuR.easyorder.utils.Constants.REQUESTS
 import com.telakuR.easyorder.utils.Constants.ROLE
+import com.telakuR.easyorder.utils.EasyOrderPreferences
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -23,8 +24,6 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
-import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
 
 @Singleton
 class SetupProfileRepositoryImpl @Inject constructor(
@@ -99,26 +98,11 @@ class SetupProfileRepositoryImpl @Inject constructor(
             }
     }
 
-    override suspend fun getRequestedCompany(): String? = suspendCoroutine { continuation ->
-        fireStore.collection(DBCollectionEnum.EMPLOYEES.title).get()
-            .addOnSuccessListener { snapshots ->
-                for (sn in snapshots) {
-                    fireStore.collection(DBCollectionEnum.USERS.title)
-                        .document(sn.id).get()
-                        .addOnSuccessListener { subDoc ->
-                            val company =
-                                Gson().fromJson(Gson().toJson(subDoc.data), User::class.java)
-                            val requests = sn.data[REQUESTS] as ArrayList<String>
-                            val hasRequested =
-                                requests.any { it == accountService.currentUserId }
+    override fun getRequestedCompanyId(): String {
+        return EasyOrderPreferences.getRequestedCompanyId()
+    }
 
-                            val email = if (hasRequested) company.email else null
-                            continuation.resume(email)
-                        }
-                }
-            }
-            .addOnFailureListener { exception ->
-                Log.e(TAG, "Failed to get requested company: ", exception)
-            }
+    override fun saveCompanyIdToPreferences(companyId: String) {
+        EasyOrderPreferences.saveRequestedCompanyId(companyId = companyId)
     }
 }

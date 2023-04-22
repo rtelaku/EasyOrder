@@ -481,12 +481,18 @@ fun Modifier.itemBackground(isSelected: Boolean, color: Color): Modifier {
 }
 
 @Composable
-fun BackAndNotificationTopAppBar(navController: NavController) {
+fun BackAndNotificationTopAppBar(navController: NavController, currentDestination: String?) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        IconButton(onClick = { navController.popBackStack() }) {
+        IconButton(onClick = {
+            if(currentDestination?.contains(HomeRoute.OrderDetails.route) == true) {
+                navController.navigate(HomeRoute.Orders.route)
+            } else {
+                navController.popBackStack()
+            }
+        }) {
             Image(
                 painter = painterResource(R.drawable.ic_back_arrow),
                 contentDescription = "Back arrow"
@@ -500,13 +506,11 @@ fun BackAndNotificationTopAppBar(navController: NavController) {
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                BadgedBox(badge = { Badge { Text("6") } }) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_icon_notifiaction),
-                        contentDescription = "icon",
-                        tint = PrimaryColor
-                    )
-                }
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_icon_notifiaction),
+                    contentDescription = "icon",
+                    tint = PrimaryColor
+                )
             }
         }
     }

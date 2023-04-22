@@ -23,6 +23,7 @@ import com.telakuR.easyorder.utils.Constants.ORDERED
 import com.telakuR.easyorder.utils.Constants.ORDERS
 import com.telakuR.easyorder.utils.Constants.REQUESTS
 import com.telakuR.easyorder.utils.Constants.TOKEN
+import com.telakuR.easyorder.utils.EasyOrderPreferences
 import com.telakuR.easyorder.utils.ToastUtils.showToast
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
@@ -207,9 +208,10 @@ class AccountServiceImpl @Inject constructor(private val auth: FirebaseAuth, pri
             .addOnSuccessListener { token ->
                 fireStore.collection(DBCollectionEnum.USERS.title).document(currentUserId)
                     .update(TOKEN, token)
+                EasyOrderPreferences.saveCurrentDeviceToken(token)
             }
             .addOnFailureListener { e ->
-                Log.d("rigiii", "Failed to generate token: $e")
+                Log.d(TAG, "Failed to generate token: $e")
             }
     }
 }

@@ -1,5 +1,6 @@
 package com.telakuR.easyorder.modules
 
+import com.telakuR.easyorder.mainRepository.NotificationsRepository
 import com.telakuR.easyorder.mainRepository.impl.UserDataRepositoryImpl
 import com.telakuR.easyorder.utils.EasyOrder
 import dagger.hilt.EntryPoint
@@ -12,10 +13,16 @@ object EasyOrderEntryPoint {
     @InstallIn(SingletonComponent::class)
     interface EasyOrderProviderEntryPoint {
         fun userDataImplService(): UserDataRepositoryImpl
+        fun notificationsImplService(): NotificationsRepository
     }
 
     fun getUserDataImplService(): UserDataRepositoryImpl {
         val hiltEntryPoint = EntryPointAccessors.fromApplication(EasyOrder.getInstance(), EasyOrderProviderEntryPoint::class.java)
         return hiltEntryPoint.userDataImplService()
+    }
+
+    fun getNotificationsImplService(): NotificationsRepository {
+        val hiltEntryPoint = EntryPointAccessors.fromApplication(EasyOrder.getInstance(), EasyOrderProviderEntryPoint::class.java)
+        return hiltEntryPoint.notificationsImplService()
     }
 }

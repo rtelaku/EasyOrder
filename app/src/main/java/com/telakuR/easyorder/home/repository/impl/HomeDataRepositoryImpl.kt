@@ -12,13 +12,13 @@ import com.telakuR.easyorder.R
 import com.telakuR.easyorder.enums.DBCollectionEnum
 import com.telakuR.easyorder.home.models.*
 import com.telakuR.easyorder.home.repository.HomeRepository
-import com.telakuR.easyorder.mainRepository.UserDataRepository
 import com.telakuR.easyorder.models.User
 import com.telakuR.easyorder.modules.IoDispatcher
 import com.telakuR.easyorder.services.AccountService
 import com.telakuR.easyorder.services.MyFirebaseMessagingService
 import com.telakuR.easyorder.utils.Constants
 import com.telakuR.easyorder.utils.Constants.COMPANY_ID
+import com.telakuR.easyorder.utils.Constants.DEFAULT_PRICE
 import com.telakuR.easyorder.utils.Constants.EMPLOYEES
 import com.telakuR.easyorder.utils.Constants.EMPLOYEE_ID
 import com.telakuR.easyorder.utils.Constants.FAST_FOOD
@@ -27,6 +27,7 @@ import com.telakuR.easyorder.utils.Constants.NAME
 import com.telakuR.easyorder.utils.Constants.ORDERED
 import com.telakuR.easyorder.utils.Constants.ORDERS
 import com.telakuR.easyorder.utils.Constants.PAID
+import com.telakuR.easyorder.utils.Constants.PAYMENT
 import com.telakuR.easyorder.utils.Constants.PROFILE_PIC
 import com.telakuR.easyorder.utils.Constants.REQUESTS
 import com.telakuR.easyorder.utils.Constants.TOTAL_PRICE
@@ -44,8 +45,7 @@ import kotlin.coroutines.suspendCoroutine
 class HomeDataRepositoryImpl @Inject constructor(
     @IoDispatcher val ioDispatcher: CoroutineDispatcher,
     private val fireStore: FirebaseFirestore,
-    private val accountService: AccountService,
-    private val userDataRepository: UserDataRepository
+    private val accountService: AccountService
 ) :
     HomeRepository {
     private val TAG = HomeDataRepositoryImpl::class.simpleName
@@ -182,6 +182,11 @@ class HomeDataRepositoryImpl @Inject constructor(
 
                         val employeeName = employeeSnapshot.getString(NAME) ?: ""
                         orderDetail.owner = employeeName
+
+                        val fastFoodName = fireStore.collection(DBCollectionEnum.FAST_FOODS.title)
+                            .document(orderDetail.fastFood).get().await().getString(NAME) ?: ""
+                        orderDetail.fastFood = fastFoodName
+
                         companyOrdersList.add(orderDetail)
                     }
                 }
@@ -202,6 +207,7 @@ class HomeDataRepositoryImpl @Inject constructor(
             fastFoodsData.forEach { document ->
                 val fastFood =
                     Gson().fromJson(Gson().toJson(document.data), FastFood::class.java)
+                fastFood.id = document.id
                 fastFoods.add(fastFood)
             }
 
@@ -212,19 +218,16 @@ class HomeDataRepositoryImpl @Inject constructor(
         }
     }.flowOn(ioDispatcher)
 
-    override fun getFastFoodMenu(fastFoodName: String): Flow<List<MenuItem>> = flow {
+    override fun getFastFoodMenu(fastFoodId: String): Flow<List<MenuItem>> = flow {
         try {
             val menuItems = arrayListOf<MenuItem>()
 
-            val fastFoodDocs = fireStore.collection(DBCollectionEnum.FAST_FOODS.title).whereEqualTo(NAME, fastFoodName).get().await().documents
+            val fastFoodDoc = fireStore.collection(DBCollectionEnum.FAST_FOODS.title).document(fastFoodId).get().await()
+            val menuDocs = fastFoodDoc.reference.collection(MENU).get().await().documents
 
-            for (fastFoodDoc in fastFoodDocs) {
-                val menuDocs = fastFoodDoc.reference.collection(MENU).get().await().documents
-
-                for (menuDoc in menuDocs) {
-                    val menuItem = Gson().fromJson(Gson().toJson(menuDoc.data), MenuItem::class.java)
-                    menuItems.add(menuItem)
-                }
+            for (menuDoc in menuDocs) {
+                val menuItem = Gson().fromJson(Gson().toJson(menuDoc.data), MenuItem::class.java)
+                menuItems.add(menuItem)
             }
 
             emit(menuItems)
@@ -305,6 +308,9 @@ class HomeDataRepositoryImpl @Inject constructor(
                         val employeeName = fireStore.collection(DBCollectionEnum.USERS.title).document(orderDetail.employeeId).get().await().getString(NAME) ?: ""
                         orderDetail.owner = employeeName
 
+                        val fastFoodName = fireStore.collection(DBCollectionEnum.FAST_FOODS.title).document(orderDetail.fastFood).get().await().getString(NAME) ?: ""
+                        orderDetail.fastFood = fastFoodName
+
                         companyOrdersList.add(orderDetail)
                     }
                 }
@@ -345,16 +351,55 @@ class HomeDataRepositoryImpl @Inject constructor(
     }
 
     private fun savePaymentDetails(orderId: String, employeeMenuItem: EmployeeMenuItemResponse) {
-        val paymentRef = fireStore.collection(DBCollectionEnum.PAYMENTS.title).document(orderId).collection(accountService.currentUserId).document("myDocumentId")
-        paymentRef.get().addOnCompleteListener { document ->
-            if (document.result.exists()) {
-                val totalPrice = employeeMenuItem.menuItem.price + document.result.get(TOTAL_PRICE) as Double
-                val paid = document.result.get(PAID) as Double
-                val paymentModel = UserPaymentModel(orderId = orderId, totalPayment = totalPrice, paid = paid)
-                paymentRef.set(paymentModel)
+        val paymentRef = fireStore.collection(DBCollectionEnum.PAYMENTS.title)
+            .document(orderId)
+
+        paymentRef.get().addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+                val document = task.result
+                if (document.exists()) {
+                    val jsonPaymentsList = document.get(PAYMENT) as List<Map<String, Any>>
+
+                    val payments = jsonPaymentsList.map { map ->
+                        val employeeId = map[EMPLOYEE_ID] as String
+                        val totalPrice = map[TOTAL_PRICE] as Double
+                        val paid = map[PAID] as Double
+                        UserPaymentModel(employeeId = employeeId, totalPayment = totalPrice, paid = paid)
+                    }.toMutableList()
+
+                    val index = payments.indexOfFirst { it.employeeId == accountService.currentUserId }
+
+                    if (index != -1) {
+                        val totalPrice = employeeMenuItem.menuItem.price + payments[index].totalPayment
+                        val paid = payments[index].paid
+                        val paymentModel = UserPaymentModel(employeeId = accountService.currentUserId, totalPayment = totalPrice, paid = paid)
+                        payments[index] = paymentModel
+                    } else {
+                        val paymentModel = UserPaymentModel(employeeId = accountService.currentUserId, totalPayment = employeeMenuItem.menuItem.price, paid = 0.00)
+                        payments.add(paymentModel)
+                    }
+
+                    val updatedPaymentsList = payments.map { paymentModel ->
+                        mapOf(
+                            EMPLOYEE_ID to paymentModel.employeeId,
+                            TOTAL_PRICE to paymentModel.totalPayment,
+                            PAID to paymentModel.paid
+                        )
+                    }
+
+                    paymentRef.update(PAYMENT, updatedPaymentsList)
+                        .addOnSuccessListener {
+                            Log.d(TAG, "Payment updated successfully")
+                        }
+                        .addOnFailureListener { exception ->
+                            Log.d(TAG, "Failed to update payment: $exception")
+                        }
+                } else {
+                    val paymentModel = UserPaymentModel(employeeId = accountService.currentUserId, totalPayment = employeeMenuItem.menuItem.price, paid = 0.00)
+                    paymentRef.set(mapOf(PAYMENT to listOf(paymentModel)))
+                }
             } else {
-                val paymentModel = UserPaymentModel(orderId = orderId, totalPayment = employeeMenuItem.menuItem.price, paid = 0.00)
-                paymentRef.set(paymentModel)
+                Log.d(TAG, "Couldn't save payment details: ${task.exception}")
             }
         }
     }
@@ -363,7 +408,7 @@ class HomeDataRepositoryImpl @Inject constructor(
         companyId: String,
         fastFood: String,
         menuItem: MenuItem
-    ): Boolean = suspendCoroutine { continuation ->
+    ): String = suspendCoroutine { continuation ->
             fireStore.collection(DBCollectionEnum.ORDERS.title)
                 .whereEqualTo(COMPANY_ID, companyId)
                 .get()
@@ -384,9 +429,9 @@ class HomeDataRepositoryImpl @Inject constructor(
                                     menuItem = menuItem
                                 )
                                 document.reference.collection(ORDERED).add(employeeMenuItem).addOnSuccessListener {
-                                    continuation.resume(true)
+                                    continuation.resume(orderReference.id)
                                     savePaymentDetails(orderId = orderReference.id, employeeMenuItem = employeeMenuItem)
-                                    MyFirebaseMessagingService.sendMessage(fastFood = fastFood)
+                                    MyFirebaseMessagingService.sendNewOrderMessage(fastFood = fastFood)
                                 }
                             }
                         }
@@ -394,7 +439,7 @@ class HomeDataRepositoryImpl @Inject constructor(
                 }
                 .addOnFailureListener { e ->
                     Log.e(TAG, "Couldn't add order: ", e)
-                    continuation.resume(false)
+                    continuation.resume("")
                 }
     }
 
@@ -460,6 +505,7 @@ class HomeDataRepositoryImpl @Inject constructor(
 
                     orderRef.delete()
                         .addOnSuccessListener {
+                            removeAllOrdersPaymentDetails(orderId = orderId)
                             showToast(
                                 messageId = R.string.order_completed,
                                 length = Toast.LENGTH_SHORT
@@ -478,43 +524,37 @@ class HomeDataRepositoryImpl @Inject constructor(
             }
     }
 
-    override fun removeMenuItemFromOrder(orderId: String, companyId: String, menuItemName: String) {
+    override fun removeMenuItemFromOrder(orderId: String, companyId: String, menuItem: MenuItem) {
         fireStore.collection(DBCollectionEnum.ORDERS.title)
             .whereEqualTo(COMPANY_ID, companyId)
             .get()
             .addOnSuccessListener { snapshot ->
                 if (snapshot.documents.isNotEmpty()) {
-                    val ordersRef =
-                        snapshot.documents[0].reference.collection(ORDERS).document(orderId)
-                    ordersRef.get()
-                        .addOnSuccessListener { subSnapShot ->
-                            val ownerId = subSnapShot.get(EMPLOYEE_ID) as String
+                    val ordersRef = snapshot.documents[0].reference.collection(ORDERS).document(orderId)
 
-                            subSnapShot.reference.collection(ORDERED)
-                                .whereEqualTo(EMPLOYEE_ID, accountService.currentUserId)
-                                .whereEqualTo(Constants.MENU_ITEM_NAME, menuItemName)
-                                .get()
-                                .addOnSuccessListener { snapshots ->
-                                    val document = snapshots.documents[0]
-                                    document.reference.delete()
-                                        .addOnSuccessListener {
-                                            if (ownerId == accountService.currentUserId) {
-                                                ordersRef.delete()
-                                            }
-                                            showToast(
-                                                messageId = R.string.order_removed,
-                                                length = Toast.LENGTH_SHORT
-                                            )
+                    ordersRef.get().addOnSuccessListener { subSnapShot ->
+                        val ownerId = subSnapShot.get(EMPLOYEE_ID) as String
+
+                        subSnapShot.reference.collection(ORDERED)
+                            .whereEqualTo(EMPLOYEE_ID, accountService.currentUserId)
+                            .whereEqualTo(Constants.MENU_ITEM_NAME, menuItem.name)
+                            .get()
+                            .addOnSuccessListener { snapshots ->
+                                val document = snapshots.documents[0]
+                                document.reference.delete()
+                                    .addOnSuccessListener {
+                                        if (snapshots.documents.size <= 1 && ownerId == accountService.currentUserId) {
+                                            ordersRef.delete()
                                         }
-                                        .addOnFailureListener { e ->
-                                            Log.d(TAG, "Couldn't remove menu item: $e")
-                                            showToast(
-                                                messageId = R.string.failed_order_deletion,
-                                                length = Toast.LENGTH_SHORT
-                                            )
-                                        }
-                                }
-                        }
+                                        showToast(messageId = R.string.order_removed, length = Toast.LENGTH_SHORT)
+                                        removeMenuItemPaymentDetails(orderId = orderId, menuItem = menuItem)
+                                    }
+                                    .addOnFailureListener { e ->
+                                        Log.d(TAG, "Couldn't remove menu item: $e")
+                                        showToast(messageId = R.string.failed_order_deletion, length = Toast.LENGTH_SHORT)
+                                    }
+                            }
+                    }
                 }
             }
             .addOnFailureListener { exception ->
@@ -584,6 +624,7 @@ class HomeDataRepositoryImpl @Inject constructor(
                         if (it.documents.isNotEmpty()) {
                             for (doc in it.documents) {
                                 doc.reference.delete().addOnSuccessListener {
+                                    removeOrderPaymentDetails(orderId = orderId)
                                     showToast(
                                         messageId = R.string.order_removed,
                                         length = Toast.LENGTH_SHORT
@@ -604,7 +645,7 @@ class HomeDataRepositoryImpl @Inject constructor(
             }
     }
 
-    override suspend fun getFastFoodName(orderId: String, companyId: String): String = suspendCoroutine { continuation ->
+    override suspend fun getFastFoodId(orderId: String, companyId: String): String = suspendCoroutine { continuation ->
             try {
                 if(orderId.isNotEmpty()) {
                     fireStore.collection(DBCollectionEnum.ORDERS.title).whereEqualTo(COMPANY_ID, companyId)
@@ -623,6 +664,217 @@ class HomeDataRepositoryImpl @Inject constructor(
                 }
             } catch (e: Exception) {
                 Log.e(TAG, "Couldn't get fast food: ", e)
+            }
+    }
+
+    private fun removeOrderPaymentDetails(orderId: String) {
+        val paymentRef = fireStore.collection(DBCollectionEnum.PAYMENTS.title)
+            .document(orderId)
+
+        paymentRef.get().addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+                val document = task.result
+                if (document.exists()) {
+                    val jsonPaymentsList = document.get(PAYMENT) as List<Map<String, Any>>
+
+                    val payments = jsonPaymentsList.map { map ->
+                        val employeeId = map[EMPLOYEE_ID] as String
+                        val totalPrice = map[TOTAL_PRICE] as Double
+                        val paid = map[PAID] as Double
+                        UserPaymentModel(employeeId = employeeId, totalPayment = totalPrice, paid = paid)
+                    }.toMutableList()
+
+                    val index = payments.indexOfFirst { it.employeeId == accountService.currentUserId }
+
+                    if (index != -1) {
+                        payments.removeAt(index)
+                    }
+
+                    val updatedPaymentsList = payments.map { paymentModel ->
+                        mapOf(
+                            EMPLOYEE_ID to paymentModel.employeeId,
+                            TOTAL_PRICE to paymentModel.totalPayment,
+                            PAID to paymentModel.paid
+                        )
+                    }
+
+                    paymentRef.update(PAYMENT, updatedPaymentsList)
+                        .addOnSuccessListener {
+                            Log.d(TAG, "Payment updated successfully")
+                        }
+                        .addOnFailureListener { exception ->
+                            Log.d(TAG, "Failed to update payment: $exception")
+                        }
+                }
+            } else {
+                Log.d(TAG, "Couldn't remove payment details: ${task.exception}")
+            }
+        }
+    }
+
+    private fun removeAllOrdersPaymentDetails(orderId: String) {
+        val paymentRef = fireStore.collection(DBCollectionEnum.PAYMENTS.title).document(orderId)
+        paymentRef.delete()
+            .addOnSuccessListener {
+                Log.d(TAG, "Document $orderId deleted successfully")
+            }
+            .addOnFailureListener { exception ->
+                Log.d(TAG, "Failed to delete document $orderId: $exception")
+            }
+    }
+
+
+    override fun removeMenuItemPaymentDetails(orderId: String, menuItem: MenuItem) {
+        val paymentRef = fireStore.collection(DBCollectionEnum.PAYMENTS.title)
+            .document(orderId)
+
+        paymentRef.get().addOnSuccessListener { document ->
+            if (document.exists()) {
+                val jsonPaymentsList = document.get(PAYMENT) as List<Map<String, Any>>
+
+                val payments = jsonPaymentsList.map { map ->
+                    val employeeId = map[EMPLOYEE_ID] as String
+                    val totalPrice = map[TOTAL_PRICE] as Double
+                    val paid = map[PAID] as Double
+                    UserPaymentModel(
+                        employeeId = employeeId,
+                        totalPayment = totalPrice,
+                        paid = paid
+                    )
+                }.toMutableList()
+
+                val index = payments.indexOfFirst { it.employeeId == accountService.currentUserId }
+
+                if (index != -1) {
+                    val totalPrice = payments[index].totalPayment - menuItem.price
+                    val paid = payments[index].paid
+                    val paymentModel = UserPaymentModel(
+                        employeeId = accountService.currentUserId,
+                        totalPayment = totalPrice,
+                        paid = paid
+                    )
+
+                    if(totalPrice.toString() == DEFAULT_PRICE) {
+                        payments.removeAt(index)
+                    } else {
+                        payments[index] = paymentModel
+                    }
+                }
+
+                if(payments.isEmpty()) {
+                    paymentRef.delete().addOnSuccessListener {
+                        Log.d(TAG, "Order payment deleted successfully")
+                    }
+                        .addOnFailureListener { exception ->
+                            Log.d(TAG, "Failed to delete order payments: $exception")
+                        }
+                } else {
+                    val updatedPaymentsList = payments.map { paymentModel ->
+                        mapOf(
+                            EMPLOYEE_ID to paymentModel.employeeId,
+                            TOTAL_PRICE to paymentModel.totalPayment,
+                            PAID to paymentModel.paid
+                        )
+                    }
+
+                    paymentRef.update(PAYMENT, updatedPaymentsList)
+                        .addOnSuccessListener {
+                            Log.d(TAG, "Payment updated successfully")
+                        }
+                        .addOnFailureListener { exception ->
+                            Log.d(TAG, "Failed to update payment: $exception")
+                        }
+                }
+            }
+        }.addOnFailureListener { e ->
+            Log.d(TAG, "Couldn't remove payment details: $e")
+        }
+    }
+
+    override fun getPaymentDetails(
+        companyId: String,
+        orderId: String
+    ): Flow<List<UserPaymentModelResponse>> = flow {
+        val document = fireStore.collection(DBCollectionEnum.PAYMENTS.title)
+            .document(orderId).get().await()
+
+        if(document.exists()) {
+            val jsonPaymentsList = document.get(PAYMENT) as List<Map<String, Any>>
+
+            val payments = jsonPaymentsList.map { map ->
+                val employeeId = map[EMPLOYEE_ID] as String
+                val document = fireStore.collection(DBCollectionEnum.USERS.title).document(employeeId).get().await()
+                val user = Gson().fromJson(Gson().toJson(document.data), User::class.java)
+                val totalPrice = map[TOTAL_PRICE] as Double
+                val paid = map[PAID] as Double
+                UserPaymentModelResponse(userInfo = UserInfo(id = employeeId, name = user.name, picture = user.profilePic), totalPayment = totalPrice, paid = paid)
+            }.toMutableList()
+
+            emit(payments)
+        } else {
+            emit(emptyList())
+        }
+    }
+
+    override fun setPaidValuesToPayments(employeeId: String, paid: String, orderId: String) {
+        val paymentRef = fireStore.collection(DBCollectionEnum.PAYMENTS.title).document(orderId)
+
+        paymentRef.get().addOnSuccessListener { document ->
+            val jsonPaymentsList = document.get(PAYMENT) as List<Map<String, Any>>
+
+            val payments = jsonPaymentsList.map { map ->
+                val employeeId = map[EMPLOYEE_ID] as String
+                val totalPrice = map[TOTAL_PRICE] as Double
+                val paid = map[PAID] as Double
+                UserPaymentModel(employeeId = employeeId, totalPayment = totalPrice, paid = paid)
+            }.toMutableList()
+
+            val index = payments.indexOfFirst { it.employeeId == employeeId }
+
+            if (index != -1) {
+                payments[index].paid = paid.toDouble()
+
+                val updatedPaymentsList = payments.map { paymentModel ->
+                    mapOf(
+                        EMPLOYEE_ID to paymentModel.employeeId,
+                        TOTAL_PRICE to paymentModel.totalPayment,
+                        PAID to paymentModel.paid
+                    )
+                }
+
+                paymentRef.update(PAYMENT, updatedPaymentsList)
+                    .addOnSuccessListener {
+                        Log.d(TAG, "Payment updated successfully")
+                    }
+                    .addOnFailureListener { exception ->
+                        Log.d(TAG, "Failed to update payment: $exception")
+                    }
+            }
+        }.addOnFailureListener { e ->
+            Log.d(TAG, "Couldn't set ValuesToPayments: ")
+        }
+    }
+
+    override suspend fun getOrder(orderId: String, companyId: String): OrderDetails = suspendCoroutine { continuation ->
+        fireStore.collection(DBCollectionEnum.ORDERS.title)
+            .whereEqualTo(COMPANY_ID, companyId)
+            .get()
+            .addOnSuccessListener { task ->
+                val orderRef =
+                    task.documents[0].reference.collection(ORDERS).document(orderId).get()
+                orderRef.addOnSuccessListener { document ->
+                    val orderDetail =
+                        Gson().fromJson(Gson().toJson(document.data), OrderDetails::class.java)
+                    orderDetail.id = orderId
+                    continuation.resume(orderDetail)
+                }.addOnFailureListener { e ->
+                    Log.e(TAG, "Couldn't get order with orderId $orderId: ", e)
+                    continuation.resume(OrderDetails())
+                }
+            }
+            .addOnFailureListener { e ->
+                Log.e(TAG, "Couldn't find company $companyId: ", e)
+                continuation.resume(OrderDetails())
             }
     }
 }

@@ -30,6 +30,7 @@
         <entry key="app/src/main/res/drawable/ic_icon_search.xml" value="0.1" />
         <entry key="app/src/main/res/drawable/ic_launcher_background.xml" value="0.222" />
         <entry key="app/src/main/res/drawable/ic_launcher_foreground.xml" value="0.1795" />
+        <entry key="app/src/main/res/drawable/ic_notification.xml" value="0.1" />
         <entry key="app/src/main/res/drawable/ic_success_illustration.xml" value="0.222" />
         <entry key="app/src/main/res/drawable/order_background.xml" value="0.1" />
         <entry key="app/src/main/res/layout/activity_login.xml" value="0.22056159420289856" />

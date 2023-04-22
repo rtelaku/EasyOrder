@@ -27,6 +27,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.telakuR.easyorder.R
 import com.telakuR.easyorder.ext.twoDecimalNumber
 import com.telakuR.easyorder.home.models.UserInfo
+import com.telakuR.easyorder.home.models.UserPaymentModelResponse
 import com.telakuR.easyorder.home.viewModel.OrdersVM
 import com.telakuR.easyorder.ui.theme.AsyncRoundedImage
 import com.telakuR.easyorder.ui.theme.Background
@@ -39,16 +40,9 @@ fun PaymentDetailsScreen(
     viewModel: OrdersVM = hiltViewModel(),
     orderId: String
 ) {
-    viewModel.getMyOrderMenu(orderId = orderId)
-    val orderDetailsList = viewModel.myOrderMenu.collectAsStateWithLifecycle().value
-    val totalPriceByOwner = orderDetailsList
-        .groupBy { it.userInfo }
-        .mapValues { (_, orderDetailsListForOwner) ->
-            orderDetailsListForOwner.sumOf { it.menuItem.price }
-        }
-        .toList()
-
-    val totalPriceWithoutDelivery = orderDetailsList.sumOf { it.menuItem.price }
+    viewModel.getPaymentDetails(orderId = orderId)
+    val paymentDetailsList = viewModel.paymentDetailsList.collectAsStateWithLifecycle().value
+    val totalPriceWithoutDelivery = paymentDetailsList.sumOf { it.totalPayment }
 
     Scaffold(
         content = {
@@ -76,8 +70,8 @@ fun PaymentDetailsScreen(
                         Text(text = stringResource(id = R.string.owe), fontSize = 18.sp)
                     }
                     LazyColumn(modifier = Modifier.fillMaxWidth()) {
-                        items(totalPriceByOwner) { (userInfo, toPay) ->
-                            PaymentDetailsItem(userInfo = userInfo, toPay = toPay, viewModel = viewModel)
+                        items(paymentDetailsList) { paymentDetails ->
+                            PaymentDetailsItem(orderId = orderId, paymentDetails = paymentDetails, viewModel = viewModel)
                         }
                     }
                 }
@@ -167,10 +161,10 @@ private fun TotalPriceCard(totalPriceWithoutDelivery: Double) {
 @Composable
 private fun PaymentDetailsItem(
     viewModel: OrdersVM,
-    userInfo: UserInfo,
-    toPay: Double
+    orderId: String,
+    paymentDetails: UserPaymentModelResponse
 ) {
-    val paidTextState = remember { mutableStateOf(DEFAULT_PRICE) }
+    val paidTextState = remember { mutableStateOf(paymentDetails.paid.toString()) }
 
     WhiteItemCard(modifier = Modifier
         .fillMaxWidth()
@@ -186,28 +180,30 @@ private fun PaymentDetailsItem(
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 AsyncRoundedImage(
-                    image = userInfo.picture,
+                    image = paymentDetails.userInfo.picture,
                     size = 45,
                     cornerSize = 10
                 )
 
                 Spacer(modifier = Modifier.height(5.dp))
 
-                Text(text = userInfo.name, fontWeight = FontWeight.SemiBold)
+                Text(text = paymentDetails.userInfo.name, fontWeight = FontWeight.SemiBold)
             }
 
-            Text(text = "$toPay€", fontSize = 16.sp, color = PrimaryColor)
+            Text(text = "${paymentDetails.totalPayment}€", fontSize = 16.sp, color = PrimaryColor)
             PriceTextField(
                 textState = paidTextState,
                 contentColor = PrimaryColor,
                 backgroundColor = Color.White,
                 textColor = PrimaryColor
             )
-            val paid = if(paidTextState.value == DEFAULT_PRICE || paidTextState.value.isEmpty()) toPay.toString() else paidTextState.value
-            val oweText = toPay - paid.toDouble()
+            val paid = if(paidTextState.value == DEFAULT_PRICE || paidTextState.value.isEmpty()) paymentDetails.totalPayment.toString() else paidTextState.value
+            val oweText = paymentDetails.totalPayment - paid.toDouble()
             Text(text = "${twoDecimalNumber(oweText)}€", fontSize = 16.sp, color = PrimaryColor)
         }
     }
+
+    if(paidTextState.value != DEFAULT_PRICE) viewModel.setPaidValue(orderId = orderId, id = paymentDetails.userInfo.id, paid = paidTextState.value)
 
     Spacer(modifier = Modifier.height(10.dp))
 }
@@ -221,8 +217,7 @@ private fun PriceTextField(textState: MutableState<String>, contentColor: Color,
             modifier = Modifier.widthIn(min = 30.dp, max = 60.dp),
             value = textState.value,
             onValueChange = { newValue ->
-                val doubleNumber = twoDecimalNumber(newValue.toDouble())
-                textState.value = doubleNumber
+                textState.value = newValue
             },
             textStyle = TextStyle(
                 textAlign = TextAlign.End,

@@ -1,9 +1,12 @@
 package com.telakuR.easyorder.utils
 
 object Constants {
+    const val REQUESTED_COMPANY_ID: String = "RequestedCompanyId"
+    const val PAYMENT: String = "payments"
+    const val NOTIFICATIONS: String = "notifications"
     const val TOTAL_PRICE: String = "totalPayment"
     const val PAID: String = "paid"
-    const val DEFAULT_PRICE: String = "0.00"
+    const val DEFAULT_PRICE: String = "0.0"
     const val MENU_ITEM_NAME: String = "menuItem.name"
     const val TOKEN: String = "token"
     const val CHOSEN_ROLE = "chosenRole"
@@ -19,6 +22,6 @@ object Constants {
     const val PROFILE_PIC = "profilePic"
     const val FAST_FOOD = "fastFood"
     const val MENU = "menu"
-    const val FAST_FOOD_NAME: String = "fastFoodName"
+    const val FAST_FOOD_ID: String = "fastFoodID"
     const val ORDER_ID: String = "orderId"
 }

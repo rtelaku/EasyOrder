@@ -92,4 +92,6 @@
     <string name="total">Total</string>
     <string name="new_order">New order!</string>
     <string name="ordering_notification">%s is ordering at %s . Wanna join?</string>
+    <string name="notifications">Notifications</string>
+    <string name="no_notifications">There are no notifications!</string>
 </resources>

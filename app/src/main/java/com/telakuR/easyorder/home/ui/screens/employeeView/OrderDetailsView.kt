@@ -26,6 +26,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.telakuR.easyorder.R
 import com.telakuR.easyorder.home.models.EmployeeMenuItem
+import com.telakuR.easyorder.home.models.MenuItem
 import com.telakuR.easyorder.home.route.HomeRoute
 import com.telakuR.easyorder.home.viewModel.OrdersVM
 import com.telakuR.easyorder.ui.theme.*
@@ -38,8 +39,8 @@ fun OrderDetailsScreen(
     employeeId: String,
     orderId: String
 ) {
-    val isMyOrder = viewModel.isMyOrder(employeeId)
-    val dialogState: MutableState<Pair<Boolean, String>> = remember { mutableStateOf(Pair(false, "")) }
+    val isMyOrder = viewModel.isMyOrder(orderId)
+    val dialogState: MutableState<Pair<Boolean, MenuItem?>> = remember { mutableStateOf(Pair(false, null)) }
 
     Scaffold(
         content = { it
@@ -82,7 +83,7 @@ fun OrderDetailsScreen(
 private fun MyOrderMenuDetails(
     orderId: String,
     viewModel: OrdersVM,
-    dialogState: MutableState<Pair<Boolean, String>>
+    dialogState: MutableState<Pair<Boolean, MenuItem?>>
 ) {
     viewModel.getMyOrderMenu(orderId = orderId)
     val myOrderMenu = viewModel.myOrderMenu.collectAsStateWithLifecycle().value
@@ -99,7 +100,7 @@ private fun MyOrderMenuDetails(
 @Composable
 private fun MyOrderList(
     myOrderMenu: List<EmployeeMenuItem>,
-    dialogState: MutableState<Pair<Boolean, String>>
+    dialogState: MutableState<Pair<Boolean, MenuItem?>>
 ) {
     LazyColumn(modifier = Modifier.fillMaxWidth()) {
         items(myOrderMenu) { menuItem ->
@@ -110,14 +111,14 @@ private fun MyOrderList(
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun OrderMenuItem(menuItem: EmployeeMenuItem, dialogState: MutableState<Pair<Boolean, String>>) {
+private fun OrderMenuItem(menuItem: EmployeeMenuItem, dialogState: MutableState<Pair<Boolean, MenuItem?>>) {
     WhiteItemCard(modifier = Modifier
         .fillMaxWidth()
         .padding(horizontal = 10.dp)
         .combinedClickable(
             onClick = {},
             onLongClick = {
-                dialogState.value = Pair(true, menuItem.menuItem.name)
+                dialogState.value = Pair(true, menuItem.menuItem)
             }
         )) {
         Row(
@@ -160,7 +161,7 @@ private fun OrderMenuItem(menuItem: EmployeeMenuItem, dialogState: MutableState<
 }
 
 @Composable
-private fun OtherOrderMenuDetails(orderId: String, viewModel: OrdersVM, dialogState: MutableState<Pair<Boolean, String>>) {
+private fun OtherOrderMenuDetails(orderId: String, viewModel: OrdersVM, dialogState: MutableState<Pair<Boolean, MenuItem?>>) {
     viewModel.getOtherOrder(orderId = orderId)
     val myOrderMenu = viewModel.myOrderMenu.collectAsStateWithLifecycle().value
 
@@ -176,7 +177,7 @@ private fun OtherOrderMenuDetails(orderId: String, viewModel: OrdersVM, dialogSt
 @Composable
 private fun OtherOrderList(
     myOrderMenu: List<EmployeeMenuItem>,
-    dialogState: MutableState<Pair<Boolean, String>>
+    dialogState: MutableState<Pair<Boolean, MenuItem?>>
 ) {
     LazyColumn(modifier = Modifier.fillMaxWidth()) {
         items(myOrderMenu) { menuItem ->
@@ -233,14 +234,14 @@ private fun OrderDetailsBottomBar(isMyOrder: Boolean, navController: NavControll
 
 @Composable
 private fun RemoveMenuItemDialog(
-    dialogState: MutableState<Pair<Boolean, String>>,
+    dialogState: MutableState<Pair<Boolean, MenuItem?>>,
     viewModel: OrdersVM,
     orderId: String
 ) {
-    val menuItemName = dialogState.value.second
+    val menuItem = dialogState.value.second
 
     if (dialogState.value.first) {
-        Dialog(onDismissRequest = { dialogState.value = Pair(false, "") }) {
+        Dialog(onDismissRequest = { dialogState.value = Pair(false, null) }) {
             WhiteItemCard(modifier = Modifier.padding(16.dp)) {
                 Column(
                     modifier = Modifier.padding(16.dp),
@@ -255,8 +256,10 @@ private fun RemoveMenuItemDialog(
                         colors = ButtonDefaults.buttonColors(backgroundColor = PrimaryColor),
                         shape = RoundedCornerShape(15.dp),
                         onClick = {
-                            viewModel.removeMenuItem(orderId = orderId, menuItemName = menuItemName)
-                            dialogState.value = Pair(false, "")
+                            if (menuItem != null) {
+                                viewModel.removeMenuItem(orderId = orderId, menuItem = menuItem)
+                            }
+                            dialogState.value = Pair(false, null)
                         },
                         modifier = Modifier
                             .fillMaxWidth()

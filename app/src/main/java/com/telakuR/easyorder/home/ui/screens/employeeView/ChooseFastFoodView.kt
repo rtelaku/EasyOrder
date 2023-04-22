@@ -7,7 +7,10 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -22,8 +25,11 @@ import com.telakuR.easyorder.R
 import com.telakuR.easyorder.home.models.FastFood
 import com.telakuR.easyorder.home.route.HomeRoute
 import com.telakuR.easyorder.home.viewModel.OrdersVM
-import com.telakuR.easyorder.ui.theme.*
-import com.telakuR.easyorder.utils.Constants.FAST_FOOD_NAME
+import com.telakuR.easyorder.ui.theme.AsyncRoundedImageFromUrl
+import com.telakuR.easyorder.ui.theme.Background
+import com.telakuR.easyorder.ui.theme.SearchBar
+import com.telakuR.easyorder.ui.theme.WhiteItemCard
+import com.telakuR.easyorder.utils.Constants.FAST_FOOD_ID
 import java.util.*
 
 @OptIn(ExperimentalAnimationApi::class)
@@ -105,7 +111,7 @@ private fun FastFoodList(fastFoods: List<FastFood>, textState: MutableState<Text
                     .height(200.dp)
                     .padding(horizontal = 5.dp, vertical = 10.dp)
                     .clickable {
-                        navController.navigate(HomeRoute.ChooseFood.route + "/?$FAST_FOOD_NAME=${fastFood.name}")
+                        navController.navigate(HomeRoute.ChooseFood.route + "/?$FAST_FOOD_ID=${fastFood.id}")
                     },
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.SpaceAround) {

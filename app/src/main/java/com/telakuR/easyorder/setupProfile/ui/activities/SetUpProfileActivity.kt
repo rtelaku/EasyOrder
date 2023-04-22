@@ -4,7 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.telakuR.easyorder.setupProfile.navigation.NavigateSetUpProfile
 import com.telakuR.easyorder.setupProfile.route.SetUpProfileRoute
 import com.telakuR.easyorder.setupProfile.viewModel.SetUpPictureVM
@@ -19,9 +19,9 @@ class SetUpProfileActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         setContent {
-            val shouldShowCompanyScreen = setUpPictureVM.shouldShowFindCompanyScreen.collectAsState().value
+            val shouldShowCompanyScreen = setUpPictureVM.shouldShowFindCompanyScreen.collectAsStateWithLifecycle().value
 
-            val startDestination = if(shouldShowCompanyScreen) {
+            val startDestination = if(shouldShowCompanyScreen == true) {
                 SetUpProfileRoute.FindYourCompany.route
             } else {
                 SetUpProfileRoute.SelectPicture.route

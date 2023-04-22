@@ -13,7 +13,7 @@ import com.telakuR.easyorder.home.ui.screens.UserHomeScreen
 import com.telakuR.easyorder.home.ui.screens.companyView.RequestsScreen
 import com.telakuR.easyorder.home.ui.screens.employeeView.*
 import com.telakuR.easyorder.utils.Constants.EMPLOYEE_ID
-import com.telakuR.easyorder.utils.Constants.FAST_FOOD_NAME
+import com.telakuR.easyorder.utils.Constants.FAST_FOOD_ID
 import com.telakuR.easyorder.utils.Constants.ORDER_ID
 
 @Composable
@@ -47,7 +47,7 @@ fun HomeNavigation(navController: NavHostController, role: String) {
         }
 
         composable(route = HomeRoute.Notification.route) {
-            NotificationsScreen()
+            NotificationsScreen(navController = navController)
         }
 
         composable(route = HomeRoute.ChooseFastFood.route) {
@@ -55,9 +55,9 @@ fun HomeNavigation(navController: NavHostController, role: String) {
         }
 
         composable(
-            route = HomeRoute.ChooseFood.route + "/?$FAST_FOOD_NAME={${FAST_FOOD_NAME}}&$ORDER_ID={${ORDER_ID}}",
+            route = HomeRoute.ChooseFood.route + "/?$FAST_FOOD_ID={${FAST_FOOD_ID}}&$ORDER_ID={${ORDER_ID}}",
             arguments = listOf(
-                navArgument(FAST_FOOD_NAME) {
+                navArgument(FAST_FOOD_ID) {
                     type = NavType.StringType
                     defaultValue = ""
                 },
@@ -69,8 +69,8 @@ fun HomeNavigation(navController: NavHostController, role: String) {
         ) {
             ChooseFoodScreen(
                 navController = navController,
-                fastFoodName = it.arguments?.getString(FAST_FOOD_NAME) ?: "",
-                orderId = it.arguments?.getString(ORDER_ID) ?: ""
+                fastFoodId = it.arguments?.getString(FAST_FOOD_ID) ?: "",
+                orderId = it.arguments?.getString(ORDER_ID) ?: "",
             )
         }
 

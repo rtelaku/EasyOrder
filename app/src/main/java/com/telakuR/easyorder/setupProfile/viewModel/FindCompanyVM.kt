@@ -38,8 +38,10 @@ class FindCompanyVM @Inject constructor(
             withContext(ioDispatcher) {
                 if (state) {
                     setupProfileRepository.requestToJoin(id)
+                    setupProfileRepository.saveCompanyIdToPreferences(id)
                 } else {
                     setupProfileRepository.removeRequest(id)
+                    setupProfileRepository.saveCompanyIdToPreferences("")
                 }
             }
         }
@@ -48,7 +50,7 @@ class FindCompanyVM @Inject constructor(
     fun getSelectedCompany() {
         launchCatching {
             val previousCompany = withContext(ioDispatcher) {
-                setupProfileRepository.getRequestedCompany()
+                setupProfileRepository.getRequestedCompanyId()
             }
 
             _previousRequestedCompany.value = previousCompany

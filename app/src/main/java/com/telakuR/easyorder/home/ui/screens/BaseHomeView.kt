@@ -1,4 +1,5 @@
 import android.content.Intent
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
@@ -18,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hierarchy
@@ -111,7 +113,10 @@ private fun HomeBottomBar(
 }
 
 @Composable
-private fun HomeTopBar(currentDestination: String?, navController: NavHostController, showBackButton: Boolean) {
+private fun HomeTopBar(
+    currentDestination: String?,
+    navController: NavHostController,
+    showBackButton: Boolean) {
     if (currentDestination != HomeRoute.Notification.route) {
         TopAppBar(
             modifier = Modifier.fillMaxWidth(),
@@ -119,7 +124,7 @@ private fun HomeTopBar(currentDestination: String?, navController: NavHostContro
             elevation = 0.dp
         ) {
             if(showBackButton) {
-                BackAndNotificationTopAppBar(navController = navController)
+                BackAndNotificationTopAppBar(currentDestination = currentDestination, navController = navController)
             } else {
                 NotificationTopAppBar(navController = navController)
             }
@@ -137,13 +142,11 @@ fun NotificationTopAppBar(navController: NavController) {
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                BadgedBox(badge = { Badge { Text("6") } }) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_icon_notifiaction),
-                        contentDescription = "icon",
-                        tint = PrimaryColor
-                    )
-                }
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_icon_notifiaction),
+                    contentDescription = "icon",
+                    tint = PrimaryColor
+                )
             }
         }
     }

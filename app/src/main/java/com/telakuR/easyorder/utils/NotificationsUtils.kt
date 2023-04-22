@@ -44,5 +44,4 @@ object NotificationsUtils {
         val notificationManager = NotificationManagerCompat.from(context)
         notificationManager.notify(200, notificationBuilder.build())
     }
-
 }

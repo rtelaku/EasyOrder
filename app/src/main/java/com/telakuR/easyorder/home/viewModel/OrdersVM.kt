@@ -9,6 +9,7 @@ import com.telakuR.easyorder.services.AccountService
 import com.telakuR.easyorder.services.LogService
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.withContext
@@ -26,8 +27,8 @@ class OrdersVM @Inject constructor(
     private val _fastFoods = MutableStateFlow<List<FastFood>>(emptyList())
     val fastFoods: StateFlow<List<FastFood>> get() = _fastFoods
 
-    private val _continueOrder = MutableStateFlow<Boolean?>(null)
-    val continueOrder: StateFlow<Boolean?> get() = _continueOrder
+    private val _continueWithOrder = MutableStateFlow<OrderDetails?>(null)
+    val continueWithOrder: StateFlow<OrderDetails?> get() = _continueWithOrder
 
     private val _fastFoodMenu = MutableStateFlow<List<MenuItem>>(emptyList())
     val fastFoodMenu: StateFlow<List<MenuItem>> get() = _fastFoodMenu
@@ -38,8 +39,8 @@ class OrdersVM @Inject constructor(
     private val _myOrderMenu = MutableStateFlow<List<EmployeeMenuItem>>(emptyList())
     val myOrderMenu: StateFlow<List<EmployeeMenuItem>> get() = _myOrderMenu
 
-    private val _fastFoodName = MutableStateFlow("")
-    val fastFoodName: StateFlow<String> get() = _fastFoodName
+    private val _fastFoodId = MutableStateFlow("")
+    val fastFoodId: StateFlow<String> get() = _fastFoodId
 
     private val _paymentDetailsList = MutableStateFlow<List<UserPaymentModelResponse>>(emptyList())
     val paymentDetailsList: StateFlow<List<UserPaymentModelResponse>> get() = _paymentDetailsList
@@ -52,10 +53,10 @@ class OrdersVM @Inject constructor(
         }
     }
 
-    fun getMenuItems(fastFoodName: String) {
+    fun getMenuItems(fastFoodId: String) {
         launchCatching {
             withContext(ioDispatcher) {
-                return@withContext homeRepository.getFastFoodMenu(fastFoodName)
+                return@withContext homeRepository.getFastFoodMenu(fastFoodId)
             }.collect {
                 _fastFoodMenu.value = it
             }
@@ -64,16 +65,20 @@ class OrdersVM @Inject constructor(
 
     fun createOrder(fastFood: String, menuItem: MenuItem) {
         launchCatching {
-            val continueWithOrder = withContext(ioDispatcher) {
+            val order = withContext(ioDispatcher) {
                 val companyId = userDataRepository.getCompanyId()
-                homeRepository.createOrderWithFastFood(
+                val orderId = homeRepository.createOrderWithFastFood(
                     companyId = companyId,
                     fastFood = fastFood,
                     menuItem = menuItem
                 )
+
+                homeRepository.getOrder(orderId, companyId)
             }
 
-            _continueOrder.value = continueWithOrder
+            if(order.id.isNotEmpty()) {
+                _continueWithOrder.value = order
+            }
         }
     }
 
@@ -86,8 +91,8 @@ class OrdersVM @Inject constructor(
 
     fun addMenuItem(menuItem: MenuItem, orderId: String) {
         launchCatching {
+            val companyId = userDataRepository.getCompanyId()
             val continueWithOrder = withContext(ioDispatcher) {
-                val companyId = userDataRepository.getCompanyId()
                 homeRepository.addMenuItemToOrder(
                     companyId = companyId,
                     menuItem = menuItem,
@@ -95,7 +100,10 @@ class OrdersVM @Inject constructor(
                 )
             }
 
-            _continueOrder.value = continueWithOrder
+            if(continueWithOrder) {
+                val order = homeRepository.getOrder(orderId, companyId)
+                _continueWithOrder.value = order
+            }
         }
     }
 
@@ -103,14 +111,16 @@ class OrdersVM @Inject constructor(
         return accountService.currentUserId
     }
 
-    fun removeMenuItem(orderId: String, menuItemName: String) = launchCatching {
+    fun removeMenuItem(orderId: String, menuItem: MenuItem) = launchCatching {
         val companyId = userDataRepository.getCompanyId()
-        homeRepository.removeMenuItemFromOrder(orderId = orderId, companyId = companyId, menuItemName = menuItemName)
+        homeRepository.removeMenuItemFromOrder(orderId = orderId, companyId = companyId, menuItem = menuItem)
     }
 
     fun completeOrder(orderId: String) = launchCatching {
         val companyId = userDataRepository.getCompanyId()
         homeRepository.completeOrder(orderId = orderId, companyId = companyId)
+        delay(1000)
+        getListOfMyOrders()
     }
 
     fun isMyOrder(employeeId: String): Boolean {
@@ -118,12 +128,12 @@ class OrdersVM @Inject constructor(
     }
 
     fun getFastFoodByOrderId(orderId: String?) = launchCatching {
-        val fastFoodName = withContext(ioDispatcher) {
+        val fastFoodId = withContext(ioDispatcher) {
             val companyId = userDataRepository.getCompanyId()
-            return@withContext homeRepository.getFastFoodName(orderId = orderId ?: "", companyId = companyId)
+            return@withContext homeRepository.getFastFoodId(orderId = orderId ?: "", companyId = companyId)
         }
 
-        _fastFoodName.value = fastFoodName
+        _fastFoodId.value = fastFoodId
     }
 
     fun getListOfMyOrders() = launchCatching {
@@ -148,5 +158,18 @@ class OrdersVM @Inject constructor(
     fun removeOrder(orderId: String) = launchCatching {
         val companyId = userDataRepository.getCompanyId()
         homeRepository.removeOrder(orderId = orderId, companyId = companyId)
+        delay(1000)
+        getListOfMyOrders()
+    }
+
+    fun getPaymentDetails(orderId: String) = launchCatching {
+        val companyId = userDataRepository.getCompanyId()
+        homeRepository.getPaymentDetails(companyId = companyId, orderId = orderId).collect {
+            _paymentDetailsList.value = it
+        }
+    }
+
+    fun setPaidValue(id: String, paid: String, orderId: String) {
+        homeRepository.setPaidValuesToPayments(employeeId = id, paid = paid, orderId = orderId)
     }
 }

@@ -146,8 +146,8 @@ private fun BottomBar(selected: MutableState<Boolean>) {
 
 @Composable
 private fun CompanyListItem(company: User, selectedCompany: MutableState<String>, selected: MutableState<Boolean>, viewModel: FindCompanyVM) {
-    val color = if (selectedCompany.value == company.email) Background else PrimaryColor
-    val textId = if (selectedCompany.value == company.email) R.string.requested else R.string.request_to_join
+    val color = if (selectedCompany.value == company.id) Background else PrimaryColor
+    val textId = if (selectedCompany.value == company.id) R.string.requested else R.string.request_to_join
 
     WhiteItemCard(modifier = Modifier.fillMaxWidth()) {
         Row(
@@ -184,7 +184,7 @@ private fun CompanyListItem(company: User, selectedCompany: MutableState<String>
                     backgroundColor = color
                 ) {
                     selected.value = !selected.value
-                    selectedCompany.value = if (selectedCompany.value == company.email) "" else company.email
+                    selectedCompany.value = if (selectedCompany.value == company.id) "" else company.id
                     viewModel.handleRequestState(id = company.id, state = selected.value)
                 }
             }

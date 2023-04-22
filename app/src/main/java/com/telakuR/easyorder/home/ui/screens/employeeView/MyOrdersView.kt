@@ -77,16 +77,9 @@ private fun OrderList(
     dialogState: MutableState<Triple<Boolean, Boolean, String>>
 ) {
     val myId = viewModel.getMyId()
-
     LazyColumn(modifier = Modifier.fillMaxWidth()) {
         items(orders) { order ->
-            val isMyOrder = order.employeeId == myId
-
-            if(isMyOrder) {
-                MyOrderItem(order = order, navController = navController, dialogState = dialogState)
-            } else {
-                OrderItem(order = order, navController = navController, dialogState = dialogState)
-            }
+            MyOrderItem(order = order, navController = navController, dialogState = dialogState, myId = myId)
         }
     }
 }
@@ -96,19 +89,25 @@ private fun OrderList(
 private fun MyOrderItem(
     order: OrderDetails,
     navController: NavController,
-    dialogState: MutableState<Triple<Boolean, Boolean, String>>
+    dialogState: MutableState<Triple<Boolean, Boolean, String>>,
+    myId: String
 ) {
+    val isMyOrder = order.employeeId == myId
+    val textColor = if(isMyOrder) Color.White else PrimaryColor
+    val backgroundColor = if(isMyOrder) PrimaryColor else Color.White
+    val buttonColor = if(isMyOrder) Color.White else PrimaryColor
+
     RoundedItemCard(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(10.dp)
+            .padding(horizontal = 10.dp, vertical = 5.dp)
             .combinedClickable(
                 onClick = {},
                 onLongClick = {
                     dialogState.value = Triple(true, true, order.id)
                 }
             ),
-        backgroundColor = PrimaryColor
+        backgroundColor = backgroundColor
     ) {
         Row(
             modifier = Modifier
@@ -126,8 +125,9 @@ private fun MyOrderItem(
                     modifier = Modifier
                         .padding(start = 10.dp)
                 ) {
-                    Text(text = order.fastFood, color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
-                    Text(text = stringResource(id = R.string.my_order), color = Color.White)
+                    Text(text = order.fastFood, color = textColor, fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
+                    val orderOwnerText = if(isMyOrder) stringResource(id = R.string.my_order) else order.owner
+                    Text(text = orderOwnerText, color = textColor)
                 }
             }
 
@@ -140,68 +140,11 @@ private fun MyOrderItem(
                 Icon(
                     imageVector = Icons.Filled.ArrowForward,
                     contentDescription = "Forward",
-                    tint = Color.White
+                    tint = buttonColor
                 )
             }
         }
     }
-
-    Spacer(modifier = Modifier.height(5.dp))
-}
-
-@OptIn(ExperimentalFoundationApi::class)
-@Composable
-private fun OrderItem(
-    order: OrderDetails,
-    navController: NavController,
-    dialogState: MutableState<Triple<Boolean, Boolean, String>>
-) {
-    WhiteItemCard(modifier = Modifier
-        .fillMaxWidth()
-        .padding(horizontal = 10.dp)
-        .combinedClickable(
-            onClick = {},
-            onLongClick = {
-                dialogState.value = Triple(true, false, order.id)
-            }
-        )) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(10.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Start
-            ) {
-                Column(
-                    modifier = Modifier
-                        .padding(start = 10.dp)
-                ) {
-                    Text(text = order.fastFood, fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = PrimaryColor)
-                    Text(text = order.owner, color = PrimaryColor)
-                }
-            }
-
-            Row(
-                modifier = Modifier.clickable {
-                    navController.navigate(HomeRoute.OrderDetails.route + "/${order.id}/${order.employeeId}")
-                },
-                horizontalArrangement = Arrangement.End
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.ArrowForward,
-                    contentDescription = "Forward",
-                    tint = PrimaryColor
-                )
-            }
-        }
-    }
-
-    Spacer(modifier = Modifier.height(5.dp))
 }
 
 @Composable
