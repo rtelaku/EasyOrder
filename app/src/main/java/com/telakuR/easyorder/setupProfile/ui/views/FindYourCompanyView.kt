@@ -37,6 +37,7 @@ fun FindYourCompanyScreen(
     viewModel.getCompanies()
     val textState = remember { mutableStateOf(TextFieldValue("")) }
     val selected: MutableState<Boolean> = remember { mutableStateOf(false) }
+    val selectedCompany: MutableState<String> = remember { mutableStateOf("") }
 
     Scaffold(
         topBar = {
@@ -48,7 +49,7 @@ fun FindYourCompanyScreen(
             )
         },
         bottomBar = {
-            BottomBar(selected = selected)
+            BottomBar(selected = selected, selectedCompany = selectedCompany, viewModel = viewModel)
         },
         content = {
             Column(
@@ -60,7 +61,7 @@ fun FindYourCompanyScreen(
                     .padding(15.dp)
             ) {
                 val companies = viewModel.companies.collectAsState().value
-                CompaniesList(companies = companies, state = textState, selected = selected, viewModel = viewModel)
+                CompaniesList(companies = companies, state = textState, selected = selected, selectedCompany = selectedCompany, viewModel = viewModel)
             }
         },
         backgroundColor = Background
@@ -72,11 +73,10 @@ private fun CompaniesList(
     companies: List<User>,
     selected: MutableState<Boolean>,
     state: MutableState<TextFieldValue>,
-    viewModel: FindCompanyVM
+    viewModel: FindCompanyVM,
+    selectedCompany: MutableState<String>
 ) {
     viewModel.getSelectedCompany()
-
-    val selectedCompany: MutableState<String> = remember { mutableStateOf("") }
 
     val previousCompany = viewModel.previousRequestedCompany.collectAsStateWithLifecycle().value
 
@@ -102,7 +102,7 @@ private fun CompaniesList(
             resultList
         }
         items(filteredCompanies) { filteredCompany ->
-            CompanyListItem(company = filteredCompany, selected = selected, selectedCompany = selectedCompany, viewModel = viewModel)
+            CompanyListItem(company = filteredCompany, selected = selected, selectedCompany = selectedCompany)
         }
     }
 }
@@ -126,11 +126,17 @@ private fun TopAppBar(navController: NavController, shownFromUser: Boolean, view
 }
 
 @Composable
-private fun BottomBar(selected: MutableState<Boolean>) {
+private fun BottomBar(
+    selected: MutableState<Boolean>,
+    selectedCompany: MutableState<String>,
+    viewModel: FindCompanyVM
+) {
     val context = LocalContext.current
+
     Column(modifier = Modifier.fillMaxWidth()) {
         MainButton(textId = R.string.continue_text) {
             if(selected.value) {
+                viewModel.handleRequestState(id = selectedCompany.value, state = selected.value)
                 context.run {
                     val intent = Intent(this, HomeActivity::class.java)
                     intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
@@ -145,7 +151,7 @@ private fun BottomBar(selected: MutableState<Boolean>) {
 }
 
 @Composable
-private fun CompanyListItem(company: User, selectedCompany: MutableState<String>, selected: MutableState<Boolean>, viewModel: FindCompanyVM) {
+private fun CompanyListItem(company: User, selectedCompany: MutableState<String>, selected: MutableState<Boolean>) {
     val color = if (selectedCompany.value == company.id) Background else PrimaryColor
     val textId = if (selectedCompany.value == company.id) R.string.requested else R.string.request_to_join
 
@@ -164,7 +170,7 @@ private fun CompanyListItem(company: User, selectedCompany: MutableState<String>
             ) {
                 Column {
                     AsyncRoundedImage(
-                        image = company.profilePic,
+                        image = company.profilePic ?: "",
                         size = 65,
                         cornerSize = 10
                     )
@@ -183,9 +189,13 @@ private fun CompanyListItem(company: User, selectedCompany: MutableState<String>
                     textId = textId,
                     backgroundColor = color
                 ) {
-                    selected.value = !selected.value
+                    if(selectedCompany.value != company.id) {
+                        selected.value = true
+                    } else {
+                        selected.value = !selected.value
+                    }
+
                     selectedCompany.value = if (selectedCompany.value == company.id) "" else company.id
-                    viewModel.handleRequestState(id = company.id, state = selected.value)
                 }
             }
         }
