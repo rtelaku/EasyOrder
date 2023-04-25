@@ -1,5 +1,6 @@
 package com.telakuR.easyorder.home.viewModel
 
+import android.util.Log
 import com.telakuR.easyorder.enums.RolesEnum
 import com.telakuR.easyorder.home.models.OrderDetails
 import com.telakuR.easyorder.home.repository.HomeRepository
@@ -11,7 +12,6 @@ import com.telakuR.easyorder.modules.IoDispatcher
 import com.telakuR.easyorder.services.LogService
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -58,13 +58,7 @@ class HomeVM @Inject constructor(
 
     fun getListOfEmployees() {
         launchCatching {
-            withContext(ioDispatcher) {
-                val employeesList = async {
-                    return@async homeRepository.getEmployeesList()
-                }.await()
-
-                homeRepository.getEmployeesDetails(employees = employeesList)
-            }.collect {
+            homeRepository.getEmployeesList().collect {
                 _employees.value = it
             }
         }
@@ -72,11 +66,7 @@ class HomeVM @Inject constructor(
 
     fun removeEmployee(id: String) {
         launchCatching {
-            withContext(ioDispatcher) {
-                homeRepository.removeEmployee(id = id)
-                delay(1000)
-                getListOfEmployees()
-            }
+            homeRepository.removeEmployee(id = id)
         }
     }
 

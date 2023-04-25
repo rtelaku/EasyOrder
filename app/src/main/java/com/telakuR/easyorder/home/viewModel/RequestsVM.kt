@@ -7,7 +7,6 @@ import com.telakuR.easyorder.modules.IoDispatcher
 import com.telakuR.easyorder.services.LogService
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.withContext
@@ -25,11 +24,7 @@ class RequestsVM @Inject constructor(
 
     fun getListOfRequests() {
         launchCatching {
-            val requestsList = withContext(ioDispatcher) {
-                    return@withContext homeRepository.getRequestsList()
-                }
-
-            homeRepository.getEmployeesRequestsDetails(requestsList).collect {
+            homeRepository.getRequestsList().collect {
                 _requests.value = it
             }
         }
@@ -39,8 +34,6 @@ class RequestsVM @Inject constructor(
         launchCatching {
             withContext(ioDispatcher) {
                 homeRepository.acceptRequest(id)
-                delay(1000)
-                getListOfRequests()
             }
         }
     }
@@ -49,8 +42,6 @@ class RequestsVM @Inject constructor(
         launchCatching {
             withContext(ioDispatcher) {
                 homeRepository.removeRequest(id)
-                delay(1000)
-                getListOfRequests()
             }
         }
     }

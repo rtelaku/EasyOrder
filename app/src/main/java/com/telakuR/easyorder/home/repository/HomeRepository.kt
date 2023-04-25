@@ -6,9 +6,9 @@ import kotlinx.coroutines.flow.Flow
 
 interface HomeRepository {
 
-    fun getEmployeesDetails(employees: List<String>): Flow<List<User>>
+    fun getEmployeesList(): Flow<List<User>>
 
-    fun getEmployeesRequestsDetails(requestsEmails: List<String>): Flow<List<User>>
+    fun getRequestsList(): Flow<List<User>>
 
     fun getOrders(userCompanyId: String): Flow<List<OrderDetails>>
 
@@ -38,11 +38,7 @@ interface HomeRepository {
 
     suspend fun getFastFoodId(orderId: String, companyId: String): String
 
-    suspend fun getEmployeesList(): List<String>
-
     suspend fun removeEmployee(id: String)
-
-    suspend fun getRequestsList(): List<String>
 
     suspend fun acceptRequest(id: String)
 

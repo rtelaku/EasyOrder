@@ -29,7 +29,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.telakuR.easyorder.R
 import com.telakuR.easyorder.ext.twoDecimalNumber
 import com.telakuR.easyorder.home.models.UserPaymentModelResponse
-import com.telakuR.easyorder.home.viewModel.OrdersVM
+import com.telakuR.easyorder.home.viewModel.MyOrdersVM
 import com.telakuR.easyorder.ui.theme.AsyncRoundedImage
 import com.telakuR.easyorder.ui.theme.Background
 import com.telakuR.easyorder.ui.theme.PrimaryColor
@@ -38,7 +38,7 @@ import com.telakuR.easyorder.utils.Constants.DEFAULT_PRICE
 
 @Composable
 fun PaymentDetailsScreen(
-    viewModel: OrdersVM = hiltViewModel(),
+    viewModel: MyOrdersVM = hiltViewModel(),
     orderId: String
 ) {
     viewModel.getPaymentDetails(orderId = orderId)
@@ -161,7 +161,7 @@ private fun TotalPriceCard(totalPriceWithoutDelivery: Double) {
 
 @Composable
 private fun PaymentDetailsItem(
-    viewModel: OrdersVM,
+    viewModel: MyOrdersVM,
     orderId: String,
     paymentDetails: UserPaymentModelResponse
 ) {

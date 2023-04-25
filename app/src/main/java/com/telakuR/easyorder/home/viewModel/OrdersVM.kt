@@ -1,6 +1,8 @@
 package com.telakuR.easyorder.home.viewModel
 
-import com.telakuR.easyorder.home.models.*
+import com.telakuR.easyorder.home.models.FastFood
+import com.telakuR.easyorder.home.models.MenuItem
+import com.telakuR.easyorder.home.models.OrderDetails
 import com.telakuR.easyorder.home.repository.HomeRepository
 import com.telakuR.easyorder.mainRepository.UserDataRepository
 import com.telakuR.easyorder.mainViewModel.EasyOrderViewModel
@@ -9,7 +11,6 @@ import com.telakuR.easyorder.services.AccountService
 import com.telakuR.easyorder.services.LogService
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.withContext
@@ -33,17 +34,8 @@ class OrdersVM @Inject constructor(
     private val _fastFoodMenu = MutableStateFlow<List<MenuItem>>(emptyList())
     val fastFoodMenu: StateFlow<List<MenuItem>> get() = _fastFoodMenu
 
-    private val _myOrderList = MutableStateFlow<List<OrderDetails>>(emptyList())
-    val myOrderList: StateFlow<List<OrderDetails>> get() = _myOrderList
-
-    private val _myOrderMenu = MutableStateFlow<List<EmployeeMenuItem>>(emptyList())
-    val myOrderMenu: StateFlow<List<EmployeeMenuItem>> get() = _myOrderMenu
-
     private val _fastFoodId = MutableStateFlow("")
     val fastFoodId: StateFlow<String> get() = _fastFoodId
-
-    private val _paymentDetailsList = MutableStateFlow<List<UserPaymentModelResponse>>(emptyList())
-    val paymentDetailsList: StateFlow<List<UserPaymentModelResponse>> get() = _paymentDetailsList
 
     fun getFastFoods() {
         launchCatching {
@@ -82,13 +74,6 @@ class OrdersVM @Inject constructor(
         }
     }
 
-    fun getMyOrderMenu(orderId: String) = launchCatching {
-        val companyId = userDataRepository.getCompanyId()
-        homeRepository.getMyOrder(companyId = companyId, orderId = orderId).collect {
-            _myOrderMenu.value = it
-        }
-    }
-
     fun addMenuItem(menuItem: MenuItem, orderId: String) {
         launchCatching {
             val companyId = userDataRepository.getCompanyId()
@@ -107,20 +92,9 @@ class OrdersVM @Inject constructor(
         }
     }
 
-    fun getMyId(): String {
-        return accountService.currentUserId
-    }
-
     fun removeMenuItem(orderId: String, menuItem: MenuItem) = launchCatching {
         val companyId = userDataRepository.getCompanyId()
         homeRepository.removeMenuItemFromOrder(orderId = orderId, companyId = companyId, menuItem = menuItem)
-    }
-
-    fun completeOrder(orderId: String) = launchCatching {
-        val companyId = userDataRepository.getCompanyId()
-        homeRepository.completeOrder(orderId = orderId, companyId = companyId)
-        delay(1000)
-        getListOfMyOrders()
     }
 
     fun isMyOrder(employeeId: String): Boolean {
@@ -134,39 +108,6 @@ class OrdersVM @Inject constructor(
         }
 
         _fastFoodId.value = fastFoodId
-    }
-
-    fun getListOfMyOrders() = launchCatching {
-        val companyId = userDataRepository.getCompanyId()
-        homeRepository.getMyOrders(companyId = companyId).collect { ordersList ->
-            val myList = ordersList.toMutableList()
-            val myOrder =
-                ordersList.firstOrNull { it.employeeId == accountService.currentUserId }
-            myList.remove(myOrder)
-            myOrder?.let { myList.add(0, it) }
-            _myOrderList.value = myList
-        }
-    }
-
-    fun getOtherOrder(orderId: String) = launchCatching {
-        val companyId = userDataRepository.getCompanyId()
-        homeRepository.getOtherOrder(companyId = companyId, orderId = orderId).collect {
-            _myOrderMenu.value = it
-        }
-    }
-
-    fun removeOrder(orderId: String) = launchCatching {
-        val companyId = userDataRepository.getCompanyId()
-        homeRepository.removeOrder(orderId = orderId, companyId = companyId)
-        delay(1000)
-        getListOfMyOrders()
-    }
-
-    fun getPaymentDetails(orderId: String) = launchCatching {
-        val companyId = userDataRepository.getCompanyId()
-        homeRepository.getPaymentDetails(companyId = companyId, orderId = orderId).collect {
-            _paymentDetailsList.value = it
-        }
     }
 
     fun setPaidValue(id: String, paid: String, orderId: String) {

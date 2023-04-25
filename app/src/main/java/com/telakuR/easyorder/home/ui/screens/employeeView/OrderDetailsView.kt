@@ -28,14 +28,14 @@ import com.telakuR.easyorder.R
 import com.telakuR.easyorder.home.models.EmployeeMenuItem
 import com.telakuR.easyorder.home.models.MenuItem
 import com.telakuR.easyorder.home.route.HomeRoute
-import com.telakuR.easyorder.home.viewModel.OrdersVM
+import com.telakuR.easyorder.home.viewModel.MyOrdersVM
 import com.telakuR.easyorder.ui.theme.*
 import com.telakuR.easyorder.utils.Constants.ORDER_ID
 
 @Composable
 fun OrderDetailsScreen(
     navController: NavController,
-    viewModel: OrdersVM = hiltViewModel(),
+    viewModel: MyOrdersVM = hiltViewModel(),
     employeeId: String,
     orderId: String
 ) {
@@ -82,7 +82,7 @@ fun OrderDetailsScreen(
 @Composable
 private fun MyOrderMenuDetails(
     orderId: String,
-    viewModel: OrdersVM,
+    viewModel: MyOrdersVM,
     dialogState: MutableState<Pair<Boolean, MenuItem?>>
 ) {
     viewModel.getMyOrderMenu(orderId = orderId)
@@ -161,7 +161,7 @@ private fun OrderMenuItem(menuItem: EmployeeMenuItem, dialogState: MutableState<
 }
 
 @Composable
-private fun OtherOrderMenuDetails(orderId: String, viewModel: OrdersVM, dialogState: MutableState<Pair<Boolean, MenuItem?>>) {
+private fun OtherOrderMenuDetails(orderId: String, viewModel: MyOrdersVM, dialogState: MutableState<Pair<Boolean, MenuItem?>>) {
     viewModel.getOtherOrder(orderId = orderId)
     val myOrderMenu = viewModel.myOrderMenu.collectAsStateWithLifecycle().value
 
@@ -235,7 +235,7 @@ private fun OrderDetailsBottomBar(isMyOrder: Boolean, navController: NavControll
 @Composable
 private fun RemoveMenuItemDialog(
     dialogState: MutableState<Pair<Boolean, MenuItem?>>,
-    viewModel: OrdersVM,
+    viewModel: MyOrdersVM,
     orderId: String
 ) {
     val menuItem = dialogState.value.second

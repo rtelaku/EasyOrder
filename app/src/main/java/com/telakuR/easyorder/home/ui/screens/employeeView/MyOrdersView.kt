@@ -29,11 +29,11 @@ import androidx.navigation.NavHostController
 import com.telakuR.easyorder.R
 import com.telakuR.easyorder.home.models.OrderDetails
 import com.telakuR.easyorder.home.route.HomeRoute
-import com.telakuR.easyorder.home.viewModel.OrdersVM
+import com.telakuR.easyorder.home.viewModel.MyOrdersVM
 import com.telakuR.easyorder.ui.theme.*
 
 @Composable
-fun MyOrdersScreen(navController: NavHostController, viewModel: OrdersVM = hiltViewModel()) {
+fun MyOrdersScreen(navController: NavHostController, viewModel: MyOrdersVM = hiltViewModel()) {
     viewModel.getListOfMyOrders()
     val orders = viewModel.myOrderList.collectAsStateWithLifecycle().value
     val dialogState: MutableState<Triple<Boolean, Boolean, String>> = remember { mutableStateOf(Triple(false, false, "")) }
@@ -73,7 +73,7 @@ fun MyOrdersScreen(navController: NavHostController, viewModel: OrdersVM = hiltV
 private fun OrderList(
     orders: List<OrderDetails>,
     navController: NavController,
-    viewModel: OrdersVM,
+    viewModel: MyOrdersVM,
     dialogState: MutableState<Triple<Boolean, Boolean, String>>
 ) {
     val myId = viewModel.getMyId()
@@ -148,7 +148,7 @@ private fun MyOrderItem(
 }
 
 @Composable
-private fun CompleteOrderDialog(dialogState: MutableState<Triple<Boolean, Boolean, String>>, viewModel: OrdersVM) {
+private fun CompleteOrderDialog(dialogState: MutableState<Triple<Boolean, Boolean, String>>, viewModel: MyOrdersVM) {
     val isMyOrder = dialogState.value.second
     val orderId = dialogState.value.third
 

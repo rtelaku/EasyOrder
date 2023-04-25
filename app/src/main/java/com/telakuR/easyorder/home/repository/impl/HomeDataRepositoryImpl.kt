@@ -33,9 +33,14 @@ import com.telakuR.easyorder.utils.Constants.REQUESTS
 import com.telakuR.easyorder.utils.Constants.TOTAL_PRICE
 import com.telakuR.easyorder.utils.ToastUtils.showToast
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import kotlin.coroutines.Continuation
@@ -46,46 +51,49 @@ class HomeDataRepositoryImpl @Inject constructor(
     @IoDispatcher val ioDispatcher: CoroutineDispatcher,
     private val fireStore: FirebaseFirestore,
     private val accountService: AccountService
-) :
-    HomeRepository {
+) : HomeRepository {
     private val TAG = HomeDataRepositoryImpl::class.simpleName
 
-    override suspend fun getEmployeesList(): List<String> = suspendCoroutine { continuation ->
-        fireStore.collection(DBCollectionEnum.EMPLOYEES.title)
+    override fun getEmployeesList(): Flow<List<User>> = callbackFlow {
+        val employeeRef = fireStore.collection(DBCollectionEnum.EMPLOYEES.title)
             .document(accountService.currentUserId)
-            .get()
-            .addOnSuccessListener { snapshot ->
-                val employees = snapshot.data?.get(EMPLOYEES) as ArrayList<String>
-                continuation.resume(employees)
-            }
-            .addOnFailureListener { exception ->
-                Log.e(TAG, "Couldn't get employees: ", exception)
-            }
-    }
 
-    override fun getEmployeesDetails(employees: List<String>): Flow<List<User>> = flow {
-        try {
-            val users = mutableListOf<User>()
-            val documents = mutableListOf<DocumentSnapshot>()
-
-            for (id in employees) {
-                val document = fireStore.collection(DBCollectionEnum.USERS.title).document(id).get().await()
-                documents.add(document)
+        val subscription = employeeRef.addSnapshotListener { snapshot, exception ->
+            if (exception != null) {
+                Log.d(TAG, "Couldn't get employees: $exception")
+                return@addSnapshotListener
             }
 
-            documents.forEachIndexed { index, document ->
-                val user = Gson().fromJson(Gson().toJson(document.data), User::class.java)
-                user.id = employees[index]
-                users.add(user)
-            }
+            if (snapshot != null && snapshot.exists()) {
+                val employeesList = snapshot.get(EMPLOYEES) as ArrayList<String>
 
-            emit(users)
-        } catch (e: Exception) {
-            Log.e(TAG, "Couldn't get employees: ", e)
-            emit(emptyList())
+                val users = mutableListOf<User>()
+                val documents = mutableListOf<DocumentSnapshot>()
+
+                val deferredDocuments = employeesList.map { id ->
+                    async {
+                        fireStore.collection(DBCollectionEnum.USERS.title).document(id).get().await()
+                    }
+                }
+
+                runBlocking {
+                    documents.addAll(deferredDocuments.awaitAll())
+                }
+
+                documents.forEachIndexed { index, document ->
+                    val user = Gson().fromJson(Gson().toJson(document.data), User::class.java)
+                    user.id = employeesList[index]
+                    users.add(user)
+                }
+
+                this.trySend(users).isSuccess
+            } else {
+                this.trySend(emptyList<User>()).isSuccess
+            }
         }
-    }.flowOn(ioDispatcher)
 
+        awaitClose { subscription.remove() }
+    }.flowOn(ioDispatcher)
 
     override suspend fun removeEmployee(id: String) {
         fireStore.collection(DBCollectionEnum.EMPLOYEES.title)
@@ -96,42 +104,47 @@ class HomeDataRepositoryImpl @Inject constructor(
             }
     }
 
-    override suspend fun getRequestsList(): List<String> = suspendCoroutine { continuation ->
-        fireStore.collection(DBCollectionEnum.EMPLOYEES.title)
+    override fun getRequestsList(): Flow<List<User>> = callbackFlow {
+        val employeeRef = fireStore.collection(DBCollectionEnum.EMPLOYEES.title)
             .document(accountService.currentUserId)
-            .get()
-            .addOnSuccessListener { snapshot ->
-                val requests = snapshot.data?.get(REQUESTS) as ArrayList<String>
-                continuation.resume(requests)
-            }
-            .addOnFailureListener { exception ->
-                Log.e(TAG, "Couldn't get request emails: ", exception)
-            }
-    }
 
-    override fun getEmployeesRequestsDetails(requestsEmails: List<String>): Flow<List<User>> = flow {
-            try {
+        val subscription = employeeRef.addSnapshotListener { snapshot, exception ->
+            if (exception != null) {
+                Log.d(TAG, "Couldn't get requests: $exception")
+                return@addSnapshotListener
+            }
+
+            if (snapshot != null && snapshot.exists()) {
+                val requestsList = snapshot.get(REQUESTS) as ArrayList<String>
+
                 val users = mutableListOf<User>()
                 val documents = mutableListOf<DocumentSnapshot>()
 
-                for (id in requestsEmails) {
-                    val document =
-                        fireStore.collection(DBCollectionEnum.USERS.title).document(id).get().await()
-                    documents.add(document)
+                val deferredDocuments = requestsList.map { id ->
+                    async {
+                        fireStore.collection(DBCollectionEnum.USERS.title).document(id).get()
+                            .await()
+                    }
+                }
+
+                runBlocking {
+                    documents.addAll(deferredDocuments.awaitAll())
                 }
 
                 documents.forEachIndexed { index, document ->
                     val user = Gson().fromJson(Gson().toJson(document.data), User::class.java)
-                    user.id = requestsEmails[index]
+                    user.id = requestsList[index]
                     users.add(user)
                 }
 
-                emit(users)
-            } catch (e: Exception) {
-                Log.e(TAG, "Couldn't get requests: ", e)
-                emit(emptyList())
+                this.trySend(users).isSuccess
+            } else {
+                this.trySend(emptyList<User>()).isSuccess
             }
-        }.flowOn(ioDispatcher)
+        }
+
+        awaitClose { subscription.remove() }
+    }.flowOn(ioDispatcher)
 
     override suspend fun acceptRequest(id: String) {
         fireStore.collection(DBCollectionEnum.EMPLOYEES.title)
@@ -559,7 +572,7 @@ class HomeDataRepositoryImpl @Inject constructor(
                                 val document = snapshots.documents[0]
                                 document.reference.delete()
                                     .addOnSuccessListener {
-                                        if (snapshots.documents.size <= 1 && ownerId == accountService.currentUserId) {
+                                        if (snapshots.documents.isEmpty() && ownerId == accountService.currentUserId) {
                                             ordersRef.delete()
                                         }
                                         showToast(messageId = R.string.order_removed, length = Toast.LENGTH_SHORT)
@@ -889,7 +902,7 @@ class HomeDataRepositoryImpl @Inject constructor(
                 }
             }
             .addOnFailureListener { e ->
-                Log.e(TAG, "Couldn't find company $companyId: ", e)
+                Log.e(TAG, "Couldn't find order of $companyId: ", e)
                 continuation.resume(OrderDetails())
             }
     }
