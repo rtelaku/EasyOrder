@@ -60,12 +60,12 @@ class NotificationsRepositoryImpl @Inject constructor(
                 val notifications = jsonNotificationsList.map { map ->
                     val id = map["id"].toString().toDouble()
                     val ownerName = map["ownerName"] as String
-                    val fastFood = map["fastFood"] as String
+                    val fastFood = map["fastFood"] as? String
                     val currentTimeInMillis = map["currentTimeInMillis"] as? Long
                     NotificationModel(id, ownerName, fastFood, currentTimeInMillis)
                 }
 
-                this.trySend(notifications).isSuccess
+                this.trySend(notifications.reversed()).isSuccess
             } else {
                 this.trySend(emptyList<NotificationModel>()).isSuccess
             }

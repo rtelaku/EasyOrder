@@ -163,7 +163,7 @@ private fun BottomBar(navController: NavController, viewModel: SetUpPictureVM, i
 }
 
 @Composable
-private fun HandleImageUri(imageUri: Uri, viewModel: SetUpPictureVM) {
+fun HandleImageUri(imageUri: Uri, viewModel: SetUpPictureVM) {
     viewModel.addImageToStorage(imageUri)
 
     AddImageToStorage(

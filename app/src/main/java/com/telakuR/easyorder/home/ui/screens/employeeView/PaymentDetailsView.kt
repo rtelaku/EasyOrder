@@ -6,6 +6,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Card
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
@@ -19,6 +20,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -26,7 +28,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.telakuR.easyorder.R
 import com.telakuR.easyorder.ext.twoDecimalNumber
-import com.telakuR.easyorder.home.models.UserInfo
 import com.telakuR.easyorder.home.models.UserPaymentModelResponse
 import com.telakuR.easyorder.home.viewModel.OrdersVM
 import com.telakuR.easyorder.ui.theme.AsyncRoundedImage
@@ -224,7 +225,8 @@ private fun PriceTextField(textState: MutableState<String>, contentColor: Color,
                 color = contentColor,
                 background = backgroundColor,
                 fontSize = 16.sp
-            )
+            ),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
         )
 
         Text(

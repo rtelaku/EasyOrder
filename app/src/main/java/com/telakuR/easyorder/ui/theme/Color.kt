@@ -2,7 +2,7 @@ package com.telakuR.easyorder.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-val Background = Color(0xFFE5E5E5)
+val Background = Color(0xFFe8e8e8)
 val PrimaryColor = Color(0xFF53E88B)
 val LightGreen = Color(0xFFe8faf2)
 val LightOrangeColor = Color(0xFFFEF7ED)

@@ -1,8 +1,11 @@
 package com.telakuR.easyorder.mainRepository
 
 import com.telakuR.easyorder.models.User
+import kotlinx.coroutines.flow.Flow
 
 interface UserDataRepository {
+
+    fun getProfileFlow(): Flow<User?>
 
     suspend fun getProfile(): User?
 

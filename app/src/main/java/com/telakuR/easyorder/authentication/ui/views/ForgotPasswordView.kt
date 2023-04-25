@@ -25,6 +25,8 @@ import com.telakuR.easyorder.ui.theme.Toolbar
 
 @Composable
 fun ForgotPasswordScreen(navController: NavHostController, viewModel: LoginVM = hiltViewModel()) {
+    val uiState by viewModel.uiState
+
     Scaffold(
         topBar = {
             TopAppBar(navController = navController)
@@ -34,7 +36,6 @@ fun ForgotPasswordScreen(navController: NavHostController, viewModel: LoginVM = 
         },
         content = {
             it
-            val uiState by viewModel.uiState
 
             Column(
                 modifier = Modifier.fillMaxSize(),

@@ -13,6 +13,9 @@ import com.telakuR.easyorder.utils.Constants.PROFILE_PIC
 import com.telakuR.easyorder.utils.Constants.ROLE
 import com.telakuR.easyorder.utils.Constants.TOKEN
 import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import kotlin.coroutines.resume
@@ -61,6 +64,29 @@ class UserDataRepositoryImpl @Inject constructor(
             }.addOnFailureListener {
                 continuation.resume(null)
             }
+    }
+
+    override fun getProfileFlow(): Flow<User?> = callbackFlow {
+        val listener = fireStore.collection(DBCollectionEnum.USERS.title)
+            .document(accountService.currentUserId)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    trySend(null).isSuccess
+                    return@addSnapshotListener
+                }
+
+                if (snapshot != null && snapshot.exists()) {
+                    val user = Gson().fromJson(Gson().toJson(snapshot.data), User::class.java)
+                    trySend(user).isSuccess
+                } else {
+                    trySend(null).isSuccess
+                }
+            }
+
+        // Cancel the listener when the flow is cancelled
+        awaitClose {
+            listener.remove()
+        }
     }
 
     override suspend fun getCompanyId(): String = suspendCoroutine { continuation ->

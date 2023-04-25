@@ -39,7 +39,7 @@ fun OrderDetailsScreen(
     employeeId: String,
     orderId: String
 ) {
-    val isMyOrder = viewModel.isMyOrder(orderId)
+    val isMyOrder = viewModel.isMyOrder(employeeId)
     val dialogState: MutableState<Pair<Boolean, MenuItem?>> = remember { mutableStateOf(Pair(false, null)) }
 
     Scaffold(

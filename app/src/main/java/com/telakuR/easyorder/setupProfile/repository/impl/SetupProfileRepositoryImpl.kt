@@ -12,6 +12,7 @@ import com.telakuR.easyorder.models.Response
 import com.telakuR.easyorder.models.User
 import com.telakuR.easyorder.modules.IoDispatcher
 import com.telakuR.easyorder.services.AccountService
+import com.telakuR.easyorder.services.MyFirebaseMessagingService
 import com.telakuR.easyorder.setupProfile.repository.SetupProfileRepository
 import com.telakuR.easyorder.utils.Constants.PROFILE_PIC
 import com.telakuR.easyorder.utils.Constants.REQUESTS
@@ -85,6 +86,9 @@ class SetupProfileRepositoryImpl @Inject constructor(
     override suspend fun requestToJoin(id: String) {
         fireStore.collection(DBCollectionEnum.EMPLOYEES.title).document(id)
             .update(REQUESTS, FieldValue.arrayUnion(accountService.currentUserId))
+            .addOnSuccessListener {
+                MyFirebaseMessagingService.sendNewEmployeeRequestMessage(id)
+            }
             .addOnFailureListener { exception ->
                 Log.e(TAG, "Couldn't request to join: ", exception)
             }

@@ -1,6 +1,5 @@
 package com.telakuR.easyorder.home.ui.screens
 
-import android.content.Context
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -11,7 +10,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -68,21 +66,15 @@ fun NotificationsScreen(navController: NavController, viewModel: NotificationsVM
 
 @Composable
 fun NotificationsList(notifications: List<NotificationModel>) {
-    val context = LocalContext.current
-
     LazyColumn(modifier = Modifier.fillMaxWidth()) {
         items(notifications) { notification ->
-            when(notification.id) {
-                NotificationTypeEnum.NEW_ORDER.id -> {
-                    NewOrderNotificationItem(context = context, notification = notification)
-                }
-            }
+            NewOrderNotificationItem(notification = notification)
         }
     }
 }
 
 @Composable
-fun NewOrderNotificationItem(notification: NotificationModel, context: Context) {
+fun NewOrderNotificationItem(notification: NotificationModel) {
     WhiteItemCard(modifier = Modifier
         .fillMaxWidth()
         .padding(horizontal = 10.dp)) {
@@ -104,8 +96,8 @@ fun NewOrderNotificationItem(notification: NotificationModel, context: Context) 
                 )
 
                 Column {
-                    val newOrderMessage = String.format(stringResource(id = R.string.ordering_notification), notification.ownerName, notification.fastFood)
-                    Text(text = newOrderMessage, fontSize = 18.sp)
+                    val message = NotificationTypeEnum.getMessageBasedOnNotification(notification)
+                    Text(text = message, fontSize = 18.sp)
 
                     if(notification.currentTimeInMillis != null) {
                         val dateAndTime = getFormattedDate(notification.currentTimeInMillis)

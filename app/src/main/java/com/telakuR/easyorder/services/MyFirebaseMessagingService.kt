@@ -1,7 +1,5 @@
 package com.telakuR.easyorder.services
 
-import android.content.SharedPreferences
-import android.util.Log
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import com.google.gson.JsonObject
@@ -11,7 +9,6 @@ import com.telakuR.easyorder.models.CreateNotificationModel
 import com.telakuR.easyorder.models.NotificationModel
 import com.telakuR.easyorder.models.RetrofitHelper
 import com.telakuR.easyorder.modules.EasyOrderEntryPoint
-import com.telakuR.easyorder.utils.Constants
 import com.telakuR.easyorder.utils.Constants.BODY
 import com.telakuR.easyorder.utils.Constants.DATA
 import com.telakuR.easyorder.utils.Constants.FAST_FOOD
@@ -31,14 +28,15 @@ import kotlinx.coroutines.launch
 class MyFirebaseMessagingService : FirebaseMessagingService() {
 
     companion object {
+        private val fcmService = RetrofitHelper.getFcmServiceApi()
+        private val userDataRepositoryImpl = EasyOrderEntryPoint.getUserDataImplService()
+
         fun sendNewOrderMessage(fastFood: String) {
             CoroutineScope(IO).launch {
-                val userDataRepositoryImpl = EasyOrderEntryPoint.getUserDataImplService()
                 val companyId = userDataRepositoryImpl.getCompanyId()
                 val deviceTokens = userDataRepositoryImpl.getTokens(companyId)
                 val myDeviceToken = EasyOrderPreferences.getCurrentDeviceToken()
                 val ownerName = userDataRepositoryImpl.getProfile()?.name
-                val fcmService = RetrofitHelper.getFcmServiceApi()
 
                 val context = EasyOrder.getInstance().applicationContext
                 val title = context.getString(R.string.new_order)
@@ -75,19 +73,16 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
 
         fun sendNewMenuItemMessage(ownerId: String) {
             CoroutineScope(IO).launch {
-                val userDataRepositoryImpl = EasyOrderEntryPoint.getUserDataImplService()
                 val ownerDeviceToken = userDataRepositoryImpl.getOrderOwnerDeviceToken(ownerId = ownerId)
                 val myDeviceToken = EasyOrderPreferences.getCurrentDeviceToken()
 
                 if (ownerDeviceToken != null && ownerDeviceToken != myDeviceToken) {
                     val ownerName = userDataRepositoryImpl.getProfile()?.name
-                    val fcmService = RetrofitHelper.getFcmServiceApi()
 
                     val context = EasyOrder.getInstance().applicationContext
                     val title = context.getString(R.string.new_menu_item_added)
                     val message = String.format(context.getString(R.string.employee_added_menu_item), ownerName)
 
-                    Constants.NAME
                     try {
                         val notification = JsonObject().apply {
                             addProperty(BODY, message)
@@ -118,12 +113,11 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
 
         fun sendRequestStateMessage(employeeId: String, hasBeenAccepted: Boolean) {
             CoroutineScope(IO).launch {
-                val userDataRepositoryImpl = EasyOrderEntryPoint.getUserDataImplService()
                 val employeeDeviceToken = userDataRepositoryImpl.getOrderOwnerDeviceToken(ownerId = employeeId)
+                val myDeviceToken = EasyOrderPreferences.getCurrentDeviceToken()
 
-                if (employeeDeviceToken != null) {
+                if (employeeDeviceToken != null && employeeDeviceToken != myDeviceToken) {
                     val ownerName = userDataRepositoryImpl.getProfile()?.name
-                    val fcmService = RetrofitHelper.getFcmServiceApi()
 
                     val context = EasyOrder.getInstance().applicationContext
                     val titleMessageId = if(hasBeenAccepted) R.string.you_have_been_accepted else R.string.you_have_been_not_accepted
@@ -134,7 +128,6 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
 
                     val notificationType = if(hasBeenAccepted) NotificationTypeEnum.ACCEPTED_TO_COMPANY.id else NotificationTypeEnum.REJECTED_FROM_COMPANY.id
 
-                    Constants.NAME
                     try {
                         val notification = JsonObject().apply {
                             addProperty(BODY, message)
@@ -153,6 +146,46 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
                             add(NOTIFICATION, notification)
                             add(DATA, data)
                             addProperty(TO, employeeDeviceToken)
+                        }
+
+                        fcmService.sendMessage(payload).execute()
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+                }
+            }
+        }
+
+        fun sendNewEmployeeRequestMessage(companyId: String) {
+            CoroutineScope(IO).launch {
+                val ownerDeviceToken = userDataRepositoryImpl.getOrderOwnerDeviceToken(ownerId = companyId)
+                val myDeviceToken = EasyOrderPreferences.getCurrentDeviceToken()
+
+                if (ownerDeviceToken != null && ownerDeviceToken != myDeviceToken) {
+                    val ownerName = userDataRepositoryImpl.getProfile()?.name
+
+                    val context = EasyOrder.getInstance().applicationContext
+                    val title = context.getString(R.string.new_request)
+                    val message = String.format(context.getString(R.string.employee_requesting_to_join_company), ownerName)
+
+                    try {
+                        val notification = JsonObject().apply {
+                            addProperty(BODY, message)
+                            addProperty(TITLE, title)
+                        }
+
+                        val data = JsonObject().apply {
+                            addProperty(OWNER, ownerName)
+                            addProperty(
+                                NOTIFICATION_TYPE,
+                                NotificationTypeEnum.NEW_EMPLOYEE_REQUEST.id
+                            )
+                        }
+
+                        val payload = JsonObject().apply {
+                            add(NOTIFICATION, notification)
+                            add(DATA, data)
+                            addProperty(TO, ownerDeviceToken)
                         }
 
                         fcmService.sendMessage(payload).execute()
@@ -197,6 +230,10 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
                 title = context.getString(R.string.you_have_been_not_accepted)
                 notificationModel = NotificationModel(id = notificationType, ownerName = ownerName, currentTimeInMillis = currentTimeInMillis)
                 EasyOrderPreferences.saveRequestedCompanyId(companyId = "")
+            }
+            NotificationTypeEnum.NEW_EMPLOYEE_REQUEST.id -> {
+                title = context.getString(R.string.new_request)
+                notificationModel = NotificationModel(id = notificationType, ownerName = ownerName, currentTimeInMillis = currentTimeInMillis)
             }
         }
 

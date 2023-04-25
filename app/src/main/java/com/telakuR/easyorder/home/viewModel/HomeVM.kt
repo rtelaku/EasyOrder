@@ -44,9 +44,6 @@ class HomeVM @Inject constructor(
     private val _currentUserRole = MutableStateFlow("")
     var currentUserRole: StateFlow<String> = _currentUserRole
 
-    private val _toastMessageId = MutableStateFlow<Int?>(null)
-    var toastMessageId: StateFlow<Int?> = _toastMessageId
-
     init {
         getUserRole()
         shouldShowSetupProfile()
