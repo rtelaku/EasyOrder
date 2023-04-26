@@ -2,11 +2,7 @@ package com.telakuR.easyorder.home.repository.impl
 
 import android.util.Log
 import android.widget.Toast
-import com.google.android.gms.tasks.Tasks
-import com.google.firebase.firestore.DocumentSnapshot
-import com.google.firebase.firestore.FieldValue
-import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.QuerySnapshot
+import com.google.firebase.firestore.*
 import com.google.gson.Gson
 import com.telakuR.easyorder.R
 import com.telakuR.easyorder.enums.DBCollectionEnum
@@ -256,24 +252,27 @@ class HomeDataRepositoryImpl @Inject constructor(
         }
     }.flowOn(ioDispatcher)
 
-    override fun getMyOrder(companyId: String, orderId: String): Flow<List<EmployeeMenuItem>> = flow {
-        try {
-            val employeeOrders = arrayListOf<EmployeeMenuItem>()
+    override fun getMyOrderDetails(companyId: String, orderId: String, isMyOrder: Boolean): Flow<List<EmployeeMenuItem>> =
+        callbackFlow {
+            val orderDoc = fireStore.collection(DBCollectionEnum.ORDERS.title)
+                .whereEqualTo(COMPANY_ID, companyId).get().await()
 
-            val task = fireStore.collection(DBCollectionEnum.ORDERS.title)
-                .whereEqualTo(COMPANY_ID, companyId)
-                .get().await()
+            val docRef = orderDoc.documents[0].reference.collection(ORDERS).document(orderId)
+                .collection(ORDERED)
 
-            if (task.documents.isNotEmpty()) {
-                val docRef = task.documents[0].reference
+            val subTask = if(isMyOrder) docRef else docRef.whereEqualTo(EMPLOYEE_ID, accountService.currentUserId)
 
-                val subTask = docRef.collection(ORDERS).document(orderId)
-                    .collection(ORDERED).get().await()
+            val listenerRegistration = subTask.addSnapshotListener { subTaskSnapshot, subTaskError ->
+                if (subTaskError != null) {
+                    Log.e(TAG, "Error fetching ordered items: ", subTaskError)
+                    close(subTaskError)
+                    return@addSnapshotListener
+                }
 
-                val documents = subTask.documents
+                if (subTaskSnapshot != null && !subTaskSnapshot.isEmpty) {
+                    val employeeOrders = arrayListOf<EmployeeMenuItem>()
 
-                if (documents.isNotEmpty()) {
-                    val deferredEmployeeMenuItems = documents.map { document ->
+                    subTaskSnapshot.documents.map { document ->
                         val employeeMenuItemResponse =
                             Gson().fromJson(
                                 Gson().toJson(document.data),
@@ -283,30 +282,34 @@ class HomeDataRepositoryImpl @Inject constructor(
                         val employeeTask = fireStore.collection(DBCollectionEnum.USERS.title)
                             .document(employeeMenuItemResponse.employeeId).get()
 
-                        Tasks.await(employeeTask)
-                        val employee = employeeTask.result
-
-                        val employeeName = employee.getString(NAME) ?: ""
-                        val employeePicture = employee.getString(PROFILE_PIC) ?: ""
-                        val userInfo = UserInfo(id = employee.id, name = employeeName, picture = employeePicture)
-                        val employeeMenuItem = EmployeeMenuItem(
-                            userInfo = userInfo,
-                            menuItem = employeeMenuItemResponse.menuItem
-                        )
-
-                        employeeMenuItem
+                        employeeTask.addOnSuccessListener { employee ->
+                            val employeeName = employee.getString(NAME) ?: ""
+                            val employeePicture = employee.getString(PROFILE_PIC) ?: ""
+                            val userInfo = UserInfo(
+                                id = employee.id,
+                                name = employeeName,
+                                picture = employeePicture
+                            )
+                            val employeeMenuItem = EmployeeMenuItem(
+                                userInfo = userInfo,
+                                menuItem = employeeMenuItemResponse.menuItem
+                            )
+                            employeeOrders.add(employeeMenuItem)
+                            trySend(employeeOrders.toList())
+                        }.addOnFailureListener { exception ->
+                            Log.e(TAG, "Error fetching employee info: ", exception)
+                            close(exception)
+                        }
                     }
-
-                    employeeOrders.addAll(deferredEmployeeMenuItems)
+                } else {
+                    trySend(emptyList<EmployeeMenuItem>())
                 }
             }
 
-            emit(employeeOrders)
-        } catch (e: Exception) {
-            Log.e(TAG, "Couldn't get my order: ", e)
-            emit(emptyList())
-        }
-    }.flowOn(ioDispatcher)
+            awaitClose {
+                listenerRegistration.remove()
+            }
+        }.flowOn(ioDispatcher)
 
     override fun getMyOrders(companyId: String): Flow<List<OrderDetails>> = flow {
         val companyOrdersList = mutableListOf<OrderDetails>()
@@ -553,7 +556,11 @@ class HomeDataRepositoryImpl @Inject constructor(
             }
     }
 
-    override fun removeMenuItemFromOrder(orderId: String, companyId: String, menuItem: MenuItem) {
+    override fun removeMenuItemFromOrder(
+        orderId: String,
+        companyId: String,
+        menuItem: EmployeeMenuItem?
+    ) {
         fireStore.collection(DBCollectionEnum.ORDERS.title)
             .whereEqualTo(COMPANY_ID, companyId)
             .get()
@@ -565,23 +572,37 @@ class HomeDataRepositoryImpl @Inject constructor(
                         val ownerId = subSnapShot.get(EMPLOYEE_ID) as String
 
                         subSnapShot.reference.collection(ORDERED)
-                            .whereEqualTo(EMPLOYEE_ID, accountService.currentUserId)
-                            .whereEqualTo(Constants.MENU_ITEM_NAME, menuItem.name)
+                            .whereEqualTo(EMPLOYEE_ID, menuItem?.userInfo?.id)
+                            .whereEqualTo(Constants.MENU_ITEM_NAME, menuItem?.menuItem?.name)
                             .get()
                             .addOnSuccessListener { snapshots ->
-                                val document = snapshots.documents[0]
-                                document.reference.delete()
-                                    .addOnSuccessListener {
-                                        if (snapshots.documents.isEmpty() && ownerId == accountService.currentUserId) {
-                                            ordersRef.delete()
+                                val document = snapshots.documents
+                                if(document.isNotEmpty()) {
+                                    document[0].reference.delete()
+                                        .addOnSuccessListener {
+                                            if (snapshots.documents.isEmpty() && ownerId == accountService.currentUserId) {
+                                                ordersRef.delete()
+                                            }
+                                            showToast(
+                                                messageId = R.string.order_removed,
+                                                length = Toast.LENGTH_SHORT
+                                            )
+
+                                            menuItem?.let { item ->
+                                                removeMenuItemPaymentDetails(
+                                                    orderId = orderId,
+                                                    menuItem = item
+                                                )
+                                            }
                                         }
-                                        showToast(messageId = R.string.order_removed, length = Toast.LENGTH_SHORT)
-                                        removeMenuItemPaymentDetails(orderId = orderId, menuItem = menuItem)
-                                    }
-                                    .addOnFailureListener { e ->
-                                        Log.d(TAG, "Couldn't remove menu item: $e")
-                                        showToast(messageId = R.string.failed_order_deletion, length = Toast.LENGTH_SHORT)
-                                    }
+                                        .addOnFailureListener { e ->
+                                            Log.d(TAG, "Couldn't remove menu item: $e")
+                                            showToast(
+                                                messageId = R.string.failed_order_deletion,
+                                                length = Toast.LENGTH_SHORT
+                                            )
+                                        }
+                                }
                             }
                     }
                 }
@@ -589,56 +610,6 @@ class HomeDataRepositoryImpl @Inject constructor(
             .addOnFailureListener { exception ->
                 Log.e(TAG, "Couldn't get company orders: ", exception)
             }
-    }
-
-    override fun getOtherOrder(companyId: String, orderId: String): Flow<List<EmployeeMenuItem>> = flow {
-        try {
-            val employeeOrders = arrayListOf<EmployeeMenuItem>()
-
-            val task = fireStore.collection(DBCollectionEnum.ORDERS.title)
-                .whereEqualTo(COMPANY_ID, companyId)
-                .get().await()
-
-            if (task.documents.isNotEmpty()) {
-                val docRef = task.documents[0].reference
-
-                val subTask = docRef.collection(ORDERS).document(orderId)
-                    .collection(ORDERED).whereEqualTo(EMPLOYEE_ID, accountService.currentUserId)
-                    .get().await()
-
-                val documents = subTask.documents
-
-                if (documents.isNotEmpty()) {
-                    val deferredEmployeeMenuItems = documents.map { document ->
-                        val employeeMenuItemResponse =
-                            Gson().fromJson(
-                                Gson().toJson(document.data),
-                                EmployeeMenuItemResponse::class.java
-                            )
-
-                        val employeeTask = fireStore.collection(DBCollectionEnum.USERS.title)
-                            .document(employeeMenuItemResponse.employeeId).get().await()
-
-                        val employeeName = employeeTask.getString(NAME) ?: ""
-                        val employeePicture = employeeTask.getString(PROFILE_PIC) ?: ""
-                        val userInfo = UserInfo(name = employeeName, picture = employeePicture)
-                        val employeeMenuItem = EmployeeMenuItem(
-                            userInfo = userInfo,
-                            menuItem = employeeMenuItemResponse.menuItem
-                        )
-
-                        employeeMenuItem
-                    }
-
-                    employeeOrders.addAll(deferredEmployeeMenuItems)
-                }
-            }
-
-            emit(employeeOrders)
-        } catch (e: Exception) {
-            Log.e(TAG, "Couldn't get other order details: ", e)
-            emit(emptyList())
-        }
     }
 
     override fun removeOrder(orderId: String, companyId: String) {
@@ -753,7 +724,7 @@ class HomeDataRepositoryImpl @Inject constructor(
     }
 
 
-    override fun removeMenuItemPaymentDetails(orderId: String, menuItem: MenuItem) {
+    override fun removeMenuItemPaymentDetails(orderId: String, menuItem: EmployeeMenuItem) {
         val paymentRef = fireStore.collection(DBCollectionEnum.PAYMENTS.title)
             .document(orderId)
 
@@ -772,10 +743,10 @@ class HomeDataRepositoryImpl @Inject constructor(
                     )
                 }.toMutableList()
 
-                val index = payments.indexOfFirst { it.employeeId == accountService.currentUserId }
+                val index = payments.indexOfFirst { it.employeeId == menuItem.userInfo.id }
 
                 if (index != -1) {
-                    val totalPrice = payments[index].totalPayment - menuItem.price
+                    val totalPrice = payments[index].totalPayment - menuItem.menuItem.price
                     val paid = payments[index].paid
                     val paymentModel = UserPaymentModel(
                         employeeId = accountService.currentUserId,

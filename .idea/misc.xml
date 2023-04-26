@@ -34,6 +34,7 @@
         <entry key="app/src/main/res/drawable/ic_success_illustration.xml" value="0.222" />
         <entry key="app/src/main/res/drawable/order_background.xml" value="0.1" />
         <entry key="app/src/main/res/layout/activity_login.xml" value="0.22056159420289856" />
+        <entry key="app/src/main/res/layout/network_banner.xml" value="0.21195652173913043" />
         <entry key="app/src/main/res/xml/file_paths.xml" value="0.1" />
       </map>
     </option>

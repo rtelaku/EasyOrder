@@ -11,8 +11,6 @@ k
 ;app/src/main/java/com/telakuR/easyorder/utils/ToastUtils.kt,3/d/3de8542973a18a4ceecba6948a8cc108938aa63c
 q
 Aapp/src/main/java/com/telakuR/easyorder/modules/FirebaseModule.kt,2/2/2232eb3329de615b81756b839e93a8844794a0aa
-u
-Eapp/src/main/java/com/telakuR/easyorder/ui/activities/MainActivity.kt,c/4/c4eb65a569fbe9c326fa118bc59fc4ede09f81f4
 n
 >app/src/main/java/com/telakuR/easyorder/services/LogService.kt,c/f/cfc989184e9445e0a317769baf842f1637ac8149
 n
@@ -51,8 +49,6 @@ Tapp/src/main/java/com/telakuR/easyorder/authentication/models/AuthenticationRou
 ^app/src/main/java/com/telakuR/easyorder/authentication/ui/activities/AuthenticationActivity.kt,2/0/20e693ba06015c96b19853e7b42f8722a3f868b2
 {
 Kapp/src/main/java/com/telakuR/easyorder/authentication/viewmodel/LoginVM.kt,0/8/08730020b4bed9c4f0797ff795c6c5b0993e53e8
-o
-?app/src/main/java/com/telakuR/easyorder/home/models/FastFood.kt,f/9/f9d55bdf295d8481244c02249f1ac71148f6ccb2
 w
 Gapp/src/main/java/com/telakuR/easyorder/home/models/UserPaymentModel.kt,5/5/55ebe019f33a6c98d7a32843a4f16afb4df6b605
 o
@@ -99,18 +95,10 @@ Rapp/src/main/java/com/telakuR/easyorder/setupProfile/ui/views/SelectPictureView
 Sapp/src/main/java/com/telakuR/easyorder/setupProfile/ui/views/PicturePreviewView.kt,3/d/3d9c62f40305b8a4eb6e8e886e53b73ac2f6dd09
 €
 Papp/src/main/java/com/telakuR/easyorder/setupProfile/viewModel/SetUpPictureVM.kt,d/4/d4bc76bdf73306e73f7880110e645670349737f6
-|
-Lapp/src/main/java/com/telakuR/easyorder/home/ui/screens/NotificationsView.kt,1/d/1dca1a1589505e308f3df18ea95b503d0e372526
 v
 Fapp/src/main/java/com/telakuR/easyorder/home/ui/screens/ProfileView.kt,8/b/8baab003d0cd8d7755ea9c2602fb29152d948e73
-Š
-Zapp/src/main/java/com/telakuR/easyorder/home/ui/screens/employeeView/ChooseFastFoodView.kt,1/c/1cb6a6a9bf3f39cf24a32a8aacd3ad544e1d811f
 †
 Vapp/src/main/java/com/telakuR/easyorder/home/ui/screens/employeeView/ChooseFoodView.kt,c/0/c019a67e346a388611b3c61189719921f7acdd5d
-‰
-Yapp/src/main/java/com/telakuR/easyorder/home/ui/screens/employeeView/GroupedOrdersView.kt,3/8/38ec90bf904e5da3b03b0e753e6d461a884746eb
-P
- app/src/main/AndroidManifest.xml,8/c/8c55c3ccc257e5907959013f99656e4c8ec3903e
 ~
 Napp/src/main/java/com/telakuR/easyorder/services/MyFirebaseMessagingService.kt,1/2/12007fa38f1161c6de6ae5004d06852caa882b40
 y
@@ -123,8 +111,6 @@ f
 6app/src/main/java/com/telakuR/easyorder/models/User.kt,c/8/c853ea0ca9232dd2ca39b8f6285992f82e953dcf
 s
 Capp/src/main/java/com/telakuR/easyorder/home/viewModel/ProfileVM.kt,b/8/b837865d6fdead19269cebe32f916f5908a3a902
-…
-Uapp/src/main/java/com/telakuR/easyorder/mainRepository/impl/UserDataRepositoryImpl.kt,2/2/229fa3ae055d294ea62b3c3c3584621ec41676f6
 |
 Lapp/src/main/java/com/telakuR/easyorder/mainRepository/UserDataRepository.kt,e/3/e356c719aad28c7cdf4a2684faccfd234b427ef4
 y

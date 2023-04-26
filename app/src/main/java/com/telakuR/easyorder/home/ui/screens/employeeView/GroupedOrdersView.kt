@@ -26,7 +26,7 @@ fun GroupedOrdersScreen(
     viewModel: MyOrdersVM = hiltViewModel(),
     orderId: String
 ) {
-    viewModel.getMyOrderMenu(orderId = orderId)
+    viewModel.getMyOrderMenu(orderId = orderId, true)
     val groupedOrders = viewModel.myOrderMenu.collectAsStateWithLifecycle().value
     val countedMap = groupedOrders.groupBy { it.menuItem }
         .mapValues { it.value.size }

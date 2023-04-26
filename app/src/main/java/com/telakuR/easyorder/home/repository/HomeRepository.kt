@@ -14,23 +14,21 @@ interface HomeRepository {
 
     fun getFastFoods(): Flow<List<FastFood>>
 
-    fun getFastFoodMenu(fastFoodName: String): Flow<List<MenuItem>>
+    fun getFastFoodMenu(fastFoodId: String): Flow<List<MenuItem>>
 
-    fun getMyOrder(companyId: String, orderId: String): Flow<List<EmployeeMenuItem>>
+    fun getMyOrderDetails(companyId: String, orderId: String, isMyOrder: Boolean): Flow<List<EmployeeMenuItem>>
 
     fun getMyOrders(companyId: String): Flow<List<OrderDetails>>
 
     fun completeOrder(orderId: String, companyId: String)
 
-    fun removeMenuItemFromOrder(orderId: String, companyId: String, menuItem: MenuItem)
-
-    fun getOtherOrder(companyId: String, orderId: String): Flow<List<EmployeeMenuItem>>
+    fun removeMenuItemFromOrder(orderId: String, companyId: String, menuItem: EmployeeMenuItem?)
 
     fun removeOrder(orderId: String, companyId: String)
 
     fun getPaymentDetails(companyId: String, orderId: String): Flow<List<UserPaymentModelResponse>>
 
-    fun removeMenuItemPaymentDetails(orderId: String, menuItem: MenuItem)
+    fun removeMenuItemPaymentDetails(orderId: String, menuItem: EmployeeMenuItem)
 
     fun setPaidValuesToPayments(employeeId: String, paid: String, orderId: String)
 

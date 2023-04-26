@@ -26,7 +26,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.telakuR.easyorder.R
 import com.telakuR.easyorder.home.models.EmployeeMenuItem
-import com.telakuR.easyorder.home.models.MenuItem
 import com.telakuR.easyorder.home.route.HomeRoute
 import com.telakuR.easyorder.home.viewModel.MyOrdersVM
 import com.telakuR.easyorder.ui.theme.*
@@ -40,7 +39,7 @@ fun OrderDetailsScreen(
     orderId: String
 ) {
     val isMyOrder = viewModel.isMyOrder(employeeId)
-    val dialogState: MutableState<Pair<Boolean, MenuItem?>> = remember { mutableStateOf(Pair(false, null)) }
+    val dialogState: MutableState<Pair<Boolean, EmployeeMenuItem?>> = remember { mutableStateOf(Pair(false, null)) }
 
     Scaffold(
         content = { it
@@ -54,19 +53,12 @@ fun OrderDetailsScreen(
                 }
 
                 Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.Center) {
-                    if (isMyOrder) {
-                        MyOrderMenuDetails(
-                            orderId = orderId,
-                            viewModel = viewModel,
-                            dialogState = dialogState
-                        )
-                    } else {
-                        OtherOrderMenuDetails(
-                            orderId = orderId,
-                            viewModel = viewModel,
-                            dialogState = dialogState
-                        )
-                    }
+                    MyOrderMenuDetails(
+                        orderId = orderId,
+                        viewModel = viewModel,
+                        dialogState = dialogState,
+                        isMyOrder = isMyOrder
+                    )
 
                     RemoveMenuItemDialog(dialogState = dialogState, viewModel = viewModel, orderId = orderId)
                 }
@@ -83,9 +75,10 @@ fun OrderDetailsScreen(
 private fun MyOrderMenuDetails(
     orderId: String,
     viewModel: MyOrdersVM,
-    dialogState: MutableState<Pair<Boolean, MenuItem?>>
+    dialogState: MutableState<Pair<Boolean, EmployeeMenuItem?>>,
+    isMyOrder: Boolean
 ) {
-    viewModel.getMyOrderMenu(orderId = orderId)
+    viewModel.getMyOrderMenu(orderId = orderId, isMyOrder = isMyOrder)
     val myOrderMenu = viewModel.myOrderMenu.collectAsStateWithLifecycle().value
 
     Column(
@@ -100,7 +93,7 @@ private fun MyOrderMenuDetails(
 @Composable
 private fun MyOrderList(
     myOrderMenu: List<EmployeeMenuItem>,
-    dialogState: MutableState<Pair<Boolean, MenuItem?>>
+    dialogState: MutableState<Pair<Boolean, EmployeeMenuItem?>>
 ) {
     LazyColumn(modifier = Modifier.fillMaxWidth()) {
         items(myOrderMenu) { menuItem ->
@@ -111,14 +104,14 @@ private fun MyOrderList(
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun OrderMenuItem(menuItem: EmployeeMenuItem, dialogState: MutableState<Pair<Boolean, MenuItem?>>) {
+private fun OrderMenuItem(menuItem: EmployeeMenuItem, dialogState: MutableState<Pair<Boolean, EmployeeMenuItem?>>) {
     WhiteItemCard(modifier = Modifier
         .fillMaxWidth()
         .padding(horizontal = 10.dp)
         .combinedClickable(
             onClick = {},
             onLongClick = {
-                dialogState.value = Pair(true, menuItem.menuItem)
+                dialogState.value = Pair(true, menuItem)
             }
         )) {
         Row(
@@ -158,32 +151,6 @@ private fun OrderMenuItem(menuItem: EmployeeMenuItem, dialogState: MutableState<
     }
 
     Spacer(modifier = Modifier.height(10.dp))
-}
-
-@Composable
-private fun OtherOrderMenuDetails(orderId: String, viewModel: MyOrdersVM, dialogState: MutableState<Pair<Boolean, MenuItem?>>) {
-    viewModel.getOtherOrder(orderId = orderId)
-    val myOrderMenu = viewModel.myOrderMenu.collectAsStateWithLifecycle().value
-
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 10.dp), verticalArrangement = Arrangement.Center
-    ) {
-        OtherOrderList(myOrderMenu = myOrderMenu, dialogState = dialogState)
-    }
-}
-
-@Composable
-private fun OtherOrderList(
-    myOrderMenu: List<EmployeeMenuItem>,
-    dialogState: MutableState<Pair<Boolean, MenuItem?>>
-) {
-    LazyColumn(modifier = Modifier.fillMaxWidth()) {
-        items(myOrderMenu) { menuItem ->
-            OrderMenuItem(menuItem = menuItem, dialogState = dialogState)
-        }
-    }
 }
 
 @Composable
@@ -234,7 +201,7 @@ private fun OrderDetailsBottomBar(isMyOrder: Boolean, navController: NavControll
 
 @Composable
 private fun RemoveMenuItemDialog(
-    dialogState: MutableState<Pair<Boolean, MenuItem?>>,
+    dialogState: MutableState<Pair<Boolean, EmployeeMenuItem?>>,
     viewModel: MyOrdersVM,
     orderId: String
 ) {

@@ -92,15 +92,6 @@ class OrdersVM @Inject constructor(
         }
     }
 
-    fun removeMenuItem(orderId: String, menuItem: MenuItem) = launchCatching {
-        val companyId = userDataRepository.getCompanyId()
-        homeRepository.removeMenuItemFromOrder(orderId = orderId, companyId = companyId, menuItem = menuItem)
-    }
-
-    fun isMyOrder(employeeId: String): Boolean {
-        return accountService.currentUserId == employeeId
-    }
-
     fun getFastFoodByOrderId(orderId: String?) = launchCatching {
         val fastFoodId = withContext(ioDispatcher) {
             val companyId = userDataRepository.getCompanyId()
@@ -108,9 +99,5 @@ class OrdersVM @Inject constructor(
         }
 
         _fastFoodId.value = fastFoodId
-    }
-
-    fun setPaidValue(id: String, paid: String, orderId: String) {
-        homeRepository.setPaidValuesToPayments(employeeId = id, paid = paid, orderId = orderId)
     }
 }
