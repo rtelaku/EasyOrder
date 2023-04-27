@@ -68,7 +68,9 @@ class HomeActivity: ComponentActivity(), NetworkCallback {
     }
 
     private fun setNetworkStatusViewVisibility(shouldShow: Boolean) {
-        if(shouldShow) alertDialog.show() else alertDialog.dismiss()
+        runOnUiThread {
+            if(shouldShow) alertDialog.show() else alertDialog.dismiss()
+        }
     }
 
     override fun onDestroy() {
