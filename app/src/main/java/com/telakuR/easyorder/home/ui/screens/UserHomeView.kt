@@ -29,12 +29,12 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import com.telakuR.easyorder.R
-import com.telakuR.easyorder.main.enums.RolesEnum
-import com.telakuR.easyorder.home.models.OrderDetails
 import com.telakuR.easyorder.home.route.HomeRoute
 import com.telakuR.easyorder.home.viewModel.HomeVM
-import com.telakuR.easyorder.main.models.User
+import com.telakuR.easyorder.main.enums.RolesEnum
 import com.telakuR.easyorder.main.ui.theme.*
+import com.telakuR.easyorder.room_db.enitites.CompanyOrderDetails
+import com.telakuR.easyorder.room_db.enitites.Employee
 import com.telakuR.easyorder.utils.Constants.ORDER_ID
 import java.util.*
 
@@ -82,7 +82,9 @@ private fun EmployeeHome(viewModel: HomeVM, navController: NavHostController) {
 
 @Composable
 private fun AllOrders(viewModel: HomeVM, navController: NavController) {
-    viewModel.getListOfOrders()
+    viewModel.getListOfOrdersFromDB()
+    viewModel.getListOfOrdersFromAPI()
+
     val orders = viewModel.orders.collectAsStateWithLifecycle().value
 
     Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.Top) {
@@ -107,7 +109,7 @@ private fun AllOrders(viewModel: HomeVM, navController: NavController) {
 }
 
 @Composable
-private fun OrderList(orders: List<OrderDetails>, navController: NavController) {
+private fun OrderList(orders: List<CompanyOrderDetails>, navController: NavController) {
     LazyColumn(modifier = Modifier.fillMaxWidth()) {
         items(orders) { order ->
             OrderItem(order = order, navController = navController)
@@ -116,7 +118,7 @@ private fun OrderList(orders: List<OrderDetails>, navController: NavController) 
 }
 
 @Composable
-private fun OrderItem(order: OrderDetails, navController: NavController) {
+private fun OrderItem(order: CompanyOrderDetails, navController: NavController) {
     Box(
         modifier = Modifier.fillMaxWidth()
     ) {
@@ -151,8 +153,8 @@ private fun OrderItem(order: OrderDetails, navController: NavController) {
 @Composable
 private fun CompanyHome(viewModel: HomeVM) {
     Column(modifier = Modifier.fillMaxSize()) {
-
-        viewModel.getListOfEmployees()
+        viewModel.getListOfEmployeesFromDB()
+        viewModel.getListOfEmployeesFromAPI()
 
         val textState = remember { mutableStateOf(TextFieldValue("")) }
 
@@ -181,17 +183,17 @@ private fun CompanyHome(viewModel: HomeVM) {
 
 @Composable
 private fun EmployeesList(
-    employees: List<User>,
+    employees: List<Employee>,
     state: MutableState<TextFieldValue>,
     viewModel: HomeVM
 ) {
-    var filteredEmployees: List<User>
+    var filteredEmployees: List<Employee>
     LazyColumn(modifier = Modifier.fillMaxWidth()) {
         val searchedText = state.value.text
         filteredEmployees = if (searchedText.isEmpty()) {
             employees
         } else {
-            val resultList = ArrayList<User>()
+            val resultList = ArrayList<Employee>()
             for (employee in employees) {
                 if (employee.name.lowercase(Locale.getDefault())
                         .contains(searchedText.lowercase(Locale.getDefault()))
@@ -208,7 +210,7 @@ private fun EmployeesList(
 }
 
 @Composable
-private fun EmployeeItem(employee: User, viewModel: HomeVM) {
+private fun EmployeeItem(employee: Employee, viewModel: HomeVM) {
     WhiteItemCard(modifier = Modifier
         .fillMaxWidth()
         .padding(horizontal = 10.dp)) {

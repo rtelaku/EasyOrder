@@ -1,7 +1,9 @@
 package com.telakuR.easyorder.modules
 
+import com.telakuR.easyorder.home.repository.EmployeeRequestsRepository
 import com.telakuR.easyorder.home.repository.impl.HomeDataRepositoryImpl
 import com.telakuR.easyorder.home.repository.HomeRepository
+import com.telakuR.easyorder.home.repository.impl.EmployeeRequestsRepositoryImpl
 import com.telakuR.easyorder.main.repository.NotificationsRepository
 import com.telakuR.easyorder.main.repository.UserDataRepository
 import com.telakuR.easyorder.main.repository.impl.AccountServiceImpl
@@ -37,5 +39,8 @@ abstract class ServiceModule {
 
     @Binds
     abstract fun provideNotificationsService(impl: NotificationsRepositoryImpl): NotificationsRepository
+
+    @Binds
+    abstract fun provideEmployeeRequestsService(impl: EmployeeRequestsRepositoryImpl): EmployeeRequestsRepository
 
 }

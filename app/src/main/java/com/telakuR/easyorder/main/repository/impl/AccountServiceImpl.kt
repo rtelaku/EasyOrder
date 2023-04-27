@@ -14,6 +14,8 @@ import com.telakuR.easyorder.main.enums.DBCollectionEnum
 import com.telakuR.easyorder.main.enums.RolesEnum
 import com.telakuR.easyorder.main.models.User
 import com.telakuR.easyorder.main.services.AccountService
+import com.telakuR.easyorder.modules.IoDispatcher
+import com.telakuR.easyorder.room_db.db.EasyOrderDB
 import com.telakuR.easyorder.utils.Constants.COMPANY_ID
 import com.telakuR.easyorder.utils.Constants.EMAIL
 import com.telakuR.easyorder.utils.Constants.EMPLOYEES
@@ -24,12 +26,19 @@ import com.telakuR.easyorder.utils.Constants.REQUESTS
 import com.telakuR.easyorder.utils.Constants.TOKEN
 import com.telakuR.easyorder.utils.EasyOrderPreferences
 import com.telakuR.easyorder.utils.ToastUtils.showToast
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
-class AccountServiceImpl @Inject constructor(private val auth: FirebaseAuth, private val fireStore: FirebaseFirestore): AccountService {
+class AccountServiceImpl @Inject constructor(
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
+    private val auth: FirebaseAuth,
+    private val fireStore: FirebaseFirestore,
+    private val easyOrderDB: EasyOrderDB
+) : AccountService {
 
     private val TAG = AccountServiceImpl::class.simpleName
 
@@ -162,7 +171,10 @@ class AccountServiceImpl @Inject constructor(private val auth: FirebaseAuth, pri
     }
 
     override suspend fun signOut() {
-        EasyOrderPreferences.eraseAllData()
+        withContext(ioDispatcher) {
+            EasyOrderPreferences.eraseAllData()
+            easyOrderDB.clearAllTables()
+        }
         auth.signOut()
     }
 

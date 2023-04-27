@@ -4,22 +4,25 @@ import android.util.Log
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.telakuR.easyorder.main.enums.DBCollectionEnum
-import com.telakuR.easyorder.main.repository.NotificationsRepository
 import com.telakuR.easyorder.main.models.NotificationModel
-import com.telakuR.easyorder.modules.IoDispatcher
+import com.telakuR.easyorder.main.repository.NotificationsRepository
 import com.telakuR.easyorder.main.services.AccountService
+import com.telakuR.easyorder.modules.IoDispatcher
+import com.telakuR.easyorder.room_db.db.EasyOrderDB
 import com.telakuR.easyorder.utils.Constants
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class NotificationsRepositoryImpl @Inject constructor(
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     private val fireStore: FirebaseFirestore,
-    private val accountService: AccountService
+    private val accountService: AccountService,
+    private val easyOrderDB: EasyOrderDB
 ): NotificationsRepository {
 
     private val TAG = NotificationsRepositoryImpl::class.simpleName
@@ -44,7 +47,11 @@ class NotificationsRepositoryImpl @Inject constructor(
         }
     }
 
-    override fun getNotifications(): Flow<List<NotificationModel>> = callbackFlow {
+    override fun getNotificationsFromDB(): Flow<List<NotificationModel>> {
+        return easyOrderDB.notificationsDao().getNotifications()
+    }
+
+    override fun getNotificationsFromAPI(): Flow<List<NotificationModel>> = callbackFlow {
         val docRef = fireStore.collection(DBCollectionEnum.NOTIFICATIONS.title)
             .document(accountService.currentUserId)
 
@@ -73,5 +80,9 @@ class NotificationsRepositoryImpl @Inject constructor(
 
         awaitClose { subscription.remove() }
     }.flowOn(ioDispatcher)
+
+    override suspend fun saveNotificationsOnDB(notifications: List<NotificationModel>) = withContext(ioDispatcher) {
+        easyOrderDB.notificationsDao().deleteAndInsertNotifications(notifications = notifications)
+    }
 
 }

@@ -7,5 +7,9 @@ interface NotificationsRepository {
 
     fun saveNotification(notificationModel: NotificationModel?)
 
-    fun getNotifications(): Flow<List<NotificationModel>>
+    fun getNotificationsFromDB(): Flow<List<NotificationModel>>
+
+    fun getNotificationsFromAPI(): Flow<List<NotificationModel>>
+
+    suspend fun saveNotificationsOnDB(notifications: List<NotificationModel>)
 }

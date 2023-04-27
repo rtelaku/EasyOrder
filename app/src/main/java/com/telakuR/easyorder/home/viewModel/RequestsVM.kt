@@ -1,10 +1,10 @@
 package com.telakuR.easyorder.home.viewModel
 
-import com.telakuR.easyorder.home.repository.HomeRepository
-import com.telakuR.easyorder.main.viewmodel.EasyOrderViewModel
-import com.telakuR.easyorder.main.models.User
-import com.telakuR.easyorder.modules.IoDispatcher
+import com.telakuR.easyorder.home.repository.EmployeeRequestsRepository
 import com.telakuR.easyorder.main.services.LogService
+import com.telakuR.easyorder.main.viewmodel.EasyOrderViewModel
+import com.telakuR.easyorder.modules.IoDispatcher
+import com.telakuR.easyorder.room_db.enitites.EmployeeRequest
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -14,18 +14,26 @@ import javax.inject.Inject
 
 @HiltViewModel
 class RequestsVM @Inject constructor(
-    private val homeRepository: HomeRepository,
+    private val employeeRequestsRepository: EmployeeRequestsRepository,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     logService: LogService
 ) : EasyOrderViewModel(logService) {
 
-    private val _requests = MutableStateFlow<List<User>>(emptyList())
-    var requests: StateFlow<List<User>> = _requests
+    private val _requests = MutableStateFlow<List<EmployeeRequest>>(emptyList())
+    var requests: StateFlow<List<EmployeeRequest>> = _requests
 
-    fun getListOfRequests() {
+    fun getListOfRequestsFromAPI() {
         launchCatching {
-            homeRepository.getRequestsList().collect {
-                _requests.value = it
+            employeeRequestsRepository.getEmployeeRequestsFromAPI().collect { requests ->
+                employeeRequestsRepository.saveEmployeeRequestOnDB(employeeRequests = requests)
+            }
+        }
+    }
+
+    fun getListOfRequestsFromDB() {
+        launchCatching {
+            employeeRequestsRepository.getEmployeeRequestsFromDB().collect { requests ->
+                _requests.value = requests
             }
         }
     }
@@ -33,7 +41,7 @@ class RequestsVM @Inject constructor(
     fun acceptRequest(id: String) {
         launchCatching {
             withContext(ioDispatcher) {
-                homeRepository.acceptRequest(id)
+                employeeRequestsRepository.acceptRequest(id)
             }
         }
     }
@@ -41,7 +49,7 @@ class RequestsVM @Inject constructor(
     fun removeRequest(id: String) {
         launchCatching {
             withContext(ioDispatcher) {
-                homeRepository.removeRequest(id)
+                employeeRequestsRepository.removeRequest(id)
             }
         }
     }

@@ -29,7 +29,9 @@ import com.telakuR.easyorder.utils.getFormattedDate
 
 @Composable
 fun NotificationsScreen(navController: NavController, viewModel: NotificationsVM = hiltViewModel()) {
-    viewModel.getNotifications()
+    viewModel.getNotificationsFromDB()
+    viewModel.getNotificationsFromAPI()
+
     val notifications = viewModel.notifications.collectAsStateWithLifecycle().value
 
     Scaffold(

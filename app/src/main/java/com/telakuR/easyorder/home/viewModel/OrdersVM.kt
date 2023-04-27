@@ -5,10 +5,9 @@ import com.telakuR.easyorder.home.models.MenuItem
 import com.telakuR.easyorder.home.models.OrderDetails
 import com.telakuR.easyorder.home.repository.HomeRepository
 import com.telakuR.easyorder.main.repository.UserDataRepository
+import com.telakuR.easyorder.main.services.LogService
 import com.telakuR.easyorder.main.viewmodel.EasyOrderViewModel
 import com.telakuR.easyorder.modules.IoDispatcher
-import com.telakuR.easyorder.main.services.AccountService
-import com.telakuR.easyorder.main.services.LogService
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,7 +20,6 @@ class OrdersVM @Inject constructor(
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     private val homeRepository: HomeRepository,
     private val userDataRepository: UserDataRepository,
-    private val accountService: AccountService,
     logService: LogService
 ) : EasyOrderViewModel(logService) {
 

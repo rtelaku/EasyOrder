@@ -21,14 +21,15 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.telakuR.easyorder.R
 import com.telakuR.easyorder.home.viewModel.RequestsVM
-import com.telakuR.easyorder.main.models.User
 import com.telakuR.easyorder.main.ui.theme.*
+import com.telakuR.easyorder.room_db.enitites.EmployeeRequest
 import java.util.*
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun RequestsScreen(viewModel: RequestsVM = hiltViewModel()) {
-    viewModel.getListOfRequests()
+    viewModel.getListOfRequestsFromDB()
+    viewModel.getListOfRequestsFromAPI()
 
     val textState = remember { mutableStateOf(TextFieldValue("")) }
     val requests = viewModel.requests.collectAsStateWithLifecycle().value
@@ -64,17 +65,17 @@ fun RequestsScreen(viewModel: RequestsVM = hiltViewModel()) {
 
 @Composable
 private fun RequestList(
-    requests: List<User>,
+    requests: List<EmployeeRequest>,
     state: MutableState<TextFieldValue>,
     viewModel: RequestsVM
 ) {
-    var filteredEmployees: List<User>
+    var filteredEmployees: List<EmployeeRequest>
     LazyColumn(modifier = Modifier.fillMaxWidth()) {
         val searchedText = state.value.text
         filteredEmployees = if (searchedText.isEmpty()) {
             requests
         } else {
-            val resultList = ArrayList<User>()
+            val resultList = ArrayList<EmployeeRequest>()
             for (employee in requests) {
                 if (employee.name.lowercase(Locale.getDefault())
                         .contains(searchedText.lowercase(Locale.getDefault()))
@@ -91,7 +92,7 @@ private fun RequestList(
 }
 
 @Composable
-private fun RequestItem(employee: User, viewModel: RequestsVM) {
+private fun RequestItem(employee: EmployeeRequest, viewModel: RequestsVM) {
     WhiteItemCard(modifier = Modifier
         .fillMaxWidth()
         .padding(horizontal = 10.dp)) {

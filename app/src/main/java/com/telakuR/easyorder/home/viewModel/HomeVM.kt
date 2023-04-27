@@ -1,14 +1,14 @@
 package com.telakuR.easyorder.home.viewModel
 
-import com.telakuR.easyorder.main.enums.RolesEnum
-import com.telakuR.easyorder.home.models.OrderDetails
 import com.telakuR.easyorder.home.repository.HomeRepository
 import com.telakuR.easyorder.home.route.HomeRoute
+import com.telakuR.easyorder.main.enums.RolesEnum
 import com.telakuR.easyorder.main.repository.UserDataRepository
-import com.telakuR.easyorder.main.viewmodel.EasyOrderViewModel
-import com.telakuR.easyorder.main.models.User
-import com.telakuR.easyorder.modules.IoDispatcher
 import com.telakuR.easyorder.main.services.LogService
+import com.telakuR.easyorder.main.viewmodel.EasyOrderViewModel
+import com.telakuR.easyorder.modules.IoDispatcher
+import com.telakuR.easyorder.room_db.enitites.CompanyOrderDetails
+import com.telakuR.easyorder.room_db.enitites.Employee
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.delay
@@ -28,11 +28,11 @@ class HomeVM @Inject constructor(
     private val _showSetupProfile = MutableStateFlow(false)
     var showSetupProfile: StateFlow<Boolean> = _showSetupProfile
 
-    private val _orders = MutableStateFlow<List<OrderDetails>>(emptyList())
-    var orders: StateFlow<List<OrderDetails>> = _orders
+    private val _orders = MutableStateFlow<List<CompanyOrderDetails>>(emptyList())
+    var orders: StateFlow<List<CompanyOrderDetails>> = _orders
 
-    private val _employees = MutableStateFlow<List<User>>(emptyList())
-    var employees: StateFlow<List<User>> = _employees
+    private val _employees = MutableStateFlow<List<Employee>>(emptyList())
+    var employees: StateFlow<List<Employee>> = _employees
 
     private val _isUserOnACompany = MutableStateFlow<Boolean?>(null)
     var isUserOnACompany: StateFlow<Boolean?> = _isUserOnACompany
@@ -55,25 +55,25 @@ class HomeVM @Inject constructor(
         }
     }
 
-    fun getListOfEmployees() {
-        launchCatching {
-            homeRepository.getEmployeesList().collect {
-                _employees.value = it
-            }
-        }
-    }
-
     fun removeEmployee(id: String) {
         launchCatching {
             homeRepository.removeEmployee(id = id)
         }
     }
 
-    fun getListOfOrders() {
+    fun getListOfOrdersFromAPI() {
         launchCatching {
             val userCompanyId = userDataRepository.getCompanyId()
-            homeRepository.getOrders(userCompanyId = userCompanyId).collect {
-                _orders.value = it
+            homeRepository.getOrdersFromAPI(userCompanyId = userCompanyId).collect { orders ->
+                homeRepository.saveOrdersOnDB(companyOrders = orders)
+            }
+        }
+    }
+
+    fun getListOfOrdersFromDB() {
+        launchCatching {
+            homeRepository.getOrdersFromDB().collect { companyOrders ->
+                _orders.value = companyOrders
             }
         }
     }
@@ -125,5 +125,21 @@ class HomeVM @Inject constructor(
         }
 
         return screens
+    }
+
+    fun getListOfEmployeesFromAPI() {
+        launchCatching {
+            homeRepository.getEmployeesFromAPI().collect { employees ->
+                homeRepository.saveEmployeesOnDB(employees = employees)
+            }
+        }
+    }
+
+    fun getListOfEmployeesFromDB() {
+        launchCatching {
+            homeRepository.getEmployeesListFromDB().collect { employees ->
+                _employees.value = employees
+            }
+        }
     }
 }

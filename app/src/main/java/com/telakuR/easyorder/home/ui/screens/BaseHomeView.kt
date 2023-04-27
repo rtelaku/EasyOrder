@@ -214,7 +214,7 @@ private fun AddItemRow(
         verticalAlignment = Alignment.CenterVertically
     ) {
         if (screen.title == HomeRoute.Requests.title) {
-            viewModel.getListOfRequests()
+            viewModel.getListOfRequestsFromAPI()
 
             val requestsSize = viewModel.requests.collectAsStateWithLifecycle().value.size
 

@@ -2,16 +2,22 @@ package com.telakuR.easyorder.home.repository.impl
 
 import android.util.Log
 import android.widget.Toast
-import com.google.firebase.firestore.*
+import com.google.firebase.firestore.DocumentSnapshot
+import com.google.firebase.firestore.FieldValue
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.QuerySnapshot
 import com.google.gson.Gson
 import com.telakuR.easyorder.R
-import com.telakuR.easyorder.main.enums.DBCollectionEnum
 import com.telakuR.easyorder.home.models.*
 import com.telakuR.easyorder.home.repository.HomeRepository
+import com.telakuR.easyorder.main.enums.DBCollectionEnum
 import com.telakuR.easyorder.main.models.User
-import com.telakuR.easyorder.modules.IoDispatcher
 import com.telakuR.easyorder.main.services.AccountService
 import com.telakuR.easyorder.main.services.MyFirebaseMessagingService
+import com.telakuR.easyorder.modules.IoDispatcher
+import com.telakuR.easyorder.room_db.db.EasyOrderDB
+import com.telakuR.easyorder.room_db.enitites.CompanyOrderDetails
+import com.telakuR.easyorder.room_db.enitites.Employee
 import com.telakuR.easyorder.utils.Constants
 import com.telakuR.easyorder.utils.Constants.COMPANY_ID
 import com.telakuR.easyorder.utils.Constants.DEFAULT_PRICE
@@ -28,15 +34,12 @@ import com.telakuR.easyorder.utils.Constants.PROFILE_PIC
 import com.telakuR.easyorder.utils.Constants.REQUESTS
 import com.telakuR.easyorder.utils.Constants.TOTAL_PRICE
 import com.telakuR.easyorder.utils.ToastUtils.showToast
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import kotlin.coroutines.Continuation
@@ -46,11 +49,12 @@ import kotlin.coroutines.suspendCoroutine
 class HomeDataRepositoryImpl @Inject constructor(
     @IoDispatcher val ioDispatcher: CoroutineDispatcher,
     private val fireStore: FirebaseFirestore,
-    private val accountService: AccountService
+    private val accountService: AccountService,
+    private val easyOrderDB: EasyOrderDB
 ) : HomeRepository {
     private val TAG = HomeDataRepositoryImpl::class.simpleName
 
-    override fun getEmployeesList(): Flow<List<User>> = callbackFlow {
+    override fun getEmployeesFromAPI(): Flow<List<Employee>> = callbackFlow {
         val employeeRef = fireStore.collection(DBCollectionEnum.EMPLOYEES.title)
             .document(accountService.currentUserId)
 
@@ -63,7 +67,7 @@ class HomeDataRepositoryImpl @Inject constructor(
             if (snapshot != null && snapshot.exists()) {
                 val employeesList = snapshot.get(EMPLOYEES) as ArrayList<String>
 
-                val users = mutableListOf<User>()
+                val employees = mutableListOf<Employee>()
                 val documents = mutableListOf<DocumentSnapshot>()
 
                 val deferredDocuments = employeesList.map { id ->
@@ -77,14 +81,14 @@ class HomeDataRepositoryImpl @Inject constructor(
                 }
 
                 documents.forEachIndexed { index, document ->
-                    val user = Gson().fromJson(Gson().toJson(document.data), User::class.java)
+                    val user = Gson().fromJson(Gson().toJson(document.data), Employee::class.java)
                     user.id = employeesList[index]
-                    users.add(user)
+                    employees.add(user)
                 }
 
-                this.trySend(users).isSuccess
+                this.trySend(employees).isSuccess
             } else {
-                this.trySend(emptyList<User>()).isSuccess
+                this.trySend(emptyList<Employee>()).isSuccess
             }
         }
 
@@ -100,78 +104,9 @@ class HomeDataRepositoryImpl @Inject constructor(
             }
     }
 
-    override fun getRequestsList(): Flow<List<User>> = callbackFlow {
-        val employeeRef = fireStore.collection(DBCollectionEnum.EMPLOYEES.title)
-            .document(accountService.currentUserId)
-
-        val subscription = employeeRef.addSnapshotListener { snapshot, exception ->
-            if (exception != null) {
-                Log.d(TAG, "Couldn't get requests: $exception")
-                return@addSnapshotListener
-            }
-
-            if (snapshot != null && snapshot.exists()) {
-                val requestsList = snapshot.get(REQUESTS) as ArrayList<String>
-
-                val users = mutableListOf<User>()
-                val documents = mutableListOf<DocumentSnapshot>()
-
-                val deferredDocuments = requestsList.map { id ->
-                    async {
-                        fireStore.collection(DBCollectionEnum.USERS.title).document(id).get()
-                            .await()
-                    }
-                }
-
-                runBlocking {
-                    documents.addAll(deferredDocuments.awaitAll())
-                }
-
-                documents.forEachIndexed { index, document ->
-                    val user = Gson().fromJson(Gson().toJson(document.data), User::class.java)
-                    user.id = requestsList[index]
-                    users.add(user)
-                }
-
-                this.trySend(users).isSuccess
-            } else {
-                this.trySend(emptyList<User>()).isSuccess
-            }
-        }
-
-        awaitClose { subscription.remove() }
-    }.flowOn(ioDispatcher)
-
-    override suspend fun acceptRequest(id: String) {
-        fireStore.collection(DBCollectionEnum.EMPLOYEES.title)
-            .document(accountService.currentUserId)
-            .update(
-                REQUESTS, FieldValue.arrayRemove(id),
-                EMPLOYEES, FieldValue.arrayUnion(id)
-            )
-            .addOnSuccessListener {
-                MyFirebaseMessagingService.sendRequestStateMessage(employeeId = id, hasBeenAccepted = true)
-            }
-            .addOnFailureListener { exception ->
-                Log.e(TAG, "Couldn't accept request: ", exception)
-            }
-    }
-
-    override suspend fun removeRequest(id: String) {
-        fireStore.collection(DBCollectionEnum.EMPLOYEES.title)
-            .document(accountService.currentUserId)
-            .update(REQUESTS, FieldValue.arrayRemove(id))
-            .addOnSuccessListener {
-                MyFirebaseMessagingService.sendRequestStateMessage(employeeId = id, hasBeenAccepted = false)
-            }
-            .addOnFailureListener { exception ->
-                Log.e(TAG, "Couldn't remove request: ", exception)
-            }
-    }
-
-    override fun getOrders(userCompanyId: String): Flow<List<OrderDetails>> = flow {
+    override fun getOrdersFromAPI(userCompanyId: String): Flow<List<CompanyOrderDetails>> = flow {
         try {
-            val companyOrdersList = mutableListOf<OrderDetails>()
+            val companyOrdersList = mutableListOf<CompanyOrderDetails>()
             val ordersCollection = fireStore.collection(DBCollectionEnum.ORDERS.title)
 
             val querySnapshot = ordersCollection
@@ -187,7 +122,7 @@ class HomeDataRepositoryImpl @Inject constructor(
             for (task in subCollectionTasks) {
                 for (subDoc in task.documents) {
                     val orderDetail =
-                        Gson().fromJson(Gson().toJson(subDoc.data), OrderDetails::class.java)
+                        Gson().fromJson(Gson().toJson(subDoc.data), CompanyOrderDetails::class.java)
 
                     orderDetail.id = subDoc.id
 
@@ -360,6 +295,10 @@ class HomeDataRepositoryImpl @Inject constructor(
 
     }.flowOn(ioDispatcher)
 
+    override fun getEmployeesListFromDB(): Flow<List<Employee>> {
+        return easyOrderDB.companyEmployeesDao().getCompanyEmployees()
+    }
+
     override suspend fun addMenuItemToOrder(
         companyId: String,
         menuItem: MenuItem,
@@ -391,6 +330,18 @@ class HomeDataRepositoryImpl @Inject constructor(
                     savePaymentDetails(orderId = orderId, employeeMenuItem = employeeMenuItem)
                 }
             }
+    }
+
+    override suspend fun saveEmployeesOnDB(employees: List<Employee>) = withContext(ioDispatcher) {
+        easyOrderDB.companyEmployeesDao().deleteAndInsertEmployees(companyEmployees = employees)
+    }
+
+    override fun getOrdersFromDB(): Flow<List<CompanyOrderDetails>> {
+        return easyOrderDB.companyOrdersDao().getCompanyOrders()
+    }
+
+    override suspend fun saveOrdersOnDB(companyOrders: List<CompanyOrderDetails>) = withContext(ioDispatcher) {
+        easyOrderDB.companyOrdersDao().deleteAndInsertOrders(companyOrders = companyOrders)
     }
 
     private fun savePaymentDetails(orderId: String, employeeMenuItem: EmployeeMenuItemResponse) {
