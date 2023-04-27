@@ -102,4 +102,5 @@
     <string name="you_have_been_declined_from_company">Your request to %s has been declined</string>
     <string name="new_request">New request!</string>
     <string name="employee_requesting_to_join_company">%s is requesting to join the company</string>
+    <string name="no_internet_connection">There is no internet connection!</string>
 </resources>
