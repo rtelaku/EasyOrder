@@ -25,10 +25,10 @@ import com.telakuR.easyorder.R
 import com.telakuR.easyorder.home.models.FastFood
 import com.telakuR.easyorder.home.route.HomeRoute
 import com.telakuR.easyorder.home.viewModel.OrdersVM
-import com.telakuR.easyorder.ui.theme.AsyncRoundedImageFromUrl
-import com.telakuR.easyorder.ui.theme.Background
-import com.telakuR.easyorder.ui.theme.SearchBar
-import com.telakuR.easyorder.ui.theme.WhiteItemCard
+import com.telakuR.easyorder.main.ui.theme.AsyncRoundedImageFromUrl
+import com.telakuR.easyorder.main.ui.theme.Background
+import com.telakuR.easyorder.main.ui.theme.SearchBar
+import com.telakuR.easyorder.main.ui.theme.WhiteItemCard
 import com.telakuR.easyorder.utils.Constants.FAST_FOOD_ID
 import java.util.*
 

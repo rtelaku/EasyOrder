@@ -27,13 +27,13 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.telakuR.easyorder.R
-import com.telakuR.easyorder.ext.twoDecimalNumber
+import com.telakuR.easyorder.main.ext.twoDecimalNumber
 import com.telakuR.easyorder.home.models.UserPaymentModelResponse
 import com.telakuR.easyorder.home.viewModel.MyOrdersVM
-import com.telakuR.easyorder.ui.theme.AsyncRoundedImage
-import com.telakuR.easyorder.ui.theme.Background
-import com.telakuR.easyorder.ui.theme.PrimaryColor
-import com.telakuR.easyorder.ui.theme.WhiteItemCard
+import com.telakuR.easyorder.main.ui.theme.AsyncRoundedImage
+import com.telakuR.easyorder.main.ui.theme.Background
+import com.telakuR.easyorder.main.ui.theme.PrimaryColor
+import com.telakuR.easyorder.main.ui.theme.WhiteItemCard
 import com.telakuR.easyorder.utils.Constants.DEFAULT_PRICE
 
 @Composable

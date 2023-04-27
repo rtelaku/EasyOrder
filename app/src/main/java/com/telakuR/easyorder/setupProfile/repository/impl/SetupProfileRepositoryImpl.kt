@@ -6,13 +6,13 @@ import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.StorageReference
 import com.google.gson.Gson
-import com.telakuR.easyorder.enums.DBCollectionEnum
-import com.telakuR.easyorder.enums.RolesEnum
-import com.telakuR.easyorder.models.Response
-import com.telakuR.easyorder.models.User
+import com.telakuR.easyorder.main.enums.DBCollectionEnum
+import com.telakuR.easyorder.main.enums.RolesEnum
+import com.telakuR.easyorder.main.models.Response
+import com.telakuR.easyorder.main.models.User
 import com.telakuR.easyorder.modules.IoDispatcher
-import com.telakuR.easyorder.services.AccountService
-import com.telakuR.easyorder.services.MyFirebaseMessagingService
+import com.telakuR.easyorder.main.services.AccountService
+import com.telakuR.easyorder.main.services.MyFirebaseMessagingService
 import com.telakuR.easyorder.setupProfile.repository.SetupProfileRepository
 import com.telakuR.easyorder.utils.Constants.PROFILE_PIC
 import com.telakuR.easyorder.utils.Constants.REQUESTS
@@ -25,6 +25,8 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 
 @Singleton
 class SetupProfileRepositoryImpl @Inject constructor(
@@ -102,7 +104,34 @@ class SetupProfileRepositoryImpl @Inject constructor(
             }
     }
 
-    override fun getRequestedCompanyId(): String {
+    override suspend fun getRequestedCompany(): String? = suspendCoroutine { continuation ->
+        try {
+            fireStore.collection(DBCollectionEnum.EMPLOYEES.title).get()
+                .addOnSuccessListener { snapshot ->
+                    var count = 0
+                    for(sn in snapshot) {
+                        val company = Gson().fromJson(Gson().toJson(sn.data), User::class.java)
+                        val requests = sn.data[REQUESTS] as ArrayList<String>
+                        requests.forEach {
+                            if(it == accountService.currentUserId) {
+                                count = 1
+                            }
+
+                            if(count == 1) {
+                                continuation.resume(company.email)
+                            }
+                        }
+                    }
+                    if(count == 0) {
+                        continuation.resume(null)
+                    }
+                }
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to get requested company: ", e)
+        }
+    }
+
+    override fun getRequestedCompanyIdFromDB(): String {
         return EasyOrderPreferences.getRequestedCompanyId()
     }
 

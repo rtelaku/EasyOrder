@@ -4,11 +4,11 @@ import com.telakuR.easyorder.home.models.FastFood
 import com.telakuR.easyorder.home.models.MenuItem
 import com.telakuR.easyorder.home.models.OrderDetails
 import com.telakuR.easyorder.home.repository.HomeRepository
-import com.telakuR.easyorder.mainRepository.UserDataRepository
-import com.telakuR.easyorder.mainViewModel.EasyOrderViewModel
+import com.telakuR.easyorder.main.repository.UserDataRepository
+import com.telakuR.easyorder.main.viewmodel.EasyOrderViewModel
 import com.telakuR.easyorder.modules.IoDispatcher
-import com.telakuR.easyorder.services.AccountService
-import com.telakuR.easyorder.services.LogService
+import com.telakuR.easyorder.main.services.AccountService
+import com.telakuR.easyorder.main.services.LogService
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow

@@ -21,8 +21,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.telakuR.easyorder.R
 import com.telakuR.easyorder.home.viewModel.RequestsVM
-import com.telakuR.easyorder.models.User
-import com.telakuR.easyorder.ui.theme.*
+import com.telakuR.easyorder.main.models.User
+import com.telakuR.easyorder.main.ui.theme.*
 import java.util.*
 
 @OptIn(ExperimentalAnimationApi::class)

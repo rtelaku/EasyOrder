@@ -21,4 +21,8 @@ object EasyOrderPreferences {
     fun getCurrentDeviceToken(): String {
         return prefs.getString(Constants.TOKEN, "")!!
     }
+
+    fun eraseAllData() {
+        prefs.edit().clear().apply()
+    }
 }

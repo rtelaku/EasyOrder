@@ -30,7 +30,7 @@ import com.telakuR.easyorder.R
 import com.telakuR.easyorder.home.models.OrderDetails
 import com.telakuR.easyorder.home.route.HomeRoute
 import com.telakuR.easyorder.home.viewModel.MyOrdersVM
-import com.telakuR.easyorder.ui.theme.*
+import com.telakuR.easyorder.main.ui.theme.*
 
 @Composable
 fun MyOrdersScreen(navController: NavHostController, viewModel: MyOrdersVM = hiltViewModel()) {

@@ -15,15 +15,15 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.telakuR.easyorder.R
-import com.telakuR.easyorder.enums.RolesEnum
+import com.telakuR.easyorder.main.enums.RolesEnum
 import com.telakuR.easyorder.home.ui.activities.HomeActivity
 import com.telakuR.easyorder.setupProfile.route.SetUpProfileRoute
 import com.telakuR.easyorder.setupProfile.ui.components.GetImageFromDatabase
 import com.telakuR.easyorder.setupProfile.viewModel.SetUpPictureVM
-import com.telakuR.easyorder.ui.theme.Background
-import com.telakuR.easyorder.ui.theme.MainButton
-import com.telakuR.easyorder.ui.theme.ProfileImageContent
-import com.telakuR.easyorder.ui.theme.Toolbar
+import com.telakuR.easyorder.main.ui.theme.Background
+import com.telakuR.easyorder.main.ui.theme.MainButton
+import com.telakuR.easyorder.main.ui.theme.ProfileImageContent
+import com.telakuR.easyorder.main.ui.theme.Toolbar
 
 @Composable
 fun PicturePreviewScreen(

@@ -1,8 +1,8 @@
 package com.telakuR.easyorder.setupProfile.repository
 
 import android.net.Uri
-import com.telakuR.easyorder.models.Response
-import com.telakuR.easyorder.models.User
+import com.telakuR.easyorder.main.models.Response
+import com.telakuR.easyorder.main.models.User
 import kotlinx.coroutines.flow.Flow
 
 interface  SetupProfileRepository {
@@ -14,12 +14,14 @@ interface  SetupProfileRepository {
 
     fun getCompanies(): Flow<List<User>>
 
-    fun getRequestedCompanyId(): String
+    fun getRequestedCompanyIdFromDB(): String
 
     fun saveCompanyIdToPreferences(companyId: String)
 
     suspend fun requestToJoin(id: String)
 
     suspend fun removeRequest(id: String)
+
+    suspend fun getRequestedCompany(): String?
 
 }

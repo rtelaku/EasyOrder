@@ -18,13 +18,13 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.telakuR.easyorder.R
-import com.telakuR.easyorder.enums.NotificationTypeEnum
+import com.telakuR.easyorder.main.enums.NotificationTypeEnum
 import com.telakuR.easyorder.home.viewModel.NotificationsVM
-import com.telakuR.easyorder.models.NotificationModel
-import com.telakuR.easyorder.ui.theme.Background
-import com.telakuR.easyorder.ui.theme.NoItemsText
-import com.telakuR.easyorder.ui.theme.Toolbar
-import com.telakuR.easyorder.ui.theme.WhiteItemCard
+import com.telakuR.easyorder.main.models.NotificationModel
+import com.telakuR.easyorder.main.ui.theme.Background
+import com.telakuR.easyorder.main.ui.theme.NoItemsText
+import com.telakuR.easyorder.main.ui.theme.Toolbar
+import com.telakuR.easyorder.main.ui.theme.WhiteItemCard
 import com.telakuR.easyorder.utils.getFormattedDate
 
 @Composable

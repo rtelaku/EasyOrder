@@ -5,13 +5,13 @@ import android.widget.Toast
 import com.google.firebase.firestore.*
 import com.google.gson.Gson
 import com.telakuR.easyorder.R
-import com.telakuR.easyorder.enums.DBCollectionEnum
+import com.telakuR.easyorder.main.enums.DBCollectionEnum
 import com.telakuR.easyorder.home.models.*
 import com.telakuR.easyorder.home.repository.HomeRepository
-import com.telakuR.easyorder.models.User
+import com.telakuR.easyorder.main.models.User
 import com.telakuR.easyorder.modules.IoDispatcher
-import com.telakuR.easyorder.services.AccountService
-import com.telakuR.easyorder.services.MyFirebaseMessagingService
+import com.telakuR.easyorder.main.services.AccountService
+import com.telakuR.easyorder.main.services.MyFirebaseMessagingService
 import com.telakuR.easyorder.utils.Constants
 import com.telakuR.easyorder.utils.Constants.COMPANY_ID
 import com.telakuR.easyorder.utils.Constants.DEFAULT_PRICE
@@ -311,38 +311,53 @@ class HomeDataRepositoryImpl @Inject constructor(
             }
         }.flowOn(ioDispatcher)
 
-    override fun getMyOrders(companyId: String): Flow<List<OrderDetails>> = flow {
-        val companyOrdersList = mutableListOf<OrderDetails>()
-
-        try {
-            val snapshot = fireStore.collection(DBCollectionEnum.ORDERS.title).whereEqualTo(COMPANY_ID, companyId).get().await()
+    override fun getMyOrders(companyId: String): Flow<List<OrderDetails>> = callbackFlow {
+            val snapshot = fireStore.collection(DBCollectionEnum.ORDERS.title)
+                .whereEqualTo(COMPANY_ID, companyId).get().await()
             val docRef = snapshot.documents[0].reference
-            val subSnapShot = docRef.collection(ORDERS).get().await()
-            val ordersDocs = subSnapShot.documents
 
-            if (ordersDocs.isNotEmpty()) {
-                for (ordersDoc in ordersDocs) {
-                    val orderedSnapshot = ordersDoc.reference.collection(ORDERED).whereEqualTo(EMPLOYEE_ID, accountService.currentUserId).get().await()
-                    if(orderedSnapshot.documents.isNotEmpty()) {
-                        val orderDetail = Gson().fromJson(Gson().toJson(ordersDoc.data), OrderDetails::class.java)
-                        orderDetail.id = ordersDoc.id
-
-                        val employeeName = fireStore.collection(DBCollectionEnum.USERS.title).document(orderDetail.employeeId).get().await().getString(NAME) ?: ""
-                        orderDetail.owner = employeeName
-
-                        val fastFoodName = fireStore.collection(DBCollectionEnum.FAST_FOODS.title).document(orderDetail.fastFood).get().await().getString(NAME) ?: ""
-                        orderDetail.fastFood = fastFoodName
-
-                        companyOrdersList.add(orderDetail)
-                    }
+            val listenerRegistration = docRef.collection(ORDERS).addSnapshotListener { value, error ->
+                if(error != null) {
+                    Log.d(TAG, "Failed to get orders: $error")
+                    this.trySend(emptyList<OrderDetails>()).isSuccess
                 }
+
+                val ordersDocs = value?.documents
+                    if (!ordersDocs.isNullOrEmpty()) {
+                        val companyOrdersList = mutableListOf<OrderDetails>()
+
+                        for (ordersDoc in ordersDocs) {
+                            ordersDoc.reference.collection(ORDERED).whereEqualTo(EMPLOYEE_ID, accountService.currentUserId).get().addOnSuccessListener {
+                                    if (it.documents.isNotEmpty()) {
+                                        val orderDetail = Gson().fromJson(Gson().toJson(ordersDoc.data), OrderDetails::class.java)
+                                        orderDetail.id = ordersDoc.id
+
+                                        fireStore.collection(DBCollectionEnum.USERS.title).document(orderDetail.employeeId).get().addOnSuccessListener { snapShot ->
+                                                val employeeName = snapShot.getString(NAME) ?: ""
+                                                orderDetail.owner = employeeName
+
+                                                fireStore.collection(DBCollectionEnum.FAST_FOODS.title).document(orderDetail.fastFood).get().addOnSuccessListener { subSnapShot ->
+                                                        val fastFoodName = subSnapShot.getString(NAME) ?: ""
+                                                        orderDetail.fastFood = fastFoodName
+
+                                                        companyOrdersList.add(orderDetail)
+                                                        this.trySend(companyOrdersList).isSuccess
+                                                    }.addOnFailureListener { e ->
+                                                        Log.d(TAG, "Failed to get fast food info: $e")
+                                                        this.trySend(emptyList<OrderDetails>()).isSuccess
+                                                    }
+                                            }.addOnFailureListener { e ->
+                                                Log.d(TAG, "Failed to get employee info: $e")
+                                                this.trySend(emptyList<OrderDetails>()).isSuccess
+                                            }
+                                    }
+                                }
+                        }
+                    }
             }
 
-            emit(companyOrdersList)
-        } catch (e: Exception) {
-            Log.e(TAG, "Couldn't get my orders: ", e)
-            emit(emptyList())
-        }
+        awaitClose { listenerRegistration.remove() }
+
     }.flowOn(ioDispatcher)
 
     override suspend fun addMenuItemToOrder(

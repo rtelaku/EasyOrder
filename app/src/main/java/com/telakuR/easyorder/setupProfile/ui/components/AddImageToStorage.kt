@@ -4,7 +4,7 @@ import android.net.Uri
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.telakuR.easyorder.models.Response
+import com.telakuR.easyorder.main.models.Response
 import com.telakuR.easyorder.setupProfile.viewModel.SetUpPictureVM
 
 @Composable

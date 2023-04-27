@@ -1,7 +1,7 @@
 package com.telakuR.easyorder.home.repository
 
 import com.telakuR.easyorder.home.models.*
-import com.telakuR.easyorder.models.User
+import com.telakuR.easyorder.main.models.User
 import kotlinx.coroutines.flow.Flow
 
 interface HomeRepository {

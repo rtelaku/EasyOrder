@@ -33,7 +33,7 @@
             android:name=".setupProfile.ui.activities.SetUpProfileActivity"
             android:exported="false" />
         <activity
-            android:name=".ui.activities.MainActivity"
+            android:name="com.telakuR.easyorder.main.ui.activities.MainActivity"
             android:exported="true"
             android:theme="@style/Theme.EasyOrder.Starting">
             <intent-filter>
@@ -54,7 +54,7 @@
         </provider>
 
         <service
-            android:name=".services.MyFirebaseMessagingService"
+            android:name="com.telakuR.easyorder.main.services.MyFirebaseMessagingService"
             android:exported="false">
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />

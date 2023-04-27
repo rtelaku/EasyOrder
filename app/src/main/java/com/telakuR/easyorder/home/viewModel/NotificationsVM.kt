@@ -1,9 +1,9 @@
 package com.telakuR.easyorder.home.viewModel
 
-import com.telakuR.easyorder.mainRepository.NotificationsRepository
-import com.telakuR.easyorder.mainViewModel.EasyOrderViewModel
-import com.telakuR.easyorder.models.NotificationModel
-import com.telakuR.easyorder.services.LogService
+import com.telakuR.easyorder.main.repository.NotificationsRepository
+import com.telakuR.easyorder.main.viewmodel.EasyOrderViewModel
+import com.telakuR.easyorder.main.models.NotificationModel
+import com.telakuR.easyorder.main.services.LogService
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

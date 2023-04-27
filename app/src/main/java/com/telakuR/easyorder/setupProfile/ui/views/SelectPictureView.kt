@@ -27,9 +27,9 @@ import com.telakuR.easyorder.setupProfile.ui.components.AddImageToDatabase
 import com.telakuR.easyorder.setupProfile.ui.components.AddImageToStorage
 import com.telakuR.easyorder.setupProfile.ui.components.GetImageFromDatabase
 import com.telakuR.easyorder.setupProfile.viewModel.SetUpPictureVM
-import com.telakuR.easyorder.ui.theme.Background
-import com.telakuR.easyorder.ui.theme.MainButton
-import com.telakuR.easyorder.ui.theme.PictureCardView
+import com.telakuR.easyorder.main.ui.theme.Background
+import com.telakuR.easyorder.main.ui.theme.MainButton
+import com.telakuR.easyorder.main.ui.theme.PictureCardView
 import com.telakuR.easyorder.utils.ToastUtils.showToast
 
 @Composable

@@ -10,7 +10,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.telakuR.easyorder.R
 import com.telakuR.easyorder.home.ui.activities.HomeActivity
-import com.telakuR.easyorder.models.CreateNotificationModel
+import com.telakuR.easyorder.main.models.CreateNotificationModel
 
 object NotificationsUtils {
 

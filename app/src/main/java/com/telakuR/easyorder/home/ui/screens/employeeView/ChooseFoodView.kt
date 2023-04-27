@@ -23,7 +23,7 @@ import com.telakuR.easyorder.R
 import com.telakuR.easyorder.home.models.MenuItem
 import com.telakuR.easyorder.home.route.HomeRoute
 import com.telakuR.easyorder.home.viewModel.OrdersVM
-import com.telakuR.easyorder.ui.theme.*
+import com.telakuR.easyorder.main.ui.theme.*
 import com.telakuR.easyorder.utils.ToastUtils
 import java.util.*
 

@@ -29,12 +29,12 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import com.telakuR.easyorder.R
-import com.telakuR.easyorder.enums.RolesEnum
+import com.telakuR.easyorder.main.enums.RolesEnum
 import com.telakuR.easyorder.home.models.OrderDetails
 import com.telakuR.easyorder.home.route.HomeRoute
 import com.telakuR.easyorder.home.viewModel.HomeVM
-import com.telakuR.easyorder.models.User
-import com.telakuR.easyorder.ui.theme.*
+import com.telakuR.easyorder.main.models.User
+import com.telakuR.easyorder.main.ui.theme.*
 import com.telakuR.easyorder.utils.Constants.ORDER_ID
 import java.util.*
 

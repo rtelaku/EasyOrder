@@ -18,10 +18,10 @@ import androidx.navigation.NavHostController
 import com.telakuR.easyorder.R
 import com.telakuR.easyorder.authentication.models.AuthenticationRoute
 import com.telakuR.easyorder.authentication.viewmodel.LoginVM
-import com.telakuR.easyorder.ui.theme.Background
-import com.telakuR.easyorder.ui.theme.CustomTextField
-import com.telakuR.easyorder.ui.theme.MainButton
-import com.telakuR.easyorder.ui.theme.Toolbar
+import com.telakuR.easyorder.main.ui.theme.Background
+import com.telakuR.easyorder.main.ui.theme.CustomTextField
+import com.telakuR.easyorder.main.ui.theme.MainButton
+import com.telakuR.easyorder.main.ui.theme.Toolbar
 
 @Composable
 fun ForgotPasswordScreen(navController: NavHostController, viewModel: LoginVM = hiltViewModel()) {

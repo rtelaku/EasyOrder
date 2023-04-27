@@ -36,7 +36,7 @@ import com.telakuR.easyorder.authentication.ui.activities.AuthenticationActivity
 import com.telakuR.easyorder.home.viewModel.ProfileVM
 import com.telakuR.easyorder.setupProfile.ui.views.HandleImageUri
 import com.telakuR.easyorder.setupProfile.viewModel.SetUpPictureVM
-import com.telakuR.easyorder.ui.theme.*
+import com.telakuR.easyorder.main.ui.theme.*
 import com.telakuR.easyorder.utils.MyFileProvider
 
 @Composable

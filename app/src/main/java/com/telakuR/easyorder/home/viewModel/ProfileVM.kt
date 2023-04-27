@@ -3,12 +3,12 @@ package com.telakuR.easyorder.home.viewModel
 import androidx.compose.runtime.mutableStateOf
 import com.telakuR.easyorder.authentication.models.AuthUiState
 import com.telakuR.easyorder.authentication.models.AuthenticationRoute
-import com.telakuR.easyorder.mainRepository.UserDataRepository
-import com.telakuR.easyorder.mainViewModel.EasyOrderViewModel
-import com.telakuR.easyorder.models.User
+import com.telakuR.easyorder.main.repository.UserDataRepository
+import com.telakuR.easyorder.main.viewmodel.EasyOrderViewModel
+import com.telakuR.easyorder.main.models.User
 import com.telakuR.easyorder.modules.IoDispatcher
-import com.telakuR.easyorder.services.AccountService
-import com.telakuR.easyorder.services.LogService
+import com.telakuR.easyorder.main.services.AccountService
+import com.telakuR.easyorder.main.services.LogService
 import com.telakuR.easyorder.setupProfile.route.SetUpProfileRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher

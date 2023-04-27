@@ -21,9 +21,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.telakuR.easyorder.R
 import com.telakuR.easyorder.home.ui.activities.HomeActivity
-import com.telakuR.easyorder.models.User
+import com.telakuR.easyorder.main.models.User
 import com.telakuR.easyorder.setupProfile.viewModel.FindCompanyVM
-import com.telakuR.easyorder.ui.theme.*
+import com.telakuR.easyorder.main.ui.theme.*
 import com.telakuR.easyorder.utils.ToastUtils.showToast
 import java.util.*
 

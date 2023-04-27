@@ -16,10 +16,10 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.telakuR.easyorder.R
 import com.telakuR.easyorder.home.models.MenuItem
 import com.telakuR.easyorder.home.viewModel.MyOrdersVM
-import com.telakuR.easyorder.ui.theme.AsyncRoundedImage
-import com.telakuR.easyorder.ui.theme.Background
-import com.telakuR.easyorder.ui.theme.OrangeTextColor
-import com.telakuR.easyorder.ui.theme.WhiteItemCard
+import com.telakuR.easyorder.main.ui.theme.AsyncRoundedImage
+import com.telakuR.easyorder.main.ui.theme.Background
+import com.telakuR.easyorder.main.ui.theme.OrangeTextColor
+import com.telakuR.easyorder.main.ui.theme.WhiteItemCard
 
 @Composable
 fun GroupedOrdersScreen(

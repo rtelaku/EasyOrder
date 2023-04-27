@@ -2,14 +2,14 @@ package com.telakuR.easyorder.modules
 
 import com.telakuR.easyorder.home.repository.impl.HomeDataRepositoryImpl
 import com.telakuR.easyorder.home.repository.HomeRepository
-import com.telakuR.easyorder.mainRepository.NotificationsRepository
-import com.telakuR.easyorder.mainRepository.UserDataRepository
-import com.telakuR.easyorder.mainRepository.impl.AccountServiceImpl
-import com.telakuR.easyorder.mainRepository.impl.LogServiceImpl
-import com.telakuR.easyorder.mainRepository.impl.NotificationsRepositoryImpl
-import com.telakuR.easyorder.mainRepository.impl.UserDataRepositoryImpl
-import com.telakuR.easyorder.services.AccountService
-import com.telakuR.easyorder.services.LogService
+import com.telakuR.easyorder.main.repository.NotificationsRepository
+import com.telakuR.easyorder.main.repository.UserDataRepository
+import com.telakuR.easyorder.main.repository.impl.AccountServiceImpl
+import com.telakuR.easyorder.main.repository.impl.LogServiceImpl
+import com.telakuR.easyorder.main.repository.impl.NotificationsRepositoryImpl
+import com.telakuR.easyorder.main.repository.impl.UserDataRepositoryImpl
+import com.telakuR.easyorder.main.services.AccountService
+import com.telakuR.easyorder.main.services.LogService
 import com.telakuR.easyorder.setupProfile.repository.SetupProfileRepository
 import com.telakuR.easyorder.setupProfile.repository.impl.SetupProfileRepositoryImpl
 import dagger.Binds

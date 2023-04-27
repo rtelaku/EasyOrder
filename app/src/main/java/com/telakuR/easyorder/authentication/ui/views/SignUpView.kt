@@ -23,7 +23,7 @@ import androidx.navigation.NavController
 import com.telakuR.easyorder.R
 import com.telakuR.easyorder.authentication.models.AuthenticationRoute
 import com.telakuR.easyorder.authentication.viewmodel.SignUpVM
-import com.telakuR.easyorder.ui.theme.*
+import com.telakuR.easyorder.main.ui.theme.*
 import com.telakuR.easyorder.utils.ToastUtils
 
 @OptIn(ExperimentalMaterial3Api::class)

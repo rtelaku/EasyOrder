@@ -1,7 +1,7 @@
 package com.telakuR.easyorder.modules
 
-import com.telakuR.easyorder.mainRepository.NotificationsRepository
-import com.telakuR.easyorder.mainRepository.impl.UserDataRepositoryImpl
+import com.telakuR.easyorder.main.repository.NotificationsRepository
+import com.telakuR.easyorder.main.repository.impl.UserDataRepositoryImpl
 import com.telakuR.easyorder.utils.EasyOrder
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
