@@ -35,10 +35,10 @@ import com.telakuR.easyorder.utils.Constants.ORDER_ID
 fun OrderDetailsScreen(
     navController: NavController,
     viewModel: MyOrdersVM = hiltViewModel(),
-    employeeId: String,
     orderId: String
 ) {
-    val isMyOrder = viewModel.isMyOrder(employeeId)
+    val order = viewModel.myOrderMenu.collectAsStateWithLifecycle().value
+    val isMyOrder = true
     val dialogState: MutableState<Pair<Boolean, EmployeeMenuItem?>> = remember { mutableStateOf(Pair(false, null)) }
 
     Scaffold(
@@ -78,7 +78,7 @@ private fun MyOrderMenuDetails(
     dialogState: MutableState<Pair<Boolean, EmployeeMenuItem?>>,
     isMyOrder: Boolean
 ) {
-    viewModel.getMyOrderMenu(orderId = orderId, isMyOrder = isMyOrder)
+//    viewModel.getMyOrderMenu(orderId = orderId, isMyOrder = isMyOrder)
     val myOrderMenu = viewModel.myOrderMenu.collectAsStateWithLifecycle().value
 
     Column(
@@ -128,7 +128,7 @@ private fun OrderMenuItem(menuItem: EmployeeMenuItem, dialogState: MutableState<
             ) {
                 Column {
                     AsyncRoundedImage(
-                        image = menuItem.userInfo.picture,
+                        image = menuItem.userInfo.employeePicture,
                         size = 65,
                         cornerSize = 10
                     )
@@ -138,9 +138,9 @@ private fun OrderMenuItem(menuItem: EmployeeMenuItem, dialogState: MutableState<
                     modifier = Modifier
                         .padding(start = 10.dp)
                 ) {
-                    Text(text = menuItem.userInfo.name, fontWeight = FontWeight.SemiBold)
+                    Text(text = menuItem.userInfo.employeeName, fontWeight = FontWeight.SemiBold)
                     Spacer(modifier = Modifier.height(5.dp))
-                    Text(text = menuItem.menuItem.name, color = Color.LightGray)
+                    Text(text = menuItem.menuItem.menuName, color = Color.LightGray)
                 }
             }
 

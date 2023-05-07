@@ -2,18 +2,15 @@ package com.telakuR.easyorder.room_db.db
 
 import androidx.room.Database
 import androidx.room.RoomDatabase
-import com.telakuR.easyorder.home.models.OrderDetails
-import com.telakuR.easyorder.main.models.NotificationModel
-import com.telakuR.easyorder.main.models.User
-import com.telakuR.easyorder.room_db.dao.CompanyEmployeeRequestsDao
-import com.telakuR.easyorder.room_db.dao.CompanyEmployeesDao
-import com.telakuR.easyorder.room_db.dao.CompanyOrdersDao
-import com.telakuR.easyorder.room_db.dao.NotificationsDao
-import com.telakuR.easyorder.room_db.enitites.CompanyOrderDetails
-import com.telakuR.easyorder.room_db.enitites.Employee
-import com.telakuR.easyorder.room_db.enitites.EmployeeRequest
+import com.telakuR.easyorder.room_db.dao.*
+import com.telakuR.easyorder.room_db.enitites.*
 
-@Database(entities = [CompanyOrderDetails::class, NotificationModel::class, Employee::class, EmployeeRequest::class], version = 1, exportSchema = false)
+@Database(
+    entities = [CompanyOrderDetails::class, NotificationModel::class,
+        Employee::class, EmployeeRequest::class, Profile::class, MyOrder::class, EmployeeMenuItem::class],
+    version = 1,
+    exportSchema = false
+)
 abstract class EasyOrderDB : RoomDatabase() {
 
     abstract fun companyEmployeesDao(): CompanyEmployeesDao
@@ -22,9 +19,12 @@ abstract class EasyOrderDB : RoomDatabase() {
 
     abstract fun companyOrdersDao(): CompanyOrdersDao
 
-//    abstract fun employeeOrdersDao()
-//
-//    abstract fun profileDao()
-//
+    abstract fun myOrdersDao(): MyOrdersDao
+
     abstract fun notificationsDao(): NotificationsDao
+
+    abstract fun profileDao(): ProfileDao
+
+//    abstract fun paymentDetails(): PaymentDetailsDao
+
 }

@@ -4,11 +4,11 @@ import androidx.compose.runtime.mutableStateOf
 import com.telakuR.easyorder.authentication.models.AuthUiState
 import com.telakuR.easyorder.authentication.models.AuthenticationRoute
 import com.telakuR.easyorder.main.repository.UserDataRepository
-import com.telakuR.easyorder.main.viewmodel.EasyOrderViewModel
-import com.telakuR.easyorder.main.models.User
-import com.telakuR.easyorder.modules.IoDispatcher
 import com.telakuR.easyorder.main.services.AccountService
 import com.telakuR.easyorder.main.services.LogService
+import com.telakuR.easyorder.main.viewmodel.EasyOrderViewModel
+import com.telakuR.easyorder.modules.IoDispatcher
+import com.telakuR.easyorder.room_db.enitites.Profile
 import com.telakuR.easyorder.setupProfile.route.SetUpProfileRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
@@ -28,8 +28,8 @@ class ProfileVM @Inject constructor(
     var uiState = mutableStateOf(AuthUiState())
         private set
 
-    private val _profile = MutableStateFlow<User?>(null)
-    var profile: StateFlow<User?> = _profile
+    private val _profile = MutableStateFlow<Profile?>(null)
+    var profile: StateFlow<Profile?> = _profile
 
     private val _screenToSetup = MutableStateFlow("")
     var screenToSetup: StateFlow<String> = _screenToSetup
@@ -62,14 +62,16 @@ class ProfileVM @Inject constructor(
         launchCatching {
             userDataRepository.getProfileFlow().collect { userProfile ->
                 if (userProfile != null) {
-                    _profile.value = userProfile
-                    uiState.value = uiState.value.copy(
-                        name = profile.value?.name ?: "",
-                        email = profile.value?.email ?: ""
-                    )
+                    userDataRepository.saveProfileOnDB(userProfile)
                 }
             }
         }
+    }
+
+    fun getProfileFromDB() = launchCatching {
+        val userProfile = userDataRepository.getProfileFromDB()
+        uiState.value = uiState.value.copy(name = userProfile?.name ?: "", email = userProfile?.email ?: "")
+        _profile.value = userProfile
     }
 
     fun editProfile(currentPassword: String) {

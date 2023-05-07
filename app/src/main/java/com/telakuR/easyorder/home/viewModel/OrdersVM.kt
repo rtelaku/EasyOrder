@@ -2,7 +2,6 @@ package com.telakuR.easyorder.home.viewModel
 
 import com.telakuR.easyorder.home.models.FastFood
 import com.telakuR.easyorder.home.models.MenuItem
-import com.telakuR.easyorder.home.models.OrderDetails
 import com.telakuR.easyorder.home.repository.HomeRepository
 import com.telakuR.easyorder.main.repository.UserDataRepository
 import com.telakuR.easyorder.main.services.LogService
@@ -26,8 +25,8 @@ class OrdersVM @Inject constructor(
     private val _fastFoods = MutableStateFlow<List<FastFood>>(emptyList())
     val fastFoods: StateFlow<List<FastFood>> get() = _fastFoods
 
-    private val _continueWithOrder = MutableStateFlow<OrderDetails?>(null)
-    val continueWithOrder: StateFlow<OrderDetails?> get() = _continueWithOrder
+    private val _orderId = MutableStateFlow<String?>(null)
+    val orderId: StateFlow<String?> get() = _orderId
 
     private val _fastFoodMenu = MutableStateFlow<List<MenuItem>>(emptyList())
     val fastFoodMenu: StateFlow<List<MenuItem>> get() = _fastFoodMenu
@@ -55,26 +54,28 @@ class OrdersVM @Inject constructor(
 
     fun createOrder(fastFood: String, menuItem: MenuItem) {
         launchCatching {
-            val order = withContext(ioDispatcher) {
-                val companyId = userDataRepository.getCompanyId()
-                val orderId = homeRepository.createOrderWithFastFood(
+            val companyId = userDataRepository.getCompanyId() ?: ""
+
+            val orderId = withContext(ioDispatcher) {
+                homeRepository.createOrderWithFastFood(
                     companyId = companyId,
                     fastFood = fastFood,
                     menuItem = menuItem
                 )
-
-                homeRepository.getOrder(orderId, companyId)
             }
 
-            if(order.id.isNotEmpty()) {
-                _continueWithOrder.value = order
+            val order = homeRepository.getOrder(orderId = orderId, companyId = companyId)
+            if(order != null) {
+                order.isMyOrder = true
+                homeRepository.saveOrderOnDB(order = order)
+                _orderId.value = order.id
             }
         }
     }
 
     fun addMenuItem(menuItem: MenuItem, orderId: String) {
         launchCatching {
-            val companyId = userDataRepository.getCompanyId()
+            val companyId = userDataRepository.getCompanyId() ?: ""
             val continueWithOrder = withContext(ioDispatcher) {
                 homeRepository.addMenuItemToOrder(
                     companyId = companyId,
@@ -84,15 +85,14 @@ class OrdersVM @Inject constructor(
             }
 
             if(continueWithOrder) {
-                val order = homeRepository.getOrder(orderId, companyId)
-                _continueWithOrder.value = order
+                _orderId.value = orderId
             }
         }
     }
 
     fun getFastFoodByOrderId(orderId: String?) = launchCatching {
         val fastFoodId = withContext(ioDispatcher) {
-            val companyId = userDataRepository.getCompanyId()
+            val companyId = userDataRepository.getCompanyId() ?: ""
             return@withContext homeRepository.getFastFoodId(orderId = orderId ?: "", companyId = companyId)
         }
 

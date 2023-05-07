@@ -1,3 +1,3 @@
 package com.telakuR.easyorder.home.models
 
-data class UserInfo(var id: String = "", var name: String, var picture: String)
+data class UserInfo(var employeeId: String = "", var employeeName: String, var employeePicture: String)

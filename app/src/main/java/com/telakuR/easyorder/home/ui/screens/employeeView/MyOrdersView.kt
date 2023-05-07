@@ -1,5 +1,6 @@
 package com.telakuR.easyorder.home.ui.screens.employeeView
 
+import android.util.Log
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
@@ -27,14 +28,16 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import com.telakuR.easyorder.R
-import com.telakuR.easyorder.home.models.OrderDetails
 import com.telakuR.easyorder.home.route.HomeRoute
 import com.telakuR.easyorder.home.viewModel.MyOrdersVM
 import com.telakuR.easyorder.main.ui.theme.*
+import com.telakuR.easyorder.room_db.enitites.MyOrder
 
 @Composable
 fun MyOrdersScreen(navController: NavHostController, viewModel: MyOrdersVM = hiltViewModel()) {
-    viewModel.getListOfMyOrders()
+    viewModel.getListOfMyOrdersFromDB()
+    viewModel.getListOfMyOrdersFromAPI()
+
     val orders = viewModel.myOrderList.collectAsStateWithLifecycle().value
     val dialogState: MutableState<Triple<Boolean, Boolean, String>> = remember { mutableStateOf(Triple(false, false, "")) }
 
@@ -58,7 +61,7 @@ fun MyOrdersScreen(navController: NavHostController, viewModel: MyOrdersVM = hil
                     if (orders.isEmpty()) {
                         NoItemsText(textId = R.string.no_order)
                     } else {
-                        OrderList(orders = orders, navController = navController, viewModel = viewModel, dialogState = dialogState)
+                        OrderList(orders = orders, navController = navController, dialogState = dialogState)
                     }
                 }
 
@@ -71,15 +74,13 @@ fun MyOrdersScreen(navController: NavHostController, viewModel: MyOrdersVM = hil
 
 @Composable
 private fun OrderList(
-    orders: List<OrderDetails>,
+    orders: List<MyOrder>,
     navController: NavController,
-    viewModel: MyOrdersVM,
     dialogState: MutableState<Triple<Boolean, Boolean, String>>
 ) {
-    val myId = viewModel.getMyId()
     LazyColumn(modifier = Modifier.fillMaxWidth()) {
         items(orders) { order ->
-            MyOrderItem(order = order, navController = navController, dialogState = dialogState, myId = myId)
+            MyOrderItem(order = order, navController = navController, dialogState = dialogState)
         }
     }
 }
@@ -87,12 +88,11 @@ private fun OrderList(
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun MyOrderItem(
-    order: OrderDetails,
+    order: MyOrder,
     navController: NavController,
-    dialogState: MutableState<Triple<Boolean, Boolean, String>>,
-    myId: String
+    dialogState: MutableState<Triple<Boolean, Boolean, String>>
 ) {
-    val isMyOrder = order.employeeId == myId
+    val isMyOrder = order.isMyOrder
     val textColor = if(isMyOrder) Color.White else PrimaryColor
     val backgroundColor = if(isMyOrder) PrimaryColor else Color.White
     val buttonColor = if(isMyOrder) Color.White else PrimaryColor

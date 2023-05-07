@@ -4,11 +4,11 @@ import android.util.Log
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.telakuR.easyorder.main.enums.DBCollectionEnum
-import com.telakuR.easyorder.main.models.NotificationModel
 import com.telakuR.easyorder.main.repository.NotificationsRepository
 import com.telakuR.easyorder.main.services.AccountService
 import com.telakuR.easyorder.modules.IoDispatcher
 import com.telakuR.easyorder.room_db.db.EasyOrderDB
+import com.telakuR.easyorder.room_db.enitites.NotificationModel
 import com.telakuR.easyorder.utils.Constants
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.channels.awaitClose

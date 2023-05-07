@@ -12,7 +12,6 @@ import com.telakuR.easyorder.home.ui.screens.ProfileScreen
 import com.telakuR.easyorder.home.ui.screens.UserHomeScreen
 import com.telakuR.easyorder.home.ui.screens.companyView.RequestsScreen
 import com.telakuR.easyorder.home.ui.screens.employeeView.*
-import com.telakuR.easyorder.utils.Constants.EMPLOYEE_ID
 import com.telakuR.easyorder.utils.Constants.FAST_FOOD_ID
 import com.telakuR.easyorder.utils.Constants.ORDER_ID
 
@@ -34,11 +33,10 @@ fun HomeNavigation(navController: NavHostController, role: String) {
             RequestsScreen()
         }
 
-        composable(route = HomeRoute.OrderDetails.route + "/{$ORDER_ID}/{$EMPLOYEE_ID}?") {
+        composable(route = HomeRoute.OrderDetails.route + "/{$ORDER_ID}") {
             OrderDetailsScreen(
                 navController = navController,
-                orderId = it.arguments?.getString(ORDER_ID) ?: "",
-                employeeId = it.arguments?.getString(EMPLOYEE_ID) ?: ""
+                orderId = it.arguments?.getString(ORDER_ID) ?: ""
             )
         }
 

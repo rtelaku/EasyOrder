@@ -4,13 +4,14 @@ import android.net.Uri
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import com.telakuR.easyorder.main.repository.UserDataRepository
-import com.telakuR.easyorder.main.viewmodel.EasyOrderViewModel
 import com.telakuR.easyorder.main.models.Response
 import com.telakuR.easyorder.main.models.Response.Loading
 import com.telakuR.easyorder.main.models.Response.Success
-import com.telakuR.easyorder.modules.IoDispatcher
+import com.telakuR.easyorder.main.models.User
+import com.telakuR.easyorder.main.repository.UserDataRepository
 import com.telakuR.easyorder.main.services.LogService
+import com.telakuR.easyorder.main.viewmodel.EasyOrderViewModel
+import com.telakuR.easyorder.modules.IoDispatcher
 import com.telakuR.easyorder.setupProfile.repository.SetupProfileRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
@@ -47,10 +48,12 @@ class SetUpPictureVM @Inject constructor(
              checkIfUserHasSetupPic()
 
              val userRole = withContext(ioDispatcher) {
-                 userDataRepository.getUserRole()
+                 userDataRepository.getProfileFromDB()?.role
              }
 
-             _currentUserRole.value = userRole
+             if (userRole != null) {
+                 _currentUserRole.value = userRole
+             }
         }
     }
 
@@ -71,6 +74,7 @@ class SetUpPictureVM @Inject constructor(
         setupProfileRepository.addImageToFirestore(downloadUrl).collect {
             addImageToDatabaseResponse = it
         }
+
     }
 
     fun getImageFromDatabase() = launchCatching {
@@ -78,5 +82,9 @@ class SetUpPictureVM @Inject constructor(
         setupProfileRepository.getImageFromFirestore().collect {
             getImageFromDatabaseResponse = it
         }
+    }
+
+    fun savePictureOnLocalDB(imageUrl: String) = launchCatching {
+        userDataRepository.saveProfileOnDB(userProfile = User(profilePic = imageUrl))
     }
 }

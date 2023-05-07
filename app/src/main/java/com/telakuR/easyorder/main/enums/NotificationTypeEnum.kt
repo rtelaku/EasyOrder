@@ -1,7 +1,7 @@
 package com.telakuR.easyorder.main.enums
 
 import com.telakuR.easyorder.R
-import com.telakuR.easyorder.main.models.NotificationModel
+import com.telakuR.easyorder.room_db.enitites.NotificationModel
 import com.telakuR.easyorder.utils.EasyOrder
 
 enum class NotificationTypeEnum(val id: Double) {

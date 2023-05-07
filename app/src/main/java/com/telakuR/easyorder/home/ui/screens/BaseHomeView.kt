@@ -1,4 +1,5 @@
 import android.content.Intent
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
@@ -26,13 +27,13 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.telakuR.easyorder.R
-import com.telakuR.easyorder.main.enums.RolesEnum
 import com.telakuR.easyorder.home.navigation.HomeNavigation
 import com.telakuR.easyorder.home.route.HomeRoute
 import com.telakuR.easyorder.home.viewModel.HomeVM
 import com.telakuR.easyorder.home.viewModel.RequestsVM
-import com.telakuR.easyorder.setupProfile.ui.activities.SetUpProfileActivity
+import com.telakuR.easyorder.main.enums.RolesEnum
 import com.telakuR.easyorder.main.ui.theme.*
+import com.telakuR.easyorder.setupProfile.ui.activities.SetUpProfileActivity
 import com.telakuR.easyorder.utils.ToastUtils
 
 @Composable
@@ -214,6 +215,7 @@ private fun AddItemRow(
         verticalAlignment = Alignment.CenterVertically
     ) {
         if (screen.title == HomeRoute.Requests.title) {
+            viewModel.getListOfRequestsFromDB()
             viewModel.getListOfRequestsFromAPI()
 
             val requestsSize = viewModel.requests.collectAsStateWithLifecycle().value.size

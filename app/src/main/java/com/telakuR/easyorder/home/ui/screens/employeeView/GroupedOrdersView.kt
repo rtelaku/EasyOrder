@@ -26,7 +26,7 @@ fun GroupedOrdersScreen(
     viewModel: MyOrdersVM = hiltViewModel(),
     orderId: String
 ) {
-    viewModel.getMyOrderMenu(orderId = orderId, true)
+//    viewModel.getMyOrderMenu(orderId = orderId, true)
     val groupedOrders = viewModel.myOrderMenu.collectAsStateWithLifecycle().value
     val countedMap = groupedOrders.groupBy { it.menuItem }
         .mapValues { it.value.size }
@@ -84,7 +84,7 @@ private fun GroupedOrderItem(
             ) {
                 Column {
                     AsyncRoundedImage(
-                        image = menuItem.picture,
+                        image = menuItem.menuPicture,
                         size = 65,
                         cornerSize = 10
                     )
@@ -94,7 +94,7 @@ private fun GroupedOrderItem(
                     modifier = Modifier
                         .padding(start = 10.dp)
                 ) {
-                    Text(text = menuItem.name)
+                    Text(text = menuItem.menuName)
                 }
             }
 

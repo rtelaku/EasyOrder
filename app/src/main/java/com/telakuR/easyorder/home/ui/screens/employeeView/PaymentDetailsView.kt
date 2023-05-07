@@ -27,9 +27,9 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.telakuR.easyorder.R
-import com.telakuR.easyorder.main.ext.twoDecimalNumber
 import com.telakuR.easyorder.home.models.UserPaymentModelResponse
 import com.telakuR.easyorder.home.viewModel.MyOrdersVM
+import com.telakuR.easyorder.main.ext.twoDecimalNumber
 import com.telakuR.easyorder.main.ui.theme.AsyncRoundedImage
 import com.telakuR.easyorder.main.ui.theme.Background
 import com.telakuR.easyorder.main.ui.theme.PrimaryColor
@@ -181,14 +181,14 @@ private fun PaymentDetailsItem(
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 AsyncRoundedImage(
-                    image = paymentDetails.userInfo.picture,
+                    image = paymentDetails.userInfo.employeePicture,
                     size = 45,
                     cornerSize = 10
                 )
 
                 Spacer(modifier = Modifier.height(5.dp))
 
-                Text(text = paymentDetails.userInfo.name, fontWeight = FontWeight.SemiBold)
+                Text(text = paymentDetails.userInfo.employeeName, fontWeight = FontWeight.SemiBold)
             }
 
             Text(text = "${paymentDetails.totalPayment}€", fontSize = 16.sp, color = PrimaryColor)
@@ -204,7 +204,7 @@ private fun PaymentDetailsItem(
         }
     }
 
-    if(paidTextState.value != DEFAULT_PRICE) viewModel.setPaidValue(orderId = orderId, id = paymentDetails.userInfo.id, paid = paidTextState.value)
+    if(paidTextState.value != DEFAULT_PRICE) viewModel.setPaidValue(orderId = orderId, id = paymentDetails.userInfo.employeeId, paid = paidTextState.value)
 
     Spacer(modifier = Modifier.height(10.dp))
 }

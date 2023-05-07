@@ -6,9 +6,7 @@ import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.gson.Gson
 import com.telakuR.easyorder.home.repository.EmployeeRequestsRepository
-import com.telakuR.easyorder.home.repository.HomeRepository
 import com.telakuR.easyorder.main.enums.DBCollectionEnum
-import com.telakuR.easyorder.main.models.User
 import com.telakuR.easyorder.main.services.AccountService
 import com.telakuR.easyorder.main.services.MyFirebaseMessagingService
 import com.telakuR.easyorder.modules.IoDispatcher
@@ -86,7 +84,7 @@ class EmployeeRequestsRepositoryImpl @Inject constructor(
                 Constants.EMPLOYEES, FieldValue.arrayUnion(id)
             )
             .addOnSuccessListener {
-                MyFirebaseMessagingService.sendRequestStateMessage(employeeId = id, hasBeenAccepted = true)
+                MyFirebaseMessagingService.sendRequestStateMessage(ownerId = accountService.currentUserId, employeeId = id, hasBeenAccepted = true)
             }
             .addOnFailureListener { exception ->
                 Log.e(TAG, "Couldn't accept request: ", exception)
@@ -98,7 +96,11 @@ class EmployeeRequestsRepositoryImpl @Inject constructor(
             .document(accountService.currentUserId)
             .update(Constants.REQUESTS, FieldValue.arrayRemove(id))
             .addOnSuccessListener {
-                MyFirebaseMessagingService.sendRequestStateMessage(employeeId = id, hasBeenAccepted = false)
+                MyFirebaseMessagingService.sendRequestStateMessage(
+                    employeeId = id,
+                    hasBeenAccepted = false,
+                    ownerId = accountService.currentUserId
+                )
             }
             .addOnFailureListener { exception ->
                 Log.e(TAG, "Couldn't remove request: ", exception)

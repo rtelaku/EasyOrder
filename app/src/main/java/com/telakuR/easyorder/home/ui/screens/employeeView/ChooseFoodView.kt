@@ -53,7 +53,7 @@ fun ChooseFoodScreen(
                 val textState = remember { mutableStateOf(TextFieldValue("")) }
 
                 Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.Top) {
-                    val menuItemByName = menuList.map { it.name }
+                    val menuItemByName = menuList.map { it.menuName }
                     SearchBar(
                         searchTextId = R.string.search_food,
                         items = menuItemByName,
@@ -73,12 +73,12 @@ fun ChooseFoodScreen(
     )
 
     val context = LocalContext.current
-    val order = viewModel.continueWithOrder.collectAsState().value
+    val orderId = viewModel.orderId.collectAsState().value
 
-    LaunchedEffect(order) {
-        if (order != null) {
-            if(order.id.isNotEmpty()) {
-                navController.navigate(HomeRoute.OrderDetails.route + "/${order.id}/${order.employeeId}")
+    LaunchedEffect(orderId) {
+        if (orderId != null) {
+            if(orderId.isNotEmpty()) {
+                navController.navigate(HomeRoute.OrderDetails.route + "/${orderId}")
             } else {
                 ToastUtils.showToast(
                     context = context,
@@ -114,7 +114,7 @@ private fun MenuItemsList(menu: List<MenuItem>, textState: MutableState<TextFiel
         } else {
             val resultList = ArrayList<MenuItem>()
             for (item in menu) {
-                if (item.name.lowercase(Locale.getDefault())
+                if (item.menuName.lowercase(Locale.getDefault())
                         .contains(searchedText.lowercase(Locale.getDefault()))
                 ) {
                     resultList.add(item)
@@ -155,7 +155,7 @@ private fun FoodMenuItem(item: MenuItem, viewModel: OrdersVM, fastFoodId: String
             ) {
                 Column {
                     AsyncRoundedImage(
-                        image = item.picture,
+                        image = item.menuPicture ?: "",
                         size = 65,
                         cornerSize = 10
                     )
@@ -165,7 +165,7 @@ private fun FoodMenuItem(item: MenuItem, viewModel: OrdersVM, fastFoodId: String
                     modifier = Modifier
                         .padding(start = 10.dp)
                 ) {
-                    Text(text = item.name)
+                    Text(text = item.menuName)
                 }
             }
 

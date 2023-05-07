@@ -14,6 +14,7 @@ fun GetImageFromDatabase(
     when(val getImageFromDatabaseResponse = viewModel.getImageFromDatabaseResponse) {
         is Response.Loading -> ProgressBar()
         is Response.Success -> getImageFromDatabaseResponse.data?.let { imageUrl ->
+            viewModel.savePictureOnLocalDB(imageUrl)
             createProfileImageContent(imageUrl)
         }
         is Response.Failure -> LaunchedEffect(Unit) {

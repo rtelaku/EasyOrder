@@ -40,12 +40,16 @@ class HomeVM @Inject constructor(
     private val _hasAlreadyAnOrder = MutableStateFlow<Boolean?>(null)
     var hasAlreadyAnOrder: StateFlow<Boolean?> = _hasAlreadyAnOrder
 
-    private val _currentUserRole = MutableStateFlow("")
+    private val _currentUserRole = MutableStateFlow<String>("")
     var currentUserRole: StateFlow<String> = _currentUserRole
 
-    init {
-        getUserRole()
-        shouldShowSetupProfile()
+    private fun getUserProfile() = launchCatching {
+        userDataRepository.getProfileFlow().collect { userProfile ->
+            if(userProfile != null) {
+                userDataRepository.saveProfileOnDB(userProfile = userProfile)
+                _currentUserRole.value = userProfile.role
+            }
+        }
     }
 
     private fun shouldShowSetupProfile() = launchCatching {
@@ -53,6 +57,11 @@ class HomeVM @Inject constructor(
         if (profilePic.isNullOrEmpty()) {
             _showSetupProfile.value = true
         }
+    }
+
+    init {
+        getUserProfile()
+        shouldShowSetupProfile()
     }
 
     fun removeEmployee(id: String) {
@@ -64,8 +73,10 @@ class HomeVM @Inject constructor(
     fun getListOfOrdersFromAPI() {
         launchCatching {
             val userCompanyId = userDataRepository.getCompanyId()
-            homeRepository.getOrdersFromAPI(userCompanyId = userCompanyId).collect { orders ->
-                homeRepository.saveOrdersOnDB(companyOrders = orders)
+            if (userCompanyId != null) {
+                homeRepository.getOrdersFromAPI(userCompanyId = userCompanyId).collect { orders ->
+                    homeRepository.saveOrdersOnDB(companyOrders = orders)
+                }
             }
         }
     }
@@ -80,11 +91,9 @@ class HomeVM @Inject constructor(
 
     fun isUserInACompany() {
         launchCatching {
-            val userCompany = withContext(ioDispatcher) {
-                userDataRepository.isUserInACompany()
-            }
-
-            _isUserOnACompany.value = userCompany
+            val userCompanyId = userDataRepository.getCompanyIdFromAPI()
+            userDataRepository.setCompanyId(userCompanyId)
+            _isUserOnACompany.value = userCompanyId.isNotEmpty()
         }
     }
 
@@ -92,7 +101,7 @@ class HomeVM @Inject constructor(
         launchCatching {
             val hasOrder = withContext(ioDispatcher) {
                 val companyId = userDataRepository.getCompanyId()
-                return@withContext homeRepository.checkIfEmployeeHasAnOrder(companyId = companyId)
+                return@withContext companyId?.let { homeRepository.checkIfEmployeeHasAnOrder(companyId = it) }
             }
 
             _hasAlreadyAnOrder.value = hasOrder
@@ -100,14 +109,6 @@ class HomeVM @Inject constructor(
             delay(1000)
             _hasAlreadyAnOrder.value = null
         }
-    }
-
-    private fun getUserRole() = launchCatching {
-        val userRole = withContext(ioDispatcher) {
-            userDataRepository.getUserRole()
-        }
-
-        _currentUserRole.value = userRole
     }
 
     fun getHomeScreens(): ArrayList<HomeRoute> {

@@ -1,7 +1,7 @@
 package com.telakuR.easyorder.room_db.dao
 
 import androidx.room.*
-import com.telakuR.easyorder.main.models.NotificationModel
+import com.telakuR.easyorder.room_db.enitites.NotificationModel
 import kotlinx.coroutines.flow.Flow
 
 @Dao
