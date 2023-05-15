@@ -1,6 +1,6 @@
 package com.telakuR.easyorder.home.viewModel
 
-import com.telakuR.easyorder.home.models.EmployeeMenuItem
+import android.util.Log
 import com.telakuR.easyorder.home.models.UserPaymentModelResponse
 import com.telakuR.easyorder.home.repository.MyOrdersRepository
 import com.telakuR.easyorder.main.repository.UserDataRepository
@@ -8,6 +8,7 @@ import com.telakuR.easyorder.main.services.AccountService
 import com.telakuR.easyorder.main.services.LogService
 import com.telakuR.easyorder.main.viewmodel.EasyOrderViewModel
 import com.telakuR.easyorder.modules.IoDispatcher
+import com.telakuR.easyorder.room_db.enitites.EmployeeMenuItem
 import com.telakuR.easyorder.room_db.enitites.MyOrder
 import com.telakuR.easyorder.room_db.enitites.MyOrderWithDetails
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -29,8 +30,8 @@ class MyOrdersVM @Inject constructor(
     private val _myOrderList = MutableStateFlow<List<MyOrder>>(emptyList())
     val myOrderList: StateFlow<List<MyOrder>> get() = _myOrderList
 
-    private val _myOrderDetails = MutableStateFlow<MyOrderWithDetails>()
-    val myOrderDetails: StateFlow<MyOrderWithDetails> get() = _myOrderDetails
+    private val _myOrderDetails = MutableStateFlow<MyOrderWithDetails?>(null)
+    val myOrderDetails: StateFlow<MyOrderWithDetails?> get() = _myOrderDetails
 
     private val _paymentDetailsList = MutableStateFlow<List<UserPaymentModelResponse>>(emptyList())
     val paymentDetailsList: StateFlow<List<UserPaymentModelResponse>> get() = _paymentDetailsList
@@ -58,6 +59,18 @@ class MyOrdersVM @Inject constructor(
             myOrder?.let { myCustomizedOrderList.add(0, it) }
 
             myOrdersRepository.saveMyOrders(myCustomizedOrderList)
+            getOrderDetails(companyId = companyId, myOrderList = myCustomizedOrderList)
+        }
+    }
+
+    private suspend fun getOrderDetails(companyId: String, myOrderList: MutableList<MyOrder>) {
+        withContext(ioDispatcher) {
+            myOrderList.forEach { order ->
+                myOrdersRepository.getMyOrderDetails(companyId = companyId, orderId = order.id)
+                    .collect { orders ->
+                        myOrdersRepository.saveOrderDetailsOnDB(orderId = order.id, orders = orders)
+                    }
+            }
         }
     }
 
@@ -83,16 +96,11 @@ class MyOrdersVM @Inject constructor(
         myOrdersRepository.setPaidValuesToPayments(employeeId = id, paid = paid, orderId = orderId)
     }
 
-    fun getMyOrderAPI(orderId: String) = launchCatching {
+    fun getMyOrderFromDB(orderId: String) = launchCatching {
         withContext(ioDispatcher) {
-            val companyId = userDataRepository.getCompanyId() ?: ""
-            myOrdersRepository.getMyOrderDetails(companyId = companyId, orderId = orderId).collect { orders ->
-                myOrdersRepository.saveOrderDetailsOnDB(orders)
+            myOrdersRepository.getMyOrderDetailsFromDB(orderId = orderId).collect { orders ->
+                _myOrderDetails.value = orders
             }
         }
-    }
-
-    fun getMyOrderFromDB(orderId: String) = launchCatching {
-        _myOrderDetails.value
     }
 }

@@ -244,7 +244,7 @@ private fun EmployeeItem(employee: Employee, viewModel: HomeVM) {
 
             Row(horizontalArrangement = Arrangement.End) {
                 ItemButton(
-                    textId = R.string.remove,
+                    textId =  R.string.remove,
                     backgroundColor = Color.Red
                 ) {
                     viewModel.removeEmployee(id = employee.id)

@@ -21,11 +21,9 @@ import com.telakuR.easyorder.room_db.enitites.MyOrderWithDetails
 import com.telakuR.easyorder.utils.Constants
 import com.telakuR.easyorder.utils.ToastUtils
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
@@ -46,9 +44,12 @@ class MyOrdersRepositoryImpl @Inject constructor(
             val orderColl = orderDoc.documents[0].reference.collection(Constants.ORDERS)
 
             val orderOwnerId = orderColl.document(orderId).get().await().get(Constants.EMPLOYEE_ID) as String
+            Log.d("rigiii", "orderOwnerId: $orderOwnerId acc service ${accountService.currentUserId}")
             val isMyOrder = orderOwnerId == accountService.currentUserId
 
             val docRef = orderColl.document(orderId).collection(Constants.ORDERED)
+
+            Log.d("rigiii", "getMyOrderDetails: $isMyOrder")
 
             val subTask = if(isMyOrder) docRef else docRef.whereEqualTo(Constants.EMPLOYEE_ID, accountService.currentUserId)
 
@@ -101,6 +102,11 @@ class MyOrdersRepositoryImpl @Inject constructor(
             }
         }.flowOn(ioDispatcher)
 
+    override fun getMyOrderDetailsFromDB(orderId: String): Flow<MyOrderWithDetails> {
+        return easyOrderDB.myOrdersDao().getOrderDetailsById(id = orderId)
+    }
+
+    @OptIn(FlowPreview::class)
     override fun getMyOrdersFromAPI(companyId: String): Flow<List<MyOrder>> = callbackFlow {
         val snapshot = fireStore.collection(DBCollectionEnum.ORDERS.title)
             .whereEqualTo(Constants.COMPANY_ID, companyId).get().await()
@@ -114,9 +120,8 @@ class MyOrdersRepositoryImpl @Inject constructor(
 
             val ordersDocs = value?.documents
             if (!ordersDocs.isNullOrEmpty()) {
-                val companyOrdersList = mutableListOf<MyOrder>()
-
                 for (ordersDoc in ordersDocs) {
+                    val companyOrdersList = mutableListOf<MyOrder>()
                     val orderOwnerId = ordersDoc.get(Constants.EMPLOYEE_ID) as String
 
                     ordersDoc.reference.collection(Constants.ORDERED).whereEqualTo(Constants.EMPLOYEE_ID, accountService.currentUserId).get().addOnSuccessListener {
@@ -134,7 +139,8 @@ class MyOrdersRepositoryImpl @Inject constructor(
                                     orderDetail.fastFood = fastFoodName
 
                                     companyOrdersList.add(orderDetail)
-                                    this.trySend(companyOrdersList).isSuccess
+                                    // Apply debounce here with a timeout of 500 milliseconds
+                                    this@callbackFlow.channel.trySend(companyOrdersList).isSuccess
                                 }.addOnFailureListener { e ->
                                     Log.d(TAG, "Failed to get fast food info: $e")
                                     this.trySend(emptyList<MyOrder>()).isSuccess
@@ -153,7 +159,7 @@ class MyOrdersRepositoryImpl @Inject constructor(
 
         awaitClose { listenerRegistration.remove() }
 
-    }.flowOn(ioDispatcher)
+    }.flowOn(ioDispatcher).debounce(50)
 
     override suspend fun completeOrder(orderId: String, companyId: String) {
         fireStore.collection(DBCollectionEnum.ORDERS.title)
@@ -406,8 +412,9 @@ class MyOrdersRepositoryImpl @Inject constructor(
         return easyOrderDB.myOrdersDao().getAllOrders()
     }
 
-    override suspend fun saveOrderDetailsOnDB(ord: Any) {
-
+    override suspend fun saveOrderDetailsOnDB(orders: List<EmployeeMenuItem>, orderId: String) {
+        val employeeMenuItems = orders.map { it.copy(orderId = orderId) }
+        easyOrderDB.myOrdersDao().insertEmployeeMenuItems(employeeMenuItems = employeeMenuItems)
     }
 
     override suspend fun saveMyOrders(myCustomizedOrderList: MutableList<MyOrder>) {

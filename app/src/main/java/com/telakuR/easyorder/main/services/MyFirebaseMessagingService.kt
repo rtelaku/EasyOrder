@@ -6,9 +6,9 @@ import com.google.gson.JsonObject
 import com.telakuR.easyorder.R
 import com.telakuR.easyorder.main.enums.NotificationTypeEnum
 import com.telakuR.easyorder.main.models.CreateNotificationModel
-import com.telakuR.easyorder.main.models.NotificationModel
 import com.telakuR.easyorder.main.models.RetrofitHelper
 import com.telakuR.easyorder.modules.EasyOrderEntryPoint
+import com.telakuR.easyorder.room_db.enitites.NotificationModel
 import com.telakuR.easyorder.utils.Constants.BODY
 import com.telakuR.easyorder.utils.Constants.COMPANY_ID
 import com.telakuR.easyorder.utils.Constants.DATA

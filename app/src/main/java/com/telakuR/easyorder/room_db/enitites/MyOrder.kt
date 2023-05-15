@@ -28,7 +28,7 @@ data class MyOrder(
 @Entity(tableName = "order_employee_menu_items_table")
 data class EmployeeMenuItem(
     @PrimaryKey var id: String = "",
-    val orderId: String = "",
+    var orderId: String = "",
     @Embedded val userInfo: UserInfo,
     @Embedded val menuItem: MenuItem
 )

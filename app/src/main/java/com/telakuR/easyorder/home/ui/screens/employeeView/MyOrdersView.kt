@@ -1,6 +1,5 @@
 package com.telakuR.easyorder.home.ui.screens.employeeView
 
-import android.util.Log
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
@@ -133,7 +132,7 @@ private fun MyOrderItem(
 
             Row(
                 modifier = Modifier.clickable {
-                    navController.navigate(HomeRoute.OrderDetails.route + "/${order.id}/${order.employeeId}")
+                    navController.navigate(HomeRoute.OrderDetails.route + "/${order.id}")
                 },
                 horizontalArrangement = Arrangement.End
             ) {

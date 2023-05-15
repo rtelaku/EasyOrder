@@ -2,6 +2,7 @@ package com.telakuR.easyorder.room_db.dao
 
 import androidx.room.*
 import com.telakuR.easyorder.room_db.enitites.EmployeeMenuItem
+import com.telakuR.easyorder.room_db.enitites.EmployeeRequest
 import com.telakuR.easyorder.room_db.enitites.MyOrder
 import com.telakuR.easyorder.room_db.enitites.MyOrderWithDetails
 import kotlinx.coroutines.flow.Flow
@@ -9,12 +10,8 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface MyOrdersDao {
 
-    @Transaction
     @Query("SELECT * FROM my_orders_table WHERE id = :id")
-    fun getOrderById(id: String): Flow<MyOrderWithDetails>
-
-    @Query("SELECT * FROM order_employee_menu_items_table WHERE orderId = :id")
-    fun getEmployeeMenuItemsById(id: Int): Flow<EmployeeMenuItem>
+    fun getOrderDetailsById(id: String): Flow<MyOrderWithDetails>
 
     @Transaction
     @Query("SELECT * FROM my_orders_table")
@@ -37,4 +34,7 @@ interface MyOrdersDao {
 
     @Query("DELETE FROM my_orders_table")
     suspend fun clearAll()
+
+    @Query("DELETE FROM my_orders_table WHERE id = :id ")
+    fun deleteOrder(id: String)
 }

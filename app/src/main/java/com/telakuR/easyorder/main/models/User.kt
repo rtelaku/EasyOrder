@@ -12,5 +12,5 @@ data class User(
 )
 
 fun User.mapUserToProfile(): Profile {
-    return Profile(name = name, email = email, role = role, profilePic = profilePic, companyId = "")
+    return Profile(id = 0, name = name, email = email, role = role, profilePic = profilePic, companyId = "")
 }
