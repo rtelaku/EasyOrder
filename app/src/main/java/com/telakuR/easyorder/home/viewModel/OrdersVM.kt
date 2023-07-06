@@ -7,6 +7,7 @@ import com.telakuR.easyorder.main.repository.UserDataRepository
 import com.telakuR.easyorder.main.services.LogService
 import com.telakuR.easyorder.main.viewmodel.EasyOrderViewModel
 import com.telakuR.easyorder.modules.IoDispatcher
+import com.telakuR.easyorder.room_db.enitites.MyOrder
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -25,8 +26,8 @@ class OrdersVM @Inject constructor(
     private val _fastFoods = MutableStateFlow<List<FastFood>>(emptyList())
     val fastFoods: StateFlow<List<FastFood>> get() = _fastFoods
 
-    private val _orderId = MutableStateFlow<String?>(null)
-    val orderId: StateFlow<String?> get() = _orderId
+    private val _continueWithOrder = MutableStateFlow<MyOrder?>(null)
+    val continueWithOrder: StateFlow<MyOrder?> get() = _continueWithOrder
 
     private val _fastFoodMenu = MutableStateFlow<List<MenuItem>>(emptyList())
     val fastFoodMenu: StateFlow<List<MenuItem>> get() = _fastFoodMenu
@@ -68,7 +69,7 @@ class OrdersVM @Inject constructor(
             if(order != null) {
                 order.isMyOrder = true
                 homeRepository.saveOrderOnDB(order = order)
-                _orderId.value = order.id
+                _continueWithOrder.value = order
             }
         }
     }
@@ -85,7 +86,8 @@ class OrdersVM @Inject constructor(
             }
 
             if(continueWithOrder) {
-                _orderId.value = orderId
+                val order = homeRepository.getOrder(orderId, companyId)
+                _continueWithOrder.value = order
             }
         }
     }

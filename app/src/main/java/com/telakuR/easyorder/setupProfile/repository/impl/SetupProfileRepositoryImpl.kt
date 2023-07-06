@@ -105,30 +105,21 @@ class SetupProfileRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getRequestedCompany(): String? = suspendCoroutine { continuation ->
-        try {
-            fireStore.collection(DBCollectionEnum.EMPLOYEES.title).get()
-                .addOnSuccessListener { snapshot ->
-                    var count = 0
-                    for(sn in snapshot) {
-                        val company = Gson().fromJson(Gson().toJson(sn.data), User::class.java)
-                        val requests = sn.data[REQUESTS] as ArrayList<String>
-                        requests.forEach {
-                            if(it == accountService.currentUserId) {
-                                count = 1
-                            }
-
-                            if(count == 1) {
-                                continuation.resume(company.email)
-                            }
-                        }
-                    }
-                    if(count == 0) {
-                        continuation.resume(null)
+        fireStore.collection(DBCollectionEnum.EMPLOYEES.title).get()
+            .addOnSuccessListener { snapshot ->
+                for (sn in snapshot) {
+                    val company = Gson().fromJson(Gson().toJson(sn.data), User::class.java)
+                    val requests = sn.data[REQUESTS] as ArrayList<String>
+                    if (requests.contains(accountService.currentUserId)) {
+                        continuation.resume(company.email)
+                        return@addOnSuccessListener
                     }
                 }
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to get requested company: ", e)
-        }
+                continuation.resume(null)
+            }
+            .addOnFailureListener { exception ->
+                Log.e(TAG, "Failed to get requested company: ", exception)
+            }
     }
 
     override fun getRequestedCompanyIdFromDB(): String {

@@ -30,8 +30,8 @@ class LoginVM @Inject constructor(
     private val password
         get() = uiState.value.password
 
-    private val _screenToSetup = MutableStateFlow("")
-    var screenToSetup: StateFlow<String> = _screenToSetup
+    private val _showHomeView = MutableStateFlow(false)
+    var showHomeView: StateFlow<Boolean> = _showHomeView
 
     private val _toastMessageId = MutableStateFlow<Int?>(null)
     var toastMessageId: StateFlow<Int?> = _toastMessageId
@@ -53,7 +53,7 @@ class LoginVM @Inject constructor(
             if (currentUser != null) {
 //            if(currentUser.isEmailVerified) {
                 accountService.generateToken()
-                _screenToSetup.value = HomeRoute.Home.route
+                _showHomeView.value = true
 //            } else {
 //                if (currentUser.isEmailVerified) {
 //                    _shouldShowHomeView.value = true

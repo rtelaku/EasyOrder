@@ -39,7 +39,7 @@ class ProfileVM @Inject constructor(
     }
 
     private fun setScreenToLaunch() = launchCatching {
-        val profilePic = userDataRepository.getUserProfilePicture()
+        val profilePic = userDataRepository.getProfileFromDB()?.profilePic
 
         if (profilePic.isNullOrEmpty()) {
             _screenToSetup.value = SetUpProfileRoute.SelectPicture.route
@@ -63,6 +63,7 @@ class ProfileVM @Inject constructor(
             userDataRepository.getProfileFlow().collect { userProfile ->
                 if (userProfile != null) {
                     userDataRepository.saveProfileOnDB(userProfile)
+                    getProfileFromDB()
                 }
             }
         }

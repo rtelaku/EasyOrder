@@ -1,8 +1,6 @@
 package com.telakuR.easyorder.home.repository
 
-import com.telakuR.easyorder.home.models.FastFood
-import com.telakuR.easyorder.home.models.MenuItem
-import com.telakuR.easyorder.home.models.OrderDetails
+import com.telakuR.easyorder.home.models.*
 import com.telakuR.easyorder.room_db.enitites.CompanyOrderDetails
 import com.telakuR.easyorder.room_db.enitites.Employee
 import com.telakuR.easyorder.room_db.enitites.MyOrder

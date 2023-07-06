@@ -22,7 +22,6 @@ import androidx.navigation.NavController
 import com.telakuR.easyorder.R
 import com.telakuR.easyorder.authentication.models.AuthenticationRoute
 import com.telakuR.easyorder.authentication.viewmodel.LoginVM
-import com.telakuR.easyorder.home.route.HomeRoute
 import com.telakuR.easyorder.home.ui.activities.HomeActivity
 import com.telakuR.easyorder.setupProfile.route.SetUpProfileRoute
 import com.telakuR.easyorder.setupProfile.ui.activities.SetUpProfileActivity
@@ -75,14 +74,10 @@ fun LoginScreen(navController: NavController, viewModel: LoginVM = hiltViewModel
                 }
             }
 
-            val screenToSetup = viewModel.screenToSetup.collectAsState().value
-
+            val showHomeView = viewModel.showHomeView.collectAsState().value
             val context = LocalContext.current
-
-            if(screenToSetup == HomeRoute.Home.route) {
+            if(showHomeView) {
                 startHomeActivity(context)
-            } else if(screenToSetup == SetUpProfileRoute.SelectPicture.route) {
-                startSetupProfileActivity(context)
             }
 
             val toastMessageId = viewModel.toastMessageId.collectAsState().value
@@ -96,16 +91,6 @@ fun LoginScreen(navController: NavController, viewModel: LoginVM = hiltViewModel
 private fun startHomeActivity(context: Context) {
     context.run {
         val intent = Intent(this, HomeActivity::class.java)
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
-        startActivity(intent)
-    }
-}
-
-private fun startSetupProfileActivity(context: Context) {
-    context.run {
-        val intent = Intent(this, SetUpProfileActivity::class.java)
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)

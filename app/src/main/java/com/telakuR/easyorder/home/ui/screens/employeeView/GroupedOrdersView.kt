@@ -1,34 +1,35 @@
 package com.telakuR.easyorder.home.ui.screens.employeeView
 
+import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.telakuR.easyorder.R
 import com.telakuR.easyorder.home.models.MenuItem
-import com.telakuR.easyorder.home.viewModel.MyOrdersVM
+import com.telakuR.easyorder.home.viewModel.GroupedOrdersVM
 import com.telakuR.easyorder.main.ui.theme.AsyncRoundedImage
 import com.telakuR.easyorder.main.ui.theme.Background
 import com.telakuR.easyorder.main.ui.theme.OrangeTextColor
 import com.telakuR.easyorder.main.ui.theme.WhiteItemCard
 
 @Composable
-fun GroupedOrdersScreen(
-    viewModel: MyOrdersVM = hiltViewModel(),
-    orderId: String
-) {
-    viewModel.getMyOrderFromDB(orderId = orderId)
-    val employeeMenuItems = viewModel.myOrderDetails.collectAsStateWithLifecycle().value?.employeeMenuItems ?: emptyList()
-    val countedMap = employeeMenuItems.groupBy { it.menuItem }
+fun GroupedOrdersScreen(viewModel: GroupedOrdersVM = hiltViewModel(), orderId: String) {
+    viewModel.getMyOrderMenu(orderId = orderId, isMyOrder = true)
+    val groupedOrders by viewModel.myOrder.collectAsState()
+
+    val countedMap = groupedOrders.groupBy { it.menuItem }
         .mapValues { it.value.size }
         .toList()
 

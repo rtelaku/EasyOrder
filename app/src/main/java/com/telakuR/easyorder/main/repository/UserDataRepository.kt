@@ -12,8 +12,6 @@ interface UserDataRepository {
 
     suspend fun saveProfileOnDB(userProfile: User)
 
-    suspend fun getUserProfilePicture(): String?
-
     suspend fun getCompanyId(): String?
 
     suspend fun getTokens(companyId: String): List<String>

@@ -1,6 +1,8 @@
 package com.telakuR.easyorder.home.viewModel
 
-import android.util.Log
+import androidx.lifecycle.viewModelScope
+import com.telakuR.easyorder.home.models.EmployeeMenuItem
+import com.telakuR.easyorder.home.models.OrderDetails
 import com.telakuR.easyorder.home.models.UserPaymentModelResponse
 import com.telakuR.easyorder.home.repository.MyOrdersRepository
 import com.telakuR.easyorder.main.repository.UserDataRepository
@@ -8,13 +10,11 @@ import com.telakuR.easyorder.main.services.AccountService
 import com.telakuR.easyorder.main.services.LogService
 import com.telakuR.easyorder.main.viewmodel.EasyOrderViewModel
 import com.telakuR.easyorder.modules.IoDispatcher
-import com.telakuR.easyorder.room_db.enitites.EmployeeMenuItem
-import com.telakuR.easyorder.room_db.enitites.MyOrder
-import com.telakuR.easyorder.room_db.enitites.MyOrderWithDetails
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
@@ -27,80 +27,84 @@ class MyOrdersVM @Inject constructor(
     logService: LogService
 ) : EasyOrderViewModel(logService) {
 
-    private val _myOrderList = MutableStateFlow<List<MyOrder>>(emptyList())
-    val myOrderList: StateFlow<List<MyOrder>> get() = _myOrderList
+    private val _myOrderList = MutableStateFlow<List<OrderDetails>>(emptyList())
+    val myOrderList: StateFlow<List<OrderDetails>> get() = _myOrderList
 
-    private val _myOrderDetails = MutableStateFlow<MyOrderWithDetails?>(null)
-    val myOrderDetails: StateFlow<MyOrderWithDetails?> get() = _myOrderDetails
+    private val _myOrderMenu = MutableStateFlow<List<EmployeeMenuItem>>(emptyList())
+    val myOrderMenu: StateFlow<List<EmployeeMenuItem>> get() = _myOrderMenu
 
     private val _paymentDetailsList = MutableStateFlow<List<UserPaymentModelResponse>>(emptyList())
     val paymentDetailsList: StateFlow<List<UserPaymentModelResponse>> get() = _paymentDetailsList
 
-    fun removeMenuItem(orderId: String, menuItem: EmployeeMenuItem?) = launchCatching {
-        val companyId = userDataRepository.getCompanyId() ?: ""
-        myOrdersRepository.removeMenuItemFromOrder(
-            orderId = orderId,
-            companyId = companyId,
-            menuItem = menuItem)
-    }
+    private var companyId: String = ""
 
-    fun completeOrder(orderId: String) = launchCatching {
-        val companyId = userDataRepository.getCompanyId() ?: ""
-        myOrdersRepository.completeOrder(orderId = orderId, companyId = companyId)
-    }
-
-    fun getListOfMyOrdersFromAPI() = launchCatching {
-        val companyId = userDataRepository.getCompanyId() ?: ""
-
-        myOrdersRepository.getMyOrdersFromAPI(companyId = companyId).collect { ordersList ->
-            val myCustomizedOrderList = ordersList.toMutableList()
-            val myOrder = ordersList.firstOrNull { it.employeeId == accountService.currentUserId }
-            myCustomizedOrderList.remove(myOrder)
-            myOrder?.let { myCustomizedOrderList.add(0, it) }
-
-            myOrdersRepository.saveMyOrders(myCustomizedOrderList)
-            getOrderDetails(companyId = companyId, myOrderList = myCustomizedOrderList)
+    init {
+        viewModelScope.launch {
+            companyId = userDataRepository.getCompanyId() ?: ""
         }
     }
 
-    private suspend fun getOrderDetails(companyId: String, myOrderList: MutableList<MyOrder>) {
+    fun getMyOrderMenu(orderId: String, isMyOrder: Boolean) = launchCatching {
         withContext(ioDispatcher) {
-            myOrderList.forEach { order ->
-                myOrdersRepository.getMyOrderDetails(companyId = companyId, orderId = order.id)
-                    .collect { orders ->
-                        myOrdersRepository.saveOrderDetailsOnDB(orderId = order.id, orders = orders)
-                    }
+            myOrdersRepository.getMyOrderDetails(
+                companyId = companyId,
+                orderId = orderId,
+                isMyOrder = isMyOrder
+            ).collect {
+                _myOrderMenu.value = it
             }
         }
     }
 
-    fun getListOfMyOrdersFromDB() = launchCatching {
-        myOrdersRepository.getMyOrdersFromDB().collect { ordersList ->
-            _myOrderList.value = ordersList.map { it.myOrder }
+    fun getMyId(): String {
+        return accountService.currentUserId
+    }
+
+    fun removeMenuItem(orderId: String, menuItem: EmployeeMenuItem?) = launchCatching {
+        if (menuItem != null) {
+            myOrdersRepository.removeMenuItemFromOrder(
+                orderId = orderId,
+                companyId = companyId,
+                menuItem = menuItem
+            )
+        }
+    }
+
+    fun completeOrder(orderId: String) = launchCatching {
+        myOrdersRepository.completeOrder(orderId = orderId, companyId = companyId)
+        getListOfMyOrders()
+    }
+
+    fun isMyOrder(employeeId: String): Boolean {
+        return accountService.currentUserId == employeeId
+    }
+
+    fun getListOfMyOrders() = launchCatching {
+        myOrdersRepository.getMyOrders(companyId = companyId).collect { ordersList ->
+            val myCustomizedOrderList = ordersList.toMutableList()
+            val myOrder = ordersList.firstOrNull { it.employeeId == accountService.currentUserId }
+
+            if(myOrder != null) {
+                myCustomizedOrderList.remove(myOrder)
+                myCustomizedOrderList.add(0, myOrder)
+            }
+
+            _myOrderList.value = myCustomizedOrderList
         }
     }
 
     fun removeOrder(orderId: String) = launchCatching {
-        val companyId = userDataRepository.getCompanyId() ?: ""
         myOrdersRepository.removeOrder(orderId = orderId, companyId = companyId)
+        getListOfMyOrders()
     }
 
     fun getPaymentDetails(orderId: String) = launchCatching {
-        val companyId = userDataRepository.getCompanyId() ?: ""
         myOrdersRepository.getPaymentDetails(companyId = companyId, orderId = orderId).collect {
             _paymentDetailsList.value = it
         }
     }
 
-    fun setPaidValue(id: String, paid: String, orderId: String) = launchCatching {
+    fun setPaidValue(id: String, paid: String, orderId: String) {
         myOrdersRepository.setPaidValuesToPayments(employeeId = id, paid = paid, orderId = orderId)
-    }
-
-    fun getMyOrderFromDB(orderId: String) = launchCatching {
-        withContext(ioDispatcher) {
-            myOrdersRepository.getMyOrderDetailsFromDB(orderId = orderId).collect { orders ->
-                _myOrderDetails.value = orders
-            }
-        }
     }
 }

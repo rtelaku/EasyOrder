@@ -1,5 +1,6 @@
 package com.telakuR.easyorder.home.viewModel
 
+import androidx.lifecycle.viewModelScope
 import com.telakuR.easyorder.home.repository.HomeRepository
 import com.telakuR.easyorder.home.route.HomeRoute
 import com.telakuR.easyorder.main.enums.RolesEnum
@@ -14,6 +15,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
@@ -43,25 +45,28 @@ class HomeVM @Inject constructor(
     private val _currentUserRole = MutableStateFlow<String>("")
     var currentUserRole: StateFlow<String> = _currentUserRole
 
-    private fun getUserProfile() = launchCatching {
+    init {
+        viewModelScope.launch(ioDispatcher) {
+            getUserProfile()
+            shouldShowSetupProfile()
+        }
+    }
+
+    private suspend fun getUserProfile() {
         userDataRepository.getProfileFlow().collect { userProfile ->
-            if(userProfile != null) {
-                userDataRepository.saveProfileOnDB(userProfile = userProfile)
+            if (userProfile != null) {
+                userDataRepository.saveProfileOnDB(userProfile)
                 _currentUserRole.value = userProfile.role
             }
         }
     }
 
-    private fun shouldShowSetupProfile() = launchCatching {
-        val profilePic = userDataRepository.getUserProfilePicture()
-        if (profilePic.isNullOrEmpty()) {
-            _showSetupProfile.value = true
+    private suspend fun shouldShowSetupProfile() {
+        val user = userDataRepository.getProfileFromDB()
+        if(user != null) {
+            val profilePic = user.profilePic
+            _showSetupProfile.value = profilePic.isEmpty()
         }
-    }
-
-    init {
-        getUserProfile()
-        shouldShowSetupProfile()
     }
 
     fun removeEmployee(id: String) {

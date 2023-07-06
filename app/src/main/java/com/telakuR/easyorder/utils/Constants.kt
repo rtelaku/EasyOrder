@@ -7,7 +7,7 @@ object Constants {
     const val TOTAL_PRICE: String = "totalPayment"
     const val PAID: String = "paid"
     const val DEFAULT_PRICE: String = "0.0"
-    const val MENU_ITEM_NAME: String = "menuItem.name"
+    const val MENU_ITEM_NAME: String = "menuItem.menuName"
     const val TOKEN: String = "token"
     const val CHOSEN_ROLE = "chosenRole"
     const val NAME = "name"

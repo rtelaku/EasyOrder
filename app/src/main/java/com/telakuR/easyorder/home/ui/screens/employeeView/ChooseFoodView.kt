@@ -1,5 +1,6 @@
 package com.telakuR.easyorder.home.ui.screens.employeeView
 
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.clickable
@@ -73,12 +74,12 @@ fun ChooseFoodScreen(
     )
 
     val context = LocalContext.current
-    val orderId = viewModel.orderId.collectAsState().value
+    val order = viewModel.continueWithOrder.collectAsState().value
 
-    LaunchedEffect(orderId) {
-        if (orderId != null) {
-            if(orderId.isNotEmpty()) {
-                navController.navigate(HomeRoute.OrderDetails.route + "/${orderId}")
+    LaunchedEffect(order) {
+        if (order != null) {
+            if(order.id.isNotEmpty()) {
+                navController.navigate(HomeRoute.OrderDetails.route + "/${order.id}/${order.employeeId}")
             } else {
                 ToastUtils.showToast(
                     context = context,

@@ -37,8 +37,8 @@ class HomeActivity: ComponentActivity(), NetworkCallback {
         networkUtils.registerConnectivityCallback()
 
         lifecycleScope.launch {
-            viewModel.showSetupProfile.collect { show ->
-                if (show) {
+            viewModel.showSetupProfile.collect { shouldShow ->
+                if (shouldShow) {
                     val intent = Intent(this@HomeActivity, SetUpProfileActivity::class.java)
                     intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                     startActivity(intent)

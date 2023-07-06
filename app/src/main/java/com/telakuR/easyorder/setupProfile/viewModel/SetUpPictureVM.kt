@@ -58,7 +58,7 @@ class SetUpPictureVM @Inject constructor(
     }
 
     private suspend fun checkIfUserHasSetupPic() {
-        val pic = userDataRepository.getUserProfilePicture()
+        val pic = userDataRepository.getProfileFromDB()?.profilePic
         _shouldShowFindCompanyScreen.value = !pic.isNullOrEmpty()
     }
 

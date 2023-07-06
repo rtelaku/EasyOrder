@@ -6,7 +6,10 @@ import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.QuerySnapshot
 import com.google.gson.Gson
-import com.telakuR.easyorder.home.models.*
+import com.telakuR.easyorder.home.models.EmployeeMenuItemResponse
+import com.telakuR.easyorder.home.models.FastFood
+import com.telakuR.easyorder.home.models.MenuItem
+import com.telakuR.easyorder.home.models.UserPaymentModel
 import com.telakuR.easyorder.home.repository.HomeRepository
 import com.telakuR.easyorder.main.enums.DBCollectionEnum
 import com.telakuR.easyorder.main.services.AccountService
@@ -319,6 +322,8 @@ class HomeDataRepositoryImpl @Inject constructor(
                                         val fastFoodName = it.get(NAME) as String
                                         MyFirebaseMessagingService.sendNewOrderMessage(fastFood = fastFoodName)
                                     }
+                                }.addOnFailureListener {
+                                    continuation.resume("")
                                 }
                             }
                         }

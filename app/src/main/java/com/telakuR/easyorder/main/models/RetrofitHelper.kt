@@ -19,5 +19,5 @@ object RetrofitHelper {
     }
 
     private const val BASE_URL = "https://fcm.googleapis.com/"
-    const val SERVER_KEY = "AAAA63ra0-I:APA91bHvsgqYxKAxHlxC2bPSX-uS0uIpB42WYI-9TdON5vEZGOHJU1NK7DL9nMgmLV7FRV8XYgL2FuwqoP1S3ycwNsel96Q4Q40C7L6XyN0wB2I1YRXxNh34oO_azhy__T6ef1u0CQdt"
+    const val SERVER_KEY = ""
 }

@@ -12,7 +12,6 @@ import com.telakuR.easyorder.modules.IoDispatcher
 import com.telakuR.easyorder.room_db.db.EasyOrderDB
 import com.telakuR.easyorder.room_db.enitites.Profile
 import com.telakuR.easyorder.utils.Constants.EMPLOYEES
-import com.telakuR.easyorder.utils.Constants.PROFILE_PIC
 import com.telakuR.easyorder.utils.Constants.TOKEN
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.awaitClose
@@ -33,21 +32,6 @@ class UserDataRepositoryImpl @Inject constructor(
 
     private val TAG = UserDataRepositoryImpl::class.simpleName
 
-    override suspend fun getUserProfilePicture(): String? = suspendCoroutine { continuation ->
-        try {
-            val currentUserId = accountService.currentUserId
-            if (currentUserId.isNotEmpty()) {
-                fireStore.collection(DBCollectionEnum.USERS.title)
-                    .document(currentUserId).get().addOnSuccessListener {
-                        val profilePic = it.get(PROFILE_PIC) as? String
-                        continuation.resume(profilePic)
-                    }
-            }
-        } catch (e: Exception) {
-            Log.e(TAG, "Couldn't get profile picture: ", e)
-        }
-    }
-
     override fun getProfileFlow(): Flow<User?> = callbackFlow {
         val listener = fireStore.collection(DBCollectionEnum.USERS.title)
             .document(accountService.currentUserId)
@@ -65,7 +49,6 @@ class UserDataRepositoryImpl @Inject constructor(
                 }
             }
 
-        // Cancel the listener when the flow is cancelled
         awaitClose {
             listener.remove()
         }
@@ -75,15 +58,6 @@ class UserDataRepositoryImpl @Inject constructor(
         return easyOrderDB.profileDao().getProfile().firstOrNull()
     }
 
-    override suspend fun saveProfileOnDB(userProfile: User) {
-        val profile = userProfile.mapUserToProfile()
-        easyOrderDB.profileDao().deleteAndInsertProfile(profile)
-    }
-
-    override suspend fun getCompanyId(): String? {
-        return getProfileFromDB()?.companyId
-    }
-
     override suspend fun getCompanyIdFromAPI(): String = suspendCoroutine { continuation ->
         try {
             fireStore.collection(DBCollectionEnum.EMPLOYEES.title).get()
@@ -91,12 +65,22 @@ class UserDataRepositoryImpl @Inject constructor(
                     for (document in documents) {
                         val employees = document.data[EMPLOYEES] as ArrayList<String>
                         val hasCompanyId = employees.any { it == accountService.currentUserId }
-                        if (hasCompanyId) continuation.resume(document.id)
+                        val companyId = if(hasCompanyId) document.id else ""
+                        continuation.resume(companyId)
                     }
                 }
         } catch (e: Exception) {
             Log.e(TAG, "Couldn't get company name: ", e)
         }
+    }
+
+    override suspend fun saveProfileOnDB(userProfile: User) {
+        val profile = userProfile.mapUserToProfile()
+        easyOrderDB.profileDao().deleteAndInsertProfile(profile)
+    }
+
+    override suspend fun getCompanyId(): String? {
+        return getProfileFromDB()?.companyId
     }
 
     override suspend fun getTokens(companyId: String): List<String> = withContext(ioDispatcher) {

@@ -10,5 +10,5 @@ data class Profile(
     val email: String = "",
     val role: String = "",
     val profilePic: String = "",
-    val companyId : String = ""
+    var companyId : String
 )

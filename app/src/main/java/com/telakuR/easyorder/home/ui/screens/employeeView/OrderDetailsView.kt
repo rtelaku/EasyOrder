@@ -25,23 +25,20 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.telakuR.easyorder.R
+import com.telakuR.easyorder.home.models.EmployeeMenuItem
 import com.telakuR.easyorder.home.route.HomeRoute
 import com.telakuR.easyorder.home.viewModel.MyOrdersVM
 import com.telakuR.easyorder.main.ui.theme.*
-import com.telakuR.easyorder.room_db.enitites.EmployeeMenuItem
-import com.telakuR.easyorder.room_db.enitites.MyOrderWithDetails
 import com.telakuR.easyorder.utils.Constants.ORDER_ID
 
 @Composable
 fun OrderDetailsScreen(
     navController: NavController,
     viewModel: MyOrdersVM = hiltViewModel(),
+    employeeId: String,
     orderId: String
 ) {
-    viewModel.getMyOrderFromDB(orderId = orderId)
-
-    val order = viewModel.myOrderDetails.collectAsStateWithLifecycle().value
-    val isMyOrder = order?.myOrder?.isMyOrder
+    val isMyOrder = viewModel.isMyOrder(employeeId)
     val dialogState: MutableState<Pair<Boolean, EmployeeMenuItem?>> = remember { mutableStateOf(Pair(false, null)) }
 
     Scaffold(
@@ -56,21 +53,19 @@ fun OrderDetailsScreen(
                 }
 
                 Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.Center) {
-                    if(order != null) {
-                        MyOrderMenuDetails(
-                            order = order,
-                            dialogState = dialogState
-                        )
+                    MyOrderMenuDetails(
+                        orderId = orderId,
+                        viewModel = viewModel,
+                        dialogState = dialogState,
+                        isMyOrder = isMyOrder
+                    )
 
-                        RemoveMenuItemDialog(dialogState = dialogState, viewModel = viewModel, orderId = orderId)
-                    }
+                    RemoveMenuItemDialog(dialogState = dialogState, viewModel = viewModel, orderId = orderId)
                 }
             }
         },
         bottomBar = {
-            if (isMyOrder != null) {
-                OrderDetailsBottomBar(isMyOrder = isMyOrder, navController = navController, orderId = orderId)
-            }
+            OrderDetailsBottomBar(isMyOrder = isMyOrder, navController = navController, orderId = orderId)
         },
         backgroundColor = Background
     )
@@ -78,21 +73,26 @@ fun OrderDetailsScreen(
 
 @Composable
 private fun MyOrderMenuDetails(
+    orderId: String,
+    viewModel: MyOrdersVM,
     dialogState: MutableState<Pair<Boolean, EmployeeMenuItem?>>,
-    order: MyOrderWithDetails
+    isMyOrder: Boolean
 ) {
+    viewModel.getMyOrderMenu(orderId = orderId, isMyOrder = isMyOrder)
+    val myOrderMenu = viewModel.myOrderMenu.collectAsStateWithLifecycle().value
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 10.dp), verticalArrangement = Arrangement.Center
     ) {
-        MyOrderList(myOrderMenu = order.employeeMenuItems, dialogState = dialogState)
+        MyOrderList(myOrderMenu = myOrderMenu, dialogState = dialogState)
     }
 }
 
 @Composable
 private fun MyOrderList(
-    myOrderMenu: List<com.telakuR.easyorder.room_db.enitites.EmployeeMenuItem>,
+    myOrderMenu: List<EmployeeMenuItem>,
     dialogState: MutableState<Pair<Boolean, EmployeeMenuItem?>>
 ) {
     LazyColumn(modifier = Modifier.fillMaxWidth()) {

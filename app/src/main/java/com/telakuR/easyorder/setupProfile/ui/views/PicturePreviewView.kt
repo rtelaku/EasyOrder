@@ -15,15 +15,15 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.telakuR.easyorder.R
-import com.telakuR.easyorder.main.enums.RolesEnum
 import com.telakuR.easyorder.home.ui.activities.HomeActivity
-import com.telakuR.easyorder.setupProfile.route.SetUpProfileRoute
-import com.telakuR.easyorder.setupProfile.ui.components.GetImageFromDatabase
-import com.telakuR.easyorder.setupProfile.viewModel.SetUpPictureVM
+import com.telakuR.easyorder.main.enums.RolesEnum
 import com.telakuR.easyorder.main.ui.theme.Background
 import com.telakuR.easyorder.main.ui.theme.MainButton
 import com.telakuR.easyorder.main.ui.theme.ProfileImageContent
 import com.telakuR.easyorder.main.ui.theme.Toolbar
+import com.telakuR.easyorder.setupProfile.route.SetUpProfileRoute
+import com.telakuR.easyorder.setupProfile.ui.components.GetImageFromDatabase
+import com.telakuR.easyorder.setupProfile.viewModel.SetUpPictureVM
 
 @Composable
 fun PicturePreviewScreen(
@@ -81,6 +81,7 @@ private fun TopAppBar(navController: NavController) {
 private fun BottomBar(navController: NavController, viewModel: SetUpPictureVM) {
     val role = viewModel.currentUserRole.collectAsStateWithLifecycle().value
     val context = LocalContext.current
+
 
     Column(modifier = Modifier.fillMaxWidth()) {
         MainButton(textId = R.string.next) {
