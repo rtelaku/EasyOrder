@@ -39,7 +39,7 @@ class SignUpVM @Inject constructor(
         get() = uiState.value.password
 
     init {
-        uiState.value = uiState.value.copy(role = getRoles()[0].role)
+        uiState.value = uiState.value.copy(role = getRoles()[0].name)
     }
 
     fun getRoles(): Array<RolesEnum> {

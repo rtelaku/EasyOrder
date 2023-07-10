@@ -67,7 +67,7 @@ fun BaseHomeScreen(viewModel: RequestsVM = hiltViewModel(), homeVM: HomeVM = hil
 
         homeVM.isUserInACompany()
         val isUserInACompany = homeVM.isUserOnACompany.collectAsStateWithLifecycle().value
-        if(role == RolesEnum.USER.role && currentDestination == HomeRoute.Home.route && isUserInACompany == true) {
+        if(role == RolesEnum.USER.name && currentDestination == HomeRoute.Home.route && isUserInACompany == true) {
             BottomRightButton(textId = R.string.create_order) {
                 homeVM.checkIfUserHasAnOrder()
             }

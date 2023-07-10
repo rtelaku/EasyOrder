@@ -123,7 +123,7 @@ class AccountServiceImpl @Inject constructor(
         val users = fireStore.collection(DBCollectionEnum.USERS.title)
         users.document(currentUser.uid).set(user)
 
-        if (role == RolesEnum.COMPANY.role) {
+        if (role == RolesEnum.COMPANY.name) {
             val employees = fireStore.collection(DBCollectionEnum.EMPLOYEES.title).document(currentUser.uid)
             employees.set(
                 mapOf(

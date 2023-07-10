@@ -73,7 +73,7 @@ class SetupProfileRepositoryImpl @Inject constructor(
     override fun getCompanies(): Flow<List<User>> = flow {
         try {
             val list = arrayListOf<User>()
-            val companies = fireStore.collection(DBCollectionEnum.USERS.title).whereEqualTo(ROLE, RolesEnum.COMPANY.role).get().await()
+            val companies = fireStore.collection(DBCollectionEnum.USERS.title).whereEqualTo(ROLE, RolesEnum.COMPANY.name).get().await()
             companies.forEach {
                 val decodedCompany = Gson().fromJson(Gson().toJson(it.data), User::class.java)
                 decodedCompany.id = it.id

@@ -2,7 +2,6 @@ package com.telakuR.easyorder.main.enums
 
 import com.telakuR.easyorder.R
 import com.telakuR.easyorder.room_db.enitites.NotificationModel
-import com.telakuR.easyorder.utils.EasyOrder
 
 enum class NotificationTypeEnum(val id: Double) {
     NEW_ORDER(1.0),
@@ -12,16 +11,14 @@ enum class NotificationTypeEnum(val id: Double) {
     NEW_EMPLOYEE_REQUEST(3.0);
 
     companion object {
-        fun getMessageBasedOnNotification(notification: NotificationModel): String {
-            val context = EasyOrder.getInstance().applicationContext
-
+        fun getMessageBasedOnNotification(notification: NotificationModel): Pair<Int?, Array<String?>> {
             return when(notification.id) {
-                NEW_ORDER.id -> String.format(context.getString(R.string.ordering_notification), notification.ownerName, notification.fastFood)
-                NEW_MENU_ITEM.id -> String.format(context.getString(R.string.employee_added_menu_item), notification.ownerName)
-                ACCEPTED_TO_COMPANY.id -> String.format(context.getString(R.string.you_have_been_accepted_to_company), notification.ownerName)
-                REJECTED_FROM_COMPANY.id -> String.format(context.getString(R.string.you_have_been_declined_from_company), notification.ownerName)
-                NEW_EMPLOYEE_REQUEST.id -> String.format(context.getString(R.string.employee_requesting_to_join_company), notification.ownerName)
-                else -> { "" }
+                NEW_ORDER.id -> Pair(R.string.ordering_notification, arrayOf(notification.ownerName, notification.fastFood))
+                NEW_MENU_ITEM.id ->  Pair(R.string.employee_added_menu_item, arrayOf(notification.ownerName))
+                ACCEPTED_TO_COMPANY.id ->  Pair(R.string.you_have_been_accepted_to_company, arrayOf(notification.ownerName))
+                REJECTED_FROM_COMPANY.id ->  Pair(R.string.you_have_been_declined_from_company, arrayOf(notification.ownerName))
+                NEW_EMPLOYEE_REQUEST.id ->  Pair(R.string.employee_requesting_to_join_company, arrayOf(notification.ownerName))
+                else -> {  Pair(null, emptyArray<String?>()) }
             }
         }
     }

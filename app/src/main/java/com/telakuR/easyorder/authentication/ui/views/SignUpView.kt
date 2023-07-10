@@ -33,7 +33,7 @@ fun SignUpScreen(
     viewModel: SignUpVM = hiltViewModel()
 ) {
     val uiState by viewModel.uiState
-    var role = viewModel.getRoles()[0].role
+    var role = viewModel.getRoles()[0].name
 
     Scaffold(
         topBar = {
@@ -105,12 +105,13 @@ fun SignUpScreen(
                         viewModel.getRoles().forEach { selectionOption ->
                             DropdownMenuItem(
                                 onClick = {
-                                    role = selectionOption.role
+                                    role = selectionOption.name
                                     expanded = false
                                 },
                                 modifier = Modifier.background(Color.White)
                             ) {
-                                Text(text = selectionOption.role)
+                                val role = stringResource(id = selectionOption.role)
+                                Text(text = role)
                             }
                         }
                     }

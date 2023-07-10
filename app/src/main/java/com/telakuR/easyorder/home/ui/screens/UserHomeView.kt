@@ -41,9 +41,9 @@ import java.util.*
 @Composable
 fun UserHomeScreen(navController: NavHostController, viewModel: HomeVM = hiltViewModel(), role: String) {
     Scaffold(content = { it
-        if(role == RolesEnum.COMPANY.role) {
+        if(role == RolesEnum.COMPANY.name) {
             CompanyHome(viewModel)
-        } else if(role == RolesEnum.USER.role) {
+        } else if(role == RolesEnum.USER.name) {
             EmployeeHome(viewModel, navController = navController)
         }
 

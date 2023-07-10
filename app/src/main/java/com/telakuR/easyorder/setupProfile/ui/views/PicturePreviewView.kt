@@ -85,9 +85,9 @@ private fun BottomBar(navController: NavController, viewModel: SetUpPictureVM) {
 
     Column(modifier = Modifier.fillMaxWidth()) {
         MainButton(textId = R.string.next) {
-            if(role == RolesEnum.USER.role) {
+            if(role == RolesEnum.USER.name) {
                 navController.navigate(SetUpProfileRoute.FindYourCompany.route)
-            } else if(role == RolesEnum.COMPANY.role) {
+            } else if(role == RolesEnum.COMPANY.name) {
                 context.run {
                     val intent = Intent(this, HomeActivity::class.java)
                     intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK

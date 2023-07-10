@@ -120,11 +120,11 @@ class HomeVM @Inject constructor(
         val role = _currentUserRole.value
         val screens: ArrayList<HomeRoute> = arrayListOf()
 
-        if (role == RolesEnum.COMPANY.role) {
+        if (role == RolesEnum.COMPANY.name) {
             screens.add(HomeRoute.Home)
             screens.add(HomeRoute.Requests)
             screens.add(HomeRoute.Profile)
-        } else if (role == RolesEnum.USER.role) {
+        } else if (role == RolesEnum.USER.name) {
             screens.add(HomeRoute.Home)
             screens.add(HomeRoute.Orders)
             screens.add(HomeRoute.Profile)
