@@ -106,7 +106,9 @@ class MyOrdersRepositoryImpl @Inject constructor(
             if (ordersDocs.isNotEmpty()) {
                 for (ordersDoc in ordersDocs) {
                     val orderedRef = getOrderedSnapshot(ordersDoc)
-                    if(orderedRef.documents.isNotEmpty()) {
+                    val employeeId = ordersDoc.get(Constants.EMPLOYEE_ID) as String
+
+                    if(orderedRef.documents.isNotEmpty() || employeeId == accountService.currentUserId) {
                         val orderDetail = createOrderDetailsFromJson(ordersDoc)
                         orderDetail.owner = getEmployeeName(orderDetail.employeeId)
                         orderDetail.fastFood = getFastFoodName(orderDetail.fastFood)

@@ -4,7 +4,6 @@ import android.util.Log
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.QuerySnapshot
 import com.google.gson.Gson
 import com.telakuR.easyorder.home.models.EmployeeMenuItemResponse
 import com.telakuR.easyorder.home.models.FastFood
@@ -38,7 +37,6 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
-import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
@@ -335,72 +333,52 @@ class HomeDataRepositoryImpl @Inject constructor(
                 }
     }
 
-    override suspend fun checkIfEmployeeHasAnOrder(companyId: String): Boolean = suspendCoroutine {
-        try {
+    override suspend fun checkIfEmployeeHasAnOrder(companyId: String): Boolean =
+        suspendCoroutine { continuation ->
             fireStore.collection(DBCollectionEnum.ORDERS.title)
                 .whereEqualTo(COMPANY_ID, companyId)
                 .get()
-                .addOnCompleteListener { task ->
-                    if (task.isSuccessful) {
-                        val document = task.result
-
-                        if (document != null && !document.isEmpty)
-                            handleEmployeeOrderResponse(document = document, continuation = it)
-
-                    } else {
-                        it.resume(false)
-                    }
-                }
-        } catch (e: Exception) {
-            Log.e(TAG, "Couldn't check if employee has an order: ", e)
-        }
-    }
-
-    private fun handleEmployeeOrderResponse(
-        document: QuerySnapshot,
-        continuation: Continuation<Boolean>
-    ) {
-        document.documents[0].reference.collection(ORDERS).get()
-            .addOnCompleteListener { subTask ->
-                if (subTask.isSuccessful && (!subTask.result.isEmpty && subTask.result != null)) {
-                    var countOfOrders = 0
-
-                    for (doc in subTask.result.documents) {
-                        val employeeId = doc.get(EMPLOYEE_ID) as String
-
-                        if (employeeId == accountService.currentUserId) {
-                            countOfOrders++
+                .addOnSuccessListener { querySnapshot ->
+                    val documents = querySnapshot.documents
+                    if (documents.isNotEmpty()) {
+                        for (document in documents) {
+                            document.reference.collection(ORDERS)
+                                .whereEqualTo(EMPLOYEE_ID, accountService.currentUserId).get()
+                                .addOnSuccessListener { subSnapshot ->
+                                    continuation.resume(!subSnapshot.isEmpty)
+                                }.addOnFailureListener { e ->
+                                    Log.e(TAG, "Couldn't check if employee has an order: ", e)
+                                    continuation.resume(false)
+                                }
                         }
                     }
-
-                    continuation.resume(countOfOrders >= 1)
-                } else {
-                    continuation.resume(false)
                 }
-            }
-    }
+        }
 
-    override suspend fun getFastFoodId(orderId: String, companyId: String): String = suspendCoroutine { continuation ->
-            try {
-                if(orderId.isNotEmpty()) {
-                    fireStore.collection(DBCollectionEnum.ORDERS.title).whereEqualTo(COMPANY_ID, companyId)
-                        .get().addOnSuccessListener { snapshot ->
-                            val documents = snapshot.documents
-                            if(documents.isNotEmpty()) {
-                                for (document in documents) {
-                                    document.reference.collection(ORDERS).document(orderId).get().addOnSuccessListener { subSnapshot ->
+    override suspend fun getFastFoodId(orderId: String, companyId: String): String =
+        suspendCoroutine { continuation ->
+            if (orderId.isNotEmpty()) {
+                fireStore.collection(DBCollectionEnum.ORDERS.title)
+                    .whereEqualTo(COMPANY_ID, companyId)
+                    .get()
+                    .addOnSuccessListener { snapshot ->
+                        val documents = snapshot.documents
+                        if (documents.isNotEmpty()) {
+                            for (document in documents) {
+                                document.reference.collection(ORDERS).document(orderId).get()
+                                    .addOnSuccessListener { subSnapshot ->
                                         continuation.resume(subSnapshot.get(FAST_FOOD) as String)
                                     }
-                                }
                             }
                         }
-                } else {
-                    continuation.resume("")
-                }
-            } catch (e: Exception) {
-                Log.e(TAG, "Couldn't get fast food: ", e)
+                    }.addOnFailureListener { e ->
+                        Log.e(TAG, "Couldn't get fast food: ", e)
+                        continuation.resume("")
+                    }
+            } else {
+                continuation.resume("")
             }
-    }
+        }
 
     override suspend fun getOrder(orderId: String, companyId: String): MyOrder? = suspendCoroutine { continuation ->
         fireStore.collection(DBCollectionEnum.ORDERS.title)
